@@ -77,7 +77,7 @@ const IndexTabLeft = ({ msg, tabPaneInit }) => {
           .lineLeftStyle {
             position: fixed;
             top: 50px;
-            width: 10%;
+            width: 11%;
             bottom: 0;
             left: 0;
             height: auto;

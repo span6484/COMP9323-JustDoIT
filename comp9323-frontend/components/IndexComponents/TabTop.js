@@ -85,7 +85,7 @@ const IndexTabTop = ({ msg, tabPaneInit, loginOut , topRef }) => {
       <Popover
         placement="bottom"
         title={() => {
-          return <span>个人信息</span>
+          return <span>User Profile</span>
         }}
         content={() => {
           return (
@@ -96,28 +96,7 @@ const IndexTabTop = ({ msg, tabPaneInit, loginOut , topRef }) => {
                 padding:0,
                 border:"none"
               }}>
-                <li
-                  style={{
-                    border: 'none'
-                  }}
-                  key={'userReward'}
-                >
-                  {' '}
-                  积分：
-                  <span
-                    style={{
-                      color: '#1890ff',
-                    }}>
-                    {getCount()}
-                  </span>
-                  分
-                  <div style={{
-                    width:"90%",
-                    marginLeft : "5%",
-                    height:"1px",
-                    backgroundColor: "#efefef"
-                  }}/>
-                </li>
+
                 <li
                   onClick={()=>{
                     changePasswordRef.current?.showMessage()
@@ -125,19 +104,19 @@ const IndexTabTop = ({ msg, tabPaneInit, loginOut , topRef }) => {
                   style={{
                   border: 'none'
                 }}>
-                  修改密码
+                  Change Password
                 </li>
               </ul>
             </ul>
           )
         }}
         trigger="click">
-        <div className={"LoginDivStyle"} title="个人信息" onClick={() => login(null)}>
+        <div className={"LoginDivStyle"} title="user profile" onClick={() => login(null)}>
           <h6>
             {loginType === 'loginOut'
-              ? '请登录，谢谢'
+              ? 'Login'
               : loginType === 'loginIn'
-              ? `欢迎登陆，${nameText || name}`
+              ? `${nameText || name}`
               : ''}
           </h6>
         </div>
@@ -145,11 +124,11 @@ const IndexTabTop = ({ msg, tabPaneInit, loginOut , topRef }) => {
       <div className={"LoginOut"}
         onClick={() => {
           Modal.confirm({
-            title: '提示',
+            title: 'NOTICE',
             icon: <ExclamationCircleOutlined />,
-            content: `确认退出吗`,
-            okText: '确认',
-            cancelText: '取消',
+            content: `Are you sure you want to log out?`,
+            okText: 'SURE',
+            cancelText: 'CANCEL',
             onOk: (e) => {
               login('loginOut')
             }
@@ -160,7 +139,7 @@ const IndexTabTop = ({ msg, tabPaneInit, loginOut , topRef }) => {
             type="loginOut"
             style={{ fontSize: '18px', color: '#fff' }}
           />
-          <h6>退出</h6>
+          <h6>LogOut</h6>
         </div>
       </div>
       <ChangePasswordComponent authorId={msg.authorId} userName={name}

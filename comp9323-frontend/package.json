@@ -1,5 +1,5 @@
 {
-  "name": "service-web",
+  "name": "only-movie",
   "version": "0.1.0",
   "main": "main.js",
   "private": true,

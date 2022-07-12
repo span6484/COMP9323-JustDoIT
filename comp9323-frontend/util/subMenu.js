@@ -2,39 +2,35 @@
 export const fatherSubMenu = (type) => {
   const json = [
     {
-      value: 'ctrip_page_tag',
-      name: '选课界面',
-      type: 'contents', //配置icon
+      value: 'dash_board',
+      name: 'DASHBOARD',
+      type: 'contents',
       child: [
         {
-          value: 'ctrip_page_page_type',
-          page: '/courseSelection/list',
-          name: '选课列表',
-          type: 'page'
+          value: 'dash_board_course_overview',
+          page: '/Dashboard/CourseOverview',
+          name: 'Courses',
+          type: 'page',
+          hasPage: [
+            {
+              schema: /^(\/courseSelection\/courseDetail\?id=)([0-9a-zA-Z]+)+/,
+              title: (name) => {
+                return `${name}`
+              }
+            }
+          ]
         },
         {
-          value: 'ctrip_page_page_detail',
-          page: '/courseSelection/detail',
-          name: '选课详情',
-          type: 'page'
-        }
-      ]
-    },{
-      value: 'ctrip_ccc_tag2',
-      name: '选课界面2',
-      type: 'contents', //配置icon
-      child: [
-        {
-          value: 'ctrip_ccc_tag2_type2',
-          page: '/lllll/list',
-          name: '选课列表2',
-          type: 'page'
+          value: 'dash_board_all_project',
+          page: '/Dashboard/AllProject',
+          name: 'My Projects',
+          type: 'project'
         },
         {
-          value: 'ctrip_ccc_tag2_detail2',
-          page: '/lllll/detail',
-          name: '选课详情2',
-          type: 'page'
+          value: 'dash_board_award_projects',
+          page: '/Dashboard/AwardProjects',
+          name: 'Award',
+          type: 'award'
         }
       ]
     }

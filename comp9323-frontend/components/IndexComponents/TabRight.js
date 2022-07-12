@@ -32,7 +32,7 @@ const IndexTabRight = ({ msg, dom, setInitTabPane, changeIframeUrl }) => {
       style={{
         left:
           initSubMenuJSon && initSubMenuJSon.length > 0
-            ? 'calc(10% + 20px)'
+            ? 'calc(11% + 20px)'
             : !!initTabPane && initTabPane.length > 0
             ? '20px'
             : '0'
