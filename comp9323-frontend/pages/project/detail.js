@@ -1,15 +1,20 @@
 import PageBase from '../basePage'
-import React, { useRef, onChange, useState } from 'react'
+import React, { useRef, onChange, useState,useEffect } from 'react'
 import { Col, Row, Button, Typography, Image, Space, Collapse, Steps, Popover, Statistic, Comment, Avatar } from 'antd';
+import AllProject from "../Dashboard/AllProject";
 const { Title, Paragraph, Text, Link } = Typography;
 
-const TextIndex = ({ USERMESSAGE }) => {
+const TextIndex = ({ USERMESSAGE ,urlMsg}) => {
     const ref = useRef();
     const { Panel } = Collapse;
     const onChange = (key) => {
         console.log(key);
     };
-
+    useEffect(()=>{
+        setTimeout(()=>{
+            ref?.current.getTabPane(urlMsg.asPath, `Project Name`)
+        },0)
+    },[])
     const { Step } = Steps;
     const ExampleComment = ({ children }) => (
         <Comment
@@ -51,7 +56,7 @@ const TextIndex = ({ USERMESSAGE }) => {
 
                                 <Button type="primary">Join Project</Button>
                                 <Button type="primary">Submit Work</Button>
-                                <Button type="primary">Quit Project</Button>
+                                {/*<Button type="primary">Quit Project</Button>*/}
                                 <Button>Edit Project</Button>
                                 <Button style={{ background: 'lightblue' }}>View works</Button>
                             </Col>
@@ -139,5 +144,12 @@ const TextIndex = ({ USERMESSAGE }) => {
             </>    </PageBase>
     )
 }
-
+TextIndex.getInitialProps = async (status) => {
+    const asPath = status.asPath;
+    return {
+        urlMsg: {
+            asPath
+        }
+    }
+}
 export default TextIndex

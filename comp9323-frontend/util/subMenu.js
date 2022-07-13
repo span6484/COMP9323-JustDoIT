@@ -24,7 +24,15 @@ export const fatherSubMenu = (type) => {
           value: 'dash_board_all_project',
           page: '/Dashboard/AllProject',
           name: 'My Projects',
-          type: 'project'
+          type: 'project',
+          hasPage: [
+                  {
+                    schema: /^(\/project\/detail\?id=)([0-9a-zA-Z]+)+/,
+                    title: (name) => {
+                      return `${name}`
+                    }
+                  }
+                ]
         },
         {
           value: 'dash_board_award_projects',

@@ -1,7 +1,8 @@
 import PageBase from '../basePage'
 import React, { useEffect, useRef, useState } from "react";
 import CourseOverviewStyle from "./CourseOverview.less";
-import {Pagination} from "antd"
+import {Pagination,Tooltip} from "antd"
+import {EllipsisOutlined} from "@ant-design/icons"
 const CourseOverview = ({ USERMESSAGE }) => {
   const ref = useRef();
   const [courseList,changeCourseList] = useState([]);
@@ -37,8 +38,13 @@ const CourseOverview = ({ USERMESSAGE }) => {
           {
             courseList && courseList.map((item,index) => {
               return <div className={"award-project-component-item"} key={"award-project-component-" + index}>
-                      <h5>CourseName:</h5>
-                      <h6>Duration</h6>
+                      {/*<Tooltip placement="top" title={"Course Detail"}>*/}
+                      {/*     <EllipsisOutlined className={"look_course_detail"}/>*/}
+                      {/* </Tooltip>*/}
+                      <Tooltip placement="top" title={"Course Detail"}>
+                            <h5>Course Name:</h5>
+                      </Tooltip>
+                      <h6>Duration: 09/01/2022 - 03/02/2022</h6>
                   </div>
             })
           }

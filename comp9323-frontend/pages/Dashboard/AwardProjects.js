@@ -92,8 +92,8 @@ const AwardProjects = ({ USERMESSAGE }) => {
                 {itemDom(item.proposer)}
               </div>
               <div className={"award-project-component-tab"}>
-                <h6>Group members:</h6>
-                {itemDom(item.groupMembers)}
+                <h6>Winner:</h6>
+                {itemDom(item.winner)}
               </div>
             </div>
           })
