@@ -1,14 +1,21 @@
 import PageBase from '../basePage'
 import React ,{useRef,useState,useEffect} from 'react'
-import {Select,Button} from "antd"
+import {Select,Button,Table} from "antd"
 const {Option} = Select;
 import AllProjectStyle from "./AllProject.less"
 const AllProject = ({ USERMESSAGE, urlMsg }) => {
   const ref = useRef();
+  const [data,changeData] = useState([]);
+  const [pageLoading,changePageLoading] = useState(false);
   const [search,changeSearch] = useState({
     projectType : null,
     course : null
   });
+  const [page,changePage] = useState({
+      size : 10,
+      number : 1,
+      total : 0
+  })
   const [asPath] = useState(urlMsg.asPath);
   const [projectList,changeProject] = useState([{
     key : null,
@@ -42,6 +49,67 @@ const AllProject = ({ USERMESSAGE, urlMsg }) => {
     key : "Course3",
     value : "Course3"
   }]);
+  const columns = [
+    {
+      title: 'Project Name',
+      width: 100,
+      dataIndex: 'projectName',
+      key: 'projectName',
+      fixed: 'left',
+    },
+    {
+      title: 'Course',
+      width: 100,
+      dataIndex: 'course',
+      key: 'course',
+      fixed: 'left',
+    },
+    {
+      title: 'Course Authority',
+      dataIndex: 'courseAuthority',
+      key: 'courseAuthority',
+      width: 150,
+    },
+    {
+      title: 'Current Student Number',
+      dataIndex: 'currentStudentNumber',
+      key: 'currentStudentNumber',
+      width: 150,
+    },
+    {
+      title: 'Max Student Number',
+      dataIndex: 'maxStudentNumber',
+      key: 'maxStudentNumber',
+      width: 150,
+    },
+    {
+      title: 'Start Time',
+      dataIndex: 'startTime',
+      key: 'startTime',
+      width: 150,
+    },
+    {
+      title: 'Close Time',
+      dataIndex: 'closeTime',
+      key: 'closeTime',
+      width: 150,
+    },
+    {
+      title: 'Statues',
+      dataIndex: 'statues',
+      key: 'statues',
+      width: 150,
+    },
+    {
+      title: 'Action',
+      key: 'operation',
+      fixed: 'right',
+      width: 100,
+      render: () =>{
+        return <a>Detail</a>
+      }
+    },
+  ];
   useEffect(()=>{
     setTimeout(() => {
       const _data = ref?.current?.getTabPaneOption() || {};
@@ -49,13 +117,98 @@ const AllProject = ({ USERMESSAGE, urlMsg }) => {
         projectType : _data.projectType || null,
         course : _data.course || null,
       })
+      changePage({
+        size : _data.size || 10,
+        number : _data.number || 1,
+        total : _data.total ||0
+      })
+      initList({
+        size : _data.size || 10,
+        number : _data.number || 1,
+        total : _data.total ||0
+      },{
+        projectType : _data.projectType || null,
+        course : _data.course || null,
+      })
     },0)
   },[]);
+  function initList(initPage,initSearch) {
+    initPage = initPage || page;
+    initSearch = initSearch || search;
+    const _data = [{
+      projectName : "English",
+      course : "aaa",
+      courseAuthority : "adad",
+      currentStudentNumber : 1,
+      maxStudentNumber : 3,
+      startTime : "2010-12-11 13:40:20",
+      closeTime : "2022-12-11 13:40:20",
+      statues : "4",
+    },{
+      projectName : "English",
+      course : "aaa",
+      courseAuthority : "adad",
+      currentStudentNumber : 1,
+      maxStudentNumber : 3,
+      startTime : "2010-12-11 13:40:20",
+      closeTime : "2022-12-11 13:40:20",
+      statues : "4",
+    },{
+      projectName : "English",
+      course : "aaa",
+      courseAuthority : "adad",
+      currentStudentNumber : 1,
+      maxStudentNumber : 3,
+      startTime : "2010-12-11 13:40:20",
+      closeTime : "2022-12-11 13:40:20",
+      statues : "4",
+    },{
+      projectName : "English",
+      course : "aaa",
+      courseAuthority : "adad",
+      currentStudentNumber : 1,
+      maxStudentNumber : 3,
+      startTime : "2010-12-11 13:40:20",
+      closeTime : "2022-12-11 13:40:20",
+      statues : "4",
+    },{
+      projectName : "English",
+      course : "aaa",
+      courseAuthority : "adad",
+      currentStudentNumber : 1,
+      maxStudentNumber : 3,
+      startTime : "2010-12-11 13:40:20",
+      closeTime : "2022-12-11 13:40:20",
+      statues : "4",
+    }]
+    changeData(_data);
+    changePage({
+      ...initPage,
+      ...{
+        total : 30
+      }
+    });
+  }
   function clearSearch() {
     changeSearch({
       projectType : null,
       course : null
     });
+    changePage({
+      ...page,
+      ...{
+        number : 1,
+      }
+    });
+    initList({
+      ...page,
+      ...{
+        number : 1,
+      }
+    },{
+      projectType : null,
+      course : null
+    })
   }
   return (
     <PageBase cRef={ref} USERMESSAGE={USERMESSAGE}>
@@ -127,6 +280,35 @@ const AllProject = ({ USERMESSAGE, urlMsg }) => {
             &nbsp;&nbsp;
           </div>
         </div>
+        <Table
+          columns={columns}
+          dataSource={data}
+          scroll={{
+            x: 1500,
+          }}
+          pagination={{
+            showQuickJumper : true,
+            total: page.total,
+            style: { textAlign: 'right', marginTop: 20 },
+            pageSize: page.size,
+            current: page.number,
+            showSizeChanger: true,
+            rowKey: 'id',
+            pageSizeOptions: [10, 20, 30, 50],
+            showTotal: (e) => {
+              return `${page.total} in total`;
+            },
+          }}
+          loading={pageLoading}
+          onChange={(pagination, filters, sorter) => {
+            const _page = _.cloneDeep(page);
+            const { current, pageSize } = pagination;
+            _page.number = current;
+            _page.size = pageSize;
+            changePage(_page);
+            initList(_page,null);
+          }}
+        />
       </div>
     </PageBase>
   )
