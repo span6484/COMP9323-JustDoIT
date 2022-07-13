@@ -19,7 +19,7 @@ const App = ({ Component, pageProps, cookie, router }) => {
     _cookie = null
   }
   if(_cookie && _cookie.id){
-   
+
   }
 
   return (
@@ -50,7 +50,7 @@ App.getInitialProps = async ({ Component, ctx }) => {
     _cookie = ctx.req.headers.cookie
   }
   if(ctx && ctx.req && ctx.req.url === "/"){
-      ctx.res.redirect(301,"/courseSelection/list")
+      ctx.res.redirect(301,"/Dashboard/CourseOverview")
   }
   return {
     pageProps: pageProps,

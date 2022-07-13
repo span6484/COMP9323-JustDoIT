@@ -4,6 +4,7 @@ import _ from 'lodash'
 import { Base64 } from 'js-base64'
 const md5 = require('js-md5')
 import { EyeInvisibleOutlined, EyeTwoTone } from '@ant-design/icons'
+import changePassWordStyle from "./ChangePassword.less"
 const ChangePasswordComponent = ({ changePasswordRef,authorId ,userName}) => {
   const [visibleModal,changeVisible] = useState(false)
   const [password, changePassword] = useState('')
@@ -29,22 +30,29 @@ const ChangePasswordComponent = ({ changePasswordRef,authorId ,userName}) => {
   }
   return (
     <div>
+      <style dangerouslySetInnerHTML={{
+        __html : changePassWordStyle
+      }}/>
       <Modal
         maskClosable={false}
         visible={visibleModal}
-        title={'修改密码'}
-        okText="确认"
-        cancelText="取消"
+        title={'CHANGE PASSWORD'}
+        okText="SUBMIT"
+        cancelText="CANCEL"
         onOk={() => {
-          if (!password) {
-            message.error('请填写密码')
+          if(!password || !(password &&password.trim())){
+            message.warn('Please enter your new password')
             return false
+          }
+          if(password.length < 6){
+            message.warn("Password length is less than six digits");
+            return;
           }
           if (password !== passwordCheck) {
-            message.error('两次密码不一样，请确认')
+            message.warn('Entered passwords differ!')
             return false
           }
-          const pass = Base64.encode(md5(password))
+          const pass = Base64.encode(md5(password.trim()))
           const json = {
             id : authorMsg.id,
             password: pass,
@@ -56,12 +64,12 @@ const ChangePasswordComponent = ({ changePasswordRef,authorId ,userName}) => {
           changePassword( '')
           changePasswordCheck( '')
         }}>
-        <div className={"AddPageBox"}>
+        <div className={"AddPageBoxChangePassword"}>
           <div className={"UserAddBox"}>
-            <h6 className="w2">密码</h6>
+            <h6 >Password</h6>
             <div className="inputDiv">
               <Input.Password
-                placeholder="密码"
+                placeholder="Please enter your new password"
                 onChange={(e) => inputChange(e, 'password')}
                 value={password}
                 iconRender={(visible) =>
@@ -71,10 +79,10 @@ const ChangePasswordComponent = ({ changePasswordRef,authorId ,userName}) => {
             </div>
           </div>
           <div className={"UserAddBox"}>
-            <h6 className="w4">确认密码</h6>
+            <h6 >Check Password</h6>
             <div className="inputDiv">
               <Input.Password
-                placeholder="再次输入密码"
+                placeholder="Please enter your new password again"
                 onChange={(e) => inputChange(e, 'passwordCheck')}
                 value={passwordCheck}
                 iconRender={(visible) =>

@@ -8,9 +8,10 @@ import {userRegister,userLogin} from "./MockData";
 import Style from "./login.less"
 import _ from "lodash"
 const UgcLogin = ({}) => {
-  const [user, changeUser] = useState('admin')
+  const [user, changeUser] = useState('');
   const [password, changePassword] = useState('');
   const [newUser,changeNewUser] = useState({
+     id: "",
      userName : "",
      password : "",
      email : "",
@@ -40,10 +41,10 @@ const UgcLogin = ({}) => {
     }
   }
   function login() {
-    const _user = user.trim();
-    const _password = password.trim();
+    const _user = user && user.trim() || "";
+    const _password = password && password.trim() || "";
     if (!_user) {
-      message.error('enter your username');
+      message.error("enter your email or id");
       return false
     }
     if (!_password) {
@@ -51,6 +52,19 @@ const UgcLogin = ({}) => {
       return false
     }
     const _pass = Base64.encode(md5(_password));
+    message.success("login was successful");
+    window.location.href = "/";
+    const time = (new Date()).getTime() + 10*24*60*60*1000;
+    setCookie("USER_MESSAGE",JSON.stringify({
+      name : _user,
+      type : 1,
+      token : Base64.encode(`${_user}&&sadasdasdad&&${time}&&1&&${_user}`),
+    }),100);
+    localStorage.setItem(
+      'USER_ACCOUNT',
+      Base64.encode(`${_user} || ${_password}`)
+    )
+    return;
     userLogin({
       userName : _user,
       password : _pass
@@ -77,7 +91,7 @@ const UgcLogin = ({}) => {
             <div className="loginImage"/>
             <div>
               <Input
-                placeholder="enter your username"
+                placeholder="enter your email or id"
                 onChange={(e) => inputChange(e, 'user')}
                 prefix={<UserOutlined />}
                 value={user}
@@ -93,7 +107,7 @@ const UgcLogin = ({}) => {
               onClick={()=>{
                 changeRegisterVisible(true)
               }}
-              className={"register"}>register</h6>
+              className={"register"}>REGISTER</h6>
             <Button type="primary" onClick={() => login()}>
               LOGIN
             </Button>
@@ -102,41 +116,54 @@ const UgcLogin = ({}) => {
       </div>
       <Modal
         visible={registerVisible}
-        title={`register`}
-        okText="ok"
+        title={`REGISTER`}
+        okText="SUBMIT"
         zIndex={2}
-        cancelText="cancel"
+        cancelText="CANCEL"
         onOk={() => {
-           const {userName,passwordSure,password,email} = newUser;
-           if(!userName){
-             message.warn("Please enter userName");
-             return
+           const {userName,passwordSure,password,email,id} = newUser;
+          if(!id || !(id && id.trim())){
+            message.warn("Please enter your id");
+            return;
+          }
+          if(!userName || !(userName && userName.trim())){
+             message.warn("Please enter your name");
+             return;
            }
-           if(!email){
-             message.warn("Please enter email");
-             return
+          if(!email || !(email &&email.trim())){
+             message.warn("Please enter your email");
+             return;
            }else{
-             if(!(email.match(/^\w+@\w+\.\w+$/i))){
+             if(!((email &&email.trim()).match("^([\\w\\.-]+)@([a-zA-Z0-9-]+)(\\.[a-zA-Z\\.]+)$"))){
                message.warn("Please enter a mailbox in the correct format");
-               return
+               return;
              }
            }
-           if(!password){
-             message.warn("Please enter password");
-             return
+          if(!password || !(password &&password.trim())){
+             message.warn("Please enter your password");
+             return;
            }
+            if(password.length < 6){
+              message.warn("Password length is less than six digits");
+              return;
+            }
            if(password !== passwordSure){
              message.warn("Entered passwords differ!");
-             return
+             return;
            }
-          const _pass = Base64.encode(md5(password))
+          const _pass = Base64.encode(md5(password.trim()));
+           return;
           userRegister({
-            userName,password : _pass,email
+            id : id.trim(),
+            userName : userName.trim(),
+            password : _pass,
+            email : email.trim()
           }).then(res => {
             if(res.status === 0){
               message.success("register was successful");
               changeRegisterVisible(false);
               changeNewUser({
+                id: "",
                 userName : "",
                 password : "",
                 email : "",
@@ -150,19 +177,36 @@ const UgcLogin = ({}) => {
         onCancel={() => {
           changeRegisterVisible(false);
           changeNewUser({
+            id: "",
             userName : "",
             password : "",
             email : "",
             passwordSure : ""
           })
         }}>
-        <div className={"modal_box"}>
+        <div className={"modal_box_login_component"}>
           <div className="box">
-            <h6>UserName</h6>
+            <h6>ID</h6>
+            <div className="switch_box">
+              <Input
+                value={newUser.id}
+                placeholder="Please enter your ID"
+                prefix={<UserOutlined />}
+                onChange={(e) => {
+                  const _value = e.target.value;
+                  const _newPageMessage = _.clone(newUser);
+                  _newPageMessage.id = _value;
+                  changeNewUser(_newPageMessage);
+                }}
+              />
+            </div>
+          </div>
+          <div className="box">
+            <h6>Name</h6>
             <div className="switch_box">
               <Input
                 value={newUser.userName}
-                placeholder="Please enter userName"
+                placeholder="Please enter your username"
                 prefix={<UserOutlined />}
                 onChange={(e) => {
                   const _value = e.target.value;
@@ -179,23 +223,23 @@ const UgcLogin = ({}) => {
               <Input
                 prefix={<MailOutlined />}
                 value={newUser.email}
-                placeholder="Please enter email"
+                placeholder="Please enter your email"
                 onChange={(e) => {
                   const _value = e.target.value;
-                  const _newPageMessage = _.clone(newUser)
-                  _newPageMessage.email = _value
+                  const _newPageMessage = _.clone(newUser);
+                  _newPageMessage.email = _value;
                   changeNewUser(_newPageMessage)
                 }}
               />
             </div>
           </div>
           <div className="box">
-            <h6>PassWord</h6>
+            <h6>Password</h6>
             <div className="switch_box">
               <Input.Password
                 prefix={<LockOutlined />}
                 value={newUser.password}
-                placeholder="Please enter password"
+                placeholder="Please enter your password"
                 onChange={(e) => {
                   const _value = e.target.value;
                   const _newPageMessage = _.clone(newUser);
@@ -206,12 +250,12 @@ const UgcLogin = ({}) => {
             </div>
           </div>
           <div className="box">
-            <h6>Confirm</h6>
+            <h6>Check Password</h6>
             <div className="switch_box">
               <Input.Password
                 prefix={<LockOutlined />}
                 value={newUser.passwordSure}
-                placeholder="Please confirm password"
+                placeholder="Please check your password"
                 onChange={(e) => {
                   const _value = e.target.value;
                   const _newPageMessage = _.clone(newUser);
