@@ -13,7 +13,13 @@ export const fatherSubMenu = (type) => {
           type: 'page',
           hasPage: [
             {
-              schema: /^(\/courseSelection\/courseDetail\?id=)([0-9a-zA-Z]+)+/,
+              schema: /^(\/Dashboard\/CourseDetail\?id=)([0-9a-zA-Z]+)+/,
+              title: (name) => {
+                return `${name}`
+              }
+            },
+            {
+              schema: /^(\/Dashboard\/RequirementDetail\?id=)([0-9a-zA-Z]+)+/,
               title: (name) => {
                 return `${name}`
               }

@@ -42,7 +42,15 @@ const CourseOverview = ({ USERMESSAGE }) => {
                       {/*     <EllipsisOutlined className={"look_course_detail"}/>*/}
                       {/* </Tooltip>*/}
                       <Tooltip placement="top" title={"Course Detail"}>
-                            <h5>Course Name:</h5>
+                            <h5
+                                onClick={()=>{
+                                  ref.current.setTabPane(
+                                      `Course Detail`,
+                                      '',
+                                      `/Dashboard/CourseDetail?id=123132`
+                                  )
+                                }}
+                            >Course Name:</h5>
                       </Tooltip>
                       <h6>Duration: 09/01/2022 - 03/02/2022</h6>
                   </div>
