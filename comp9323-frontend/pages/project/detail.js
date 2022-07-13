@@ -20,6 +20,9 @@ const TextIndex = ({ USERMESSAGE }) => {
                         <Button type="primary">Join Project</Button>
                         <br />
                         <Button>Edit Project</Button>
+                        <br />
+                        <Button>Submit work</Button>
+
                     </Col>
                 </Row>
                 <Row>
