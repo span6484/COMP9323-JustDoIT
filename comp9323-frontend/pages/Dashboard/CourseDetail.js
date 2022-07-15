@@ -1,10 +1,14 @@
 import PageBase from '../basePage'
 import React, { useRef, useState,useEffect } from 'react'
-import { Col, Row, message, Typography, Button, Space, Tooltip, Steps, Comment, Avatar } from 'antd';
-import {MailOutlined,DeleteOutlined,FormOutlined} from "@ant-design/icons"
+import { Col, Row, message, Typography, Button, Space, Tooltip, Steps, Comment, Avatar,Modal } from 'antd';
+const {confirm} = Modal
+import {MailOutlined,DeleteOutlined,FormOutlined,ExclamationCircleOutlined} from "@ant-design/icons"
 const { Title, Paragraph, Text, Link } = Typography;
 import CourseDetailStyle from "./CourseDetail.less"
 import { CopyToClipboard } from 'react-copy-to-clipboard';
+// import store from '../../util/store';
+// import { Dispatch } from 'redux';
+import { editAction } from '../../redux/Test/actions';
 const CourseDetail = ({ USERMESSAGE ,urlMsg}) => {
     const ref = useRef();
     useEffect(()=>{
@@ -16,6 +20,17 @@ const CourseDetail = ({ USERMESSAGE ,urlMsg}) => {
     // 0:CA，1:S，2:P，3:R
     const [user,changeUser] = useState({role:0})
     // changeUser({role:0})  internal server error
+    function publicToReviewers() {
+      confirm({
+        title: 'Are you sure you want to make all proposals public to reviewers?',
+        icon: <ExclamationCircleOutlined />,
+        okText : "YES",
+        cancelText : "NO",
+        onOk(){
+          message.success("Successfully Made Public");
+        }
+      });
+    }
     return (
         <PageBase cRef={ref} USERMESSAGE={USERMESSAGE}>
             <style dangerouslySetInnerHTML={{
@@ -55,8 +70,8 @@ const CourseDetail = ({ USERMESSAGE ,urlMsg}) => {
                             {user.role == 0 &&
                             <Col span={6}
                                  className={"action-button-box"}>
-                                <Button>Add Requirement</Button>
-                                <Button>Public to Reviewers</Button>
+                                <Button onClick={()=>{window.location.href ='http://localhost:8088/Dashboard/RequirementDetail?id=123132'}}>Add Requirement</Button>
+                                <Button onClick={()=>publicToReviewers()}>Public to Reviewers</Button>
                                 <div className={"action-button-box-button"}/>
                                 <div className={"action-button-box-button"}/>
                                 <div className={"action-button-box-button"}/>
@@ -308,9 +323,19 @@ const CourseDetail = ({ USERMESSAGE ,urlMsg}) => {
                           {
                             requirementList && requirementList.map((item,index) => {
                               return <div className={"requirement_box"} key={"requirementList_" + index}>
-                                         {item.ismine == true &&
+                                         {item.ismine &&
                                          <div className={"action_box"}>
-                                           <FormOutlined className={"icon-button"}/>
+                                           <FormOutlined className={"icon-button"} onClick={()=>{
+                                            // console.log(window.location.href);
+                                            // console.log(store);
+                                            // store.createAction(editAction('wmq'),state=>{
+                                            //   console.log(state);
+                                            // })
+                                            // Dispatch(editAction('wmq'))
+                                            // dispatch();
+                                            //todo
+                                            window.location.href ='http://localhost:8088/Dashboard/RequirementDetail?id=123132'
+                                            }}/>
                                            <DeleteOutlined className={"icon-button"} />
                                          </div>
                                           }
@@ -322,7 +347,7 @@ const CourseDetail = ({ USERMESSAGE ,urlMsg}) => {
                                                `/Dashboard/RequirementDetail?id=123132`
                                              )
                                            }}
-                                         >Requirement title</p>
+                                         >Requirement Detail</p>
                                          <div className={"description"}>
                                            <strong>Description:</strong>&nbsp;I need two-months projects to empower students around creating a website. Students need to have knowledge of front-end, back-end, database, system architecture and recommendation algorithm.
                                          </div>

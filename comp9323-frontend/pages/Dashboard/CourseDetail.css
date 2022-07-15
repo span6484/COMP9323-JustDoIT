@@ -1,0 +1,79 @@
+.course-detail-component-box {
+  position: absolute;
+  left: 0;
+  top: 56px;
+  bottom: 0;
+  right: 0;
+  width: auto;
+  height: auto;
+  overflow: auto;
+}
+.course-detail-component-box .requirementListBox {
+  margin-top: 30px;
+  margin-bottom: 40px;
+}
+.course-detail-component-box .requirementListBox .requirement_box {
+  width: 100%;
+  margin: 0 auto 20px auto;
+  border: 1px solid #dcdcdc;
+  border-radius: 2%;
+  box-sizing: border-box;
+  padding: 20px;
+  box-shadow: 0 0 5px #afafaf;
+  position: relative;
+}
+.course-detail-component-box .requirementListBox .requirement_box .action_box {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 40px;
+  display: flex;
+  justify-content: space-between;
+}
+.course-detail-component-box .requirementListBox .requirement_box .action_box .icon-button {
+  font-size: 14px;
+  color: #666;
+  cursor: pointer;
+}
+.course-detail-component-box .requirementListBox .requirement_box .description-comment {
+  margin-top: 30px;
+}
+.course-detail-component-box .requirementListBox .requirement_box .description-comment .ant-comment-inner {
+  padding: 0!important;
+}
+.course-detail-component-box .requirementListBox .requirement_box p {
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+  cursor: pointer;
+  margin: 0 0 10px 0;
+  text-decoration: underline;
+}
+.course-detail-component-box .mail-box {
+  margin-left: 10px;
+  cursor: pointer;
+}
+.course-detail-component-box .action-button-box {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+.course-detail-component-box .action-button-box .action-button-box-button {
+  display: block;
+  width: 100%;
+  height: 30px;
+}
+.course-detail-component-box .comment-box {
+  display: flex;
+  flex-wrap: wrap;
+}
+.course-detail-component-box .comment-box .comment-box-item {
+  margin-right: 10px;
+}
+.email-tool-tip-component .email-tool-tip-component-copy {
+  color: #2f54eb;
+  cursor: pointer;
+  font-size: 12px;
+  text-decoration: underline;
+  margin-left: 5px;
+}

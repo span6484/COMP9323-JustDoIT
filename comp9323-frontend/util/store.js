@@ -16,11 +16,20 @@ var middlewares = [thunk];
 middlewares.push(sagaMiddleware);
 
 var createStoreWithMiddleware = applyMiddleware(...middlewares)(createStore);
-
+const store=createStore
 module.exports = {
     createStoreWithMiddleware: createStoreWithMiddleware,
     sagaMiddleware: sagaMiddleware,
     createAction: function(action, dispatch){
         return bindActionCreators(action, dispatch);
-    }
+    },
+    store
+    
 };
+
+// import { createStore } from 'redux'
+// import reducer from '../redux/Test/reducers'
+
+// const store = createStore(reducer)
+
+// export default store

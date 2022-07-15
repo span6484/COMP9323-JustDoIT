@@ -20,9 +20,18 @@ const _testMsg = (state = _msg , action) => {
             return newState;
     }
 }
+const editReducer=(preState,action)=>{
+    switch (action.type) {
+        case constants.EDIT_REQ_DETAIL:
+            return action.payLoad;
+        default:
+            return preState;
+    }
+}
 
 const reducer = combineReducers({
-    _testMsg
+    _testMsg,
+    editReducer
 })
 
 export default reducer;

@@ -18,11 +18,11 @@ npm run bootstrap
 npm run dev
 ```
 
-Open [http://localhost:8080](http://localhost:8080) with your browser to see the result.
+Open [http://localhost:8088](http://localhost:8088) with your browser to see the result.
 
 home page url
 
-http://localhost:8080/movie/home
+http://localhost:8088/movie/home
 
 You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
 
