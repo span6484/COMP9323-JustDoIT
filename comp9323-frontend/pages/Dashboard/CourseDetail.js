@@ -12,7 +12,10 @@ const CourseDetail = ({ USERMESSAGE ,urlMsg}) => {
             ref?.current.getTabPane(urlMsg.asPath, `Course Name`)
         },0)
     },[]);
-    const [requirementList,changeRequirementList] = useState([{},{}])
+    const [requirementList,changeRequirementList] = useState([{ismine:true},{}])
+    // 0:CA，1:S，2:P，3:R
+    const [user,changeUser] = useState({role:0})
+    // changeUser({role:0})  internal server error
     return (
         <PageBase cRef={ref} USERMESSAGE={USERMESSAGE}>
             <style dangerouslySetInnerHTML={{
@@ -49,14 +52,16 @@ const CourseDetail = ({ USERMESSAGE ,urlMsg}) => {
                                 </Space>
                             </Col>
                             <Col span={4}/>
+                            {user.role == 0 &&
                             <Col span={6}
                                  className={"action-button-box"}>
                                 <Button>Add Requirement</Button>
-                                <Button>Publish</Button>
+                                <Button>Public to Reviewers</Button>
                                 <div className={"action-button-box-button"}/>
                                 <div className={"action-button-box-button"}/>
                                 <div className={"action-button-box-button"}/>
                             </Col>
+                            }
                         </Row>
                         <br />
                         <Row>
@@ -303,10 +308,12 @@ const CourseDetail = ({ USERMESSAGE ,urlMsg}) => {
                           {
                             requirementList && requirementList.map((item,index) => {
                               return <div className={"requirement_box"} key={"requirementList_" + index}>
+                                         {item.ismine == true &&
                                          <div className={"action_box"}>
                                            <FormOutlined className={"icon-button"}/>
                                            <DeleteOutlined className={"icon-button"} />
                                          </div>
+                                          }
                                          <p
                                            onClick={()=>{
                                              ref.current.setTabPane(
@@ -317,7 +324,7 @@ const CourseDetail = ({ USERMESSAGE ,urlMsg}) => {
                                            }}
                                          >Requirement title</p>
                                          <div className={"description"}>
-                                           <strong>Description:</strong>&nbsp;jkshfjkshfjkshfjkshfkjshdjkfhsjkdfhkjsdhiwqyruihjkashdjkas
+                                           <strong>Description:</strong>&nbsp;I need two-months projects to empower students around creating a website. Students need to have knowledge of front-end, back-end, database, system architecture and recommendation algorithm.
                                          </div>
                                           <div className={"description-comment"}>
                                             <Comment

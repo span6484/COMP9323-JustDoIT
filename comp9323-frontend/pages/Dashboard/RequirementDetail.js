@@ -13,6 +13,8 @@ const CourseDetail = ({ USERMESSAGE ,urlMsg}) => {
         },0)
     },[]);
     const [requirementList,changeRequirementList] = useState([{},{}])
+    // 0:CA，1:S，2:P，3:R
+    const [user,changeUser] = useState({role:2})
     return (
         <PageBase cRef={ref} USERMESSAGE={USERMESSAGE}>
             <style dangerouslySetInnerHTML={{
@@ -45,14 +47,25 @@ const CourseDetail = ({ USERMESSAGE ,urlMsg}) => {
                                 </Space>
                             </Col>
                             <Col span={4}/>
+                            {user.role == 0 &&
                             <Col span={6}
                                  className={"action-button-box"}>
                                 <Button>Edit</Button>
                                 <Button>Delete</Button>
+                                {/* <Button>Add Proposal</Button> */}
+                                <Button>Publish All Approved Proposals</Button>
+                                {/* <div className={"action-button-box-button"}/> */}
+                                {/* <div className={"action-button-box-button"}/> */}
+                            </Col>
+                            }
+                            {user.role == 2 &&
+                            <Col span={6}
+                                 className={"action-button-box"}>
                                 <Button>Add Proposal</Button>
                                 <div className={"action-button-box-button"}/>
-                                <div className={"action-button-box-button"}/>
+                                {/* <div className={"action-button-box-button"}/> */}
                             </Col>
+                            }
                         </Row>
                         <br />
                         <Row>
@@ -100,7 +113,7 @@ const CourseDetail = ({ USERMESSAGE ,urlMsg}) => {
                                            )
                                          }}>Project Name</p>
                                          <div className={"description"}>
-                                           <strong>Proposer:</strong>&nbsp;jkshfjkshfjkshfjkshfkjshdjkfhsjkdfhkjsdhiwqyruihjkashdjkas
+                                           <strong>Proposer:</strong>&nbsp;I need two-months projects to empower students around creating a website. Students need to have knowledge of front-end, back-end, database, system architecture and recommendation algorithm.
                                          </div>
                                         <div className={"description"}>
                                           <strong>Status:</strong>&nbsp;Pending
