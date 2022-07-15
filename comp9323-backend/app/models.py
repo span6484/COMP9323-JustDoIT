@@ -21,7 +21,7 @@ class UserModel(db.Model):
     username = db.Column(db.String(120))
     email = db.Column(db.String(256), unique=True)
     password = db.Column(db.String(256))
-    detail = db.Column(db.TEXT)  # user detail
+    detail = db.Column(db.TEXT, nullable=False)  # user detail
 
     ctime = db.Column(db.DateTime, nullable=False)  # create time
     utime = db.Column(db.DateTime, nullable=False)  # update time
@@ -37,7 +37,7 @@ class CourseModel(db.Model):
 
     cid = db.Column(db.String(256), primary_key=True)
     name = db.Column(db.String(120), unique=True)
-    description = db.Column(db.TEXT)  # course description
+    description = db.Column(db.TEXT, nullable=False)  # course description
     start_time = db.Column(db.DateTime, nullable=False)  # start time
     close_time = db.Column(db.DateTime, nullable=False)  # close time
     public = db.Column(db.Integer, nullable=False, default=0)  # 0: private, 1: public
@@ -82,7 +82,7 @@ class RequirementModel(db.Model):
     cid = db.Column(db.String(256), nullable=False)  # courses.cid
     aid = db.Column(db.String(256), nullable=False)  # users.uid     only  'role = 0' authority
 
-    content = db.Column(db.TEXT)  # requirement content
+    content = db.Column(db.TEXT, nullable=False)  # requirement content
     ctime = db.Column(db.DateTime, nullable=False)  # create time
     utime = db.Column(db.DateTime, nullable=False)  # update time
     active = db.Column(db.Integer, nullable=False, default=1)  # 0:delete, 1:not delete
@@ -106,7 +106,7 @@ class ProjectModel(db.Model):
     pid = db.Column(db.String(256), nullable=False)  # users.uid    role = 2 proposer
 
     proj_name = db.Column(db.String(120), unique=True, nullable=False)  # project name
-    description = db.Column(db.TEXT)
+    description = db.Column(db.TEXT, nullable=False)
     start_time = db.Column(db.DateTime, nullable=False)  # start time
     close_time = db.Column(db.DateTime, nullable=False)  # update time
     ctime = db.Column(db.DateTime, nullable=False)  # create time
@@ -157,8 +157,8 @@ class ProjectStudentModel(db.Model):
     psid = db.Column(db.String(256), primary_key=True)
     projid = db.Column(db.String(256), nullable=False)  # project.projid
     sid = db.Column(db.String(256), nullable=False)  # users.uid  where role = '1' student
-    a_feedback = db.Column(db.TEXT)         # authority's feedback
-    p_feedback = db.Column(db.TEXT)         # proposer's feedback
+    a_feedback = db.Column(db.TEXT, nullable=False)         # authority's feedback
+    p_feedback = db.Column(db.TEXT, nullable=False)         # proposer's feedback
     award = db.Column(db.Integer, nullable=False, default=0)  # default: 0  award: 1
 
     ctime = db.Column(db.DateTime, nullable=False)  # create time
@@ -183,7 +183,7 @@ class CommentModel(db.Model):
     target_uid = db.Column(db.String(256), nullable=False)  # reply who's uid, if poster: None
     parent_id = db.Column(db.String(256), nullable=False)  # comment replier
     root_id = db.Column(db.String(256), nullable=False)  # the level id
-    content = db.Column(db.TEXT)         # comment content
+    content = db.Column(db.TEXT, nullable=False)         # comment content
 
     ctime = db.Column(db.DateTime, nullable=False)  # create time
     utime = db.Column(db.DateTime, nullable=False)  # update time
@@ -203,7 +203,7 @@ class MessageModel(db.Model):
 
     mid = db.Column(db.String(256), primary_key=True)
     uid = db.Column(db.String(256), nullable=False)  # user.uid
-    content = db.Column(db.TEXT)         #  content
+    content = db.Column(db.TEXT, nullable=False)         #  content
     read = db.Column(db.Integer, nullable=False, default=0)  # 0:did not read, 1:read
     ctime = db.Column(db.DateTime, nullable=False)  # create time
     utime = db.Column(db.DateTime, nullable=False)  # update time
