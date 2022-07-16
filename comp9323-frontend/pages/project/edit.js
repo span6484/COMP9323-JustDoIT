@@ -1,5 +1,5 @@
 import PageBase from '../basePage';
-import editStyle from "./edit.less";
+import projectStyle from "./project.less";
 
 import React, { useRef, onChange, useState } from 'react';
 import { UploadOutlined } from '@ant-design/icons';
@@ -29,7 +29,7 @@ const TextIndex = ({ USERMESSAGE }) => {
     return (
         <PageBase cRef={ref} USERMESSAGE={USERMESSAGE}>
             <style dangerouslySetInnerHTML={{
-                __html: editStyle
+                __html: projectStyle
             }} />
             <>
                 <br />
