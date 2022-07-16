@@ -1,4 +1,5 @@
 import PageBase from '../basePage'
+
 import React, { useRef, onChange, useState, useEffect } from 'react'
 import { Col, Row, Button, Typography, Tooltip, Space, Collapse, Steps, Popover, Statistic, Comment, Avatar, Popconfirm } from 'antd';
 import { MailOutlined, DeleteOutlined, FormOutlined } from "@ant-design/icons"
@@ -126,6 +127,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     }
     return (
         <PageBase cRef={ref} USERMESSAGE={USERMESSAGE}>
+
             <>
                 <br />
                 <Row>
