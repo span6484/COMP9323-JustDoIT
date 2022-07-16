@@ -23,3 +23,5 @@ export const getTime = (res) => {
 
     }
 }
+
+export const editAction=(payLoad)=>({type:constants.EDIT_REQ_DETAIL,payLoad:payLoad})

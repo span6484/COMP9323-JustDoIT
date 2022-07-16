@@ -1,11 +1,11 @@
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, {  } from 'react'
 import 'antd/dist/antd.css';
 import { getCookie } from '../util/common'
 import {Container} from 'next/app'
-import { ConfigProvider, message } from "antd";
+import { ConfigProvider } from "antd";
 import enUS from 'antd/lib/locale/en_US';
-import { Base64 } from "js-base64";
+import store from '../util/store';
 
 const App = ({ Component, pageProps, cookie, router }) => {
   let _cookie = getCookie('USER_MESSAGE', cookie)
@@ -32,7 +32,7 @@ const App = ({ Component, pageProps, cookie, router }) => {
               }
               `}
           </style>
-          <ConfigProvider locale={enUS}>
+          <ConfigProvider locale={enUS} store={store}>
             <Component {...pageProps} USERMESSAGE={_cookie}/>
           </ConfigProvider>
         </Container>
@@ -58,3 +58,4 @@ App.getInitialProps = async ({ Component, ctx }) => {
   }
 }
 export default App
+

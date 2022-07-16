@@ -98,10 +98,10 @@ app.prepare().then(()=>{
         res.clearCookie('USER_MESSAGE');
         next();
     })
-    server.listen(8080, (err)=>{
+    server.listen(8088, (err)=>{
         if(err)
             throw err
-        console.log('> Ready on http://localhost:8080')
+        console.log('> Ready on http://localhost:8088')
     })
 }).catch((ex)=>{
     console.error(ex.stack)
