@@ -76,7 +76,7 @@ const CourseDetail = ({ USERMESSAGE ,urlMsg}) => {
                                               ref.current.setTabPane(
                                                 `New Requirement`,
                                                 '',
-                                                `/Dashboard/NewRequirement`
+                                                `/Dashboard/NewRequirement?id=123`
                                               )
                                             }}>Add Requirement</Button>
                                 <Button onClick={()=>publicToReviewers()}>Public to Reviewers</Button>
