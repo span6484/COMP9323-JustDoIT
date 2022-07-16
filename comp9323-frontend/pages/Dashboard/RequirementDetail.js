@@ -184,7 +184,8 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
                           )
                         }}>Project Name</p>
                         <div className={"description"}>
-                          <strong>Proposer:</strong>&nbsp;I need two-months projects to empower students around creating a website. Students need to have knowledge of front-end, back-end, database, system architecture and recommendation algorithm.
+                          <strong>Proposer:</strong>&nbsp;Han Yan
+                          {/* I need two-months projects to empower students around creating a website. Students need to have knowledge of front-end, back-end, database, system architecture and recommendation algorithm. */}
                         </div>
                         <div className={"description"}>
                           <strong>Status:</strong>&nbsp;Pending

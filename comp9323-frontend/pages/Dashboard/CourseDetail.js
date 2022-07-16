@@ -18,8 +18,9 @@ const CourseDetail = ({ USERMESSAGE ,urlMsg}) => {
     },[]);
     const [requirementList,changeRequirementList] = useState([{ismine:true},{}])
     // 0:CA，1:S，2:P，3:R
-    const [user,changeUser] = useState({role:0})
+    const [user,changeUser] = useState({role:2})
     // changeUser({role:0})  internal server error
+    const [projectList, changeProjectList] = useState([{}, {}])
     function publicToReviewers() {
       confirm({
         title: 'Are you sure you want to make all proposals public to reviewers?',
@@ -67,7 +68,7 @@ const CourseDetail = ({ USERMESSAGE ,urlMsg}) => {
                                 </Space>
                             </Col>
                             <Col span={4}/>
-                            {user.role == 0 &&
+                            {user.role == 0  &&
                             <Col span={6}
                                  className={"action-button-box"}>
                                 <Button onClick={()=>{window.location.href ='http://localhost:8088/Dashboard/RequirementDetail?id=123132'}}>Add Requirement</Button>
@@ -318,70 +319,104 @@ const CourseDetail = ({ USERMESSAGE ,urlMsg}) => {
                             </Col>
                         </Row>
                       <Row>
-                        <Col span={24}>
-                          <div className={"requirementListBox"}>
-                          {
-                            requirementList && requirementList.map((item,index) => {
-                              return <div className={"requirement_box"} key={"requirementList_" + index}>
-                                         {item.ismine &&
-                                         <div className={"action_box"}>
-                                           <FormOutlined className={"icon-button"} onClick={()=>{
-                                            // console.log(window.location.href);
-                                            // console.log(store);
-                                            // store.createAction(editAction('wmq'),state=>{
-                                            //   console.log(state);
-                                            // })
-                                            // Dispatch(editAction('wmq'))
-                                            // dispatch();
-                                            //todo
-                                            window.location.href ='http://localhost:8088/Dashboard/RequirementDetail?id=123132'
-                                            }}/>
-                                           <DeleteOutlined className={"icon-button"} />
-                                         </div>
-                                          }
-                                         <p
-                                           onClick={()=>{
-                                             ref.current.setTabPane(
-                                               `Requirement Detail`,
-                                               '',
-                                               `/Dashboard/RequirementDetail?id=123132`
-                                             )
-                                           }}
-                                         >Requirement Detail</p>
-                                         <div className={"description"}>
-                                           <strong>Description:</strong>&nbsp;I need two-months projects to empower students around creating a website. Students need to have knowledge of front-end, back-end, database, system architecture and recommendation algorithm.
-                                         </div>
-                                          <div className={"description-comment"}>
-                                            <Comment
-                                              className="comment-box-item"
-                                              author={<div>
-                                                Authority Name
-                                                <Tooltip placement="top" title={<div className={"email-tool-tip-component"}>
-                                                  email12131@qq.com
-                                                  <CopyToClipboard
-                                                    text={"email12131@qq.com"}
-                                                    onCopy={() => {
-                                                      message.success('copy email success');
-                                                    }}
-                                                  >
-                                                    <span className={"email-tool-tip-component-copy"}>COPY</span>
-                                                  </CopyToClipboard>
-                                                </div>}>
-                                                  <MailOutlined  className={"mail-box"}/>
-                                                </Tooltip>
-                                              </div>
-                                              }
-                                              avatar={<Avatar src="/static/ca.png" alt="Han Solo" />}
-                                              content={null}
-                                            >
-                                            </Comment>
+                        {(user.role == 0 || 2) &&
+                          <Col span={24}>                          
+                            <div className={"requirementListBox"}>
+                            {
+                              requirementList && requirementList.map((item,index) => {
+                                return <div className={"requirement_box"} key={"requirementList_" + index}>
+                                          {item.ismine &&
+                                          <div className={"action_box"}>
+                                            <FormOutlined className={"icon-button"} onClick={()=>{
+                                              // console.log(window.location.href);
+                                              // console.log(store);
+                                              // store.createAction(editAction('wmq'),state=>{
+                                              //   console.log(state);
+                                              // })
+                                              // Dispatch(editAction('wmq'))
+                                              // dispatch();
+                                              //todo
+                                              window.location.href ='http://localhost:8088/Dashboard/RequirementDetail?id=123132'
+                                              }}/>
+                                            <DeleteOutlined className={"icon-button"} />
                                           </div>
-                                    </div>
-                            })
-                          }
-                          </div>
-
+                                            }
+                                          <p
+                                            onClick={()=>{
+                                              ref.current.setTabPane(
+                                                `Requirement Detail`,
+                                                '',
+                                                `/Dashboard/RequirementDetail?id=123132`
+                                              )
+                                            }}
+                                          >Requirement Detail</p>
+                                          <div className={"description"}>
+                                            <strong>Description:</strong>&nbsp;I need two-months projects to empower students around creating a website. Students need to have knowledge of front-end, back-end, database, system architecture and recommendation algorithm.
+                                          </div>
+                                            <div className={"description-comment"}>
+                                              <Comment
+                                                className="comment-box-item"
+                                                author={<div>
+                                                  Authority Name
+                                                  <Tooltip placement="top" title={<div className={"email-tool-tip-component"}>
+                                                    email12131@qq.com
+                                                    <CopyToClipboard
+                                                      text={"email12131@qq.com"}
+                                                      onCopy={() => {
+                                                        message.success('copy email success');
+                                                      }}
+                                                    >
+                                                      <span className={"email-tool-tip-component-copy"}>COPY</span>
+                                                    </CopyToClipboard>
+                                                  </div>}>
+                                                    <MailOutlined  className={"mail-box"}/>
+                                                  </Tooltip>
+                                                </div>
+                                                }
+                                                avatar={<Avatar src="/static/ca.png" alt="Han Solo" />}
+                                                content={null}
+                                              >
+                                              </Comment>
+                                            </div>
+                                      </div>
+                              })
+                            }
+                            </div>
+                          </Col>
+                        }
+                        {user.role == 1 &&
+                          <Col span={24}> 
+                           <div className={"requirementListBox"}>
+                           {
+                             projectList && projectList.map((item, index) => {
+                               // 改了这儿
+                               return <div className={"requirement_box"} key={"requirementList_" + index}>
+                                 <p onClick={() => {
+                                   ref.current.setTabPane(
+                                     `Project Name`,
+                                     '',
+                                     `/project/detail?id=12444432`
+                                   )
+                                 }}>Project Name</p>
+                                 <div className={"description"}>
+                                   <strong>Proposer:</strong>&nbsp;Han Yan
+                                   {/* I need two-months projects to empower students around creating a website. Students need to have knowledge of front-end, back-end, database, system architecture and recommendation algorithm. */}
+                                 </div>
+                                 <div className={"description"}>
+                                   <strong>Status:</strong>&nbsp;Pending
+                                 </div>
+                                 <div className={"description"}>
+                                   <strong>Project Capacity:</strong>&nbsp;1 / 100
+                                 </div>
+                                 <div className={"description"}>
+                                   <strong>Duration:</strong>&nbsp;09/01/2022 - 03/02/2022
+                                 </div>
+                               </div>
+                             })
+                           }
+                         </div>
                         </Col>
+                        }                       
                       </Row>
                     </Col>
                     <Col span={2}/>
