@@ -16,7 +16,8 @@ import {
   ExperimentOutlined,
   HighlightOutlined,
   FlagOutlined,
-  ProjectOutlined
+  ProjectOutlined,
+  MessageOutlined
 } from '@ant-design/icons'
 const getIconFont = ({ type, style }) => {
   const dom = (type, style) => {
@@ -58,6 +59,8 @@ const getIconFont = ({ type, style }) => {
         return <FlagOutlined style={style} />
       case 'project':
         return <ProjectOutlined style={style} />
+      case 'message':
+        return <MessageOutlined style={style}/>
       default:
         return <div />
     }

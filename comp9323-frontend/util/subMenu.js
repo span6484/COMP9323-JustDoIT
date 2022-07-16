@@ -47,6 +47,31 @@ export const fatherSubMenu = (type) => {
           type: 'award'
         }
       ]
+    },
+    {
+      value: 'user_message',
+      name: 'MESSAGE',
+      type: 'message',
+      child: [
+        {
+          value: 'user_message_all_message',
+          page: '/Message/AllMessage',
+          name: 'All',
+          type: 'message',
+        },
+        {
+          value: 'user_message_read_message',
+          page: '/Message/UnReadMessage',
+          name: 'Unread',
+          type: 'message',
+        },
+        {
+          value: 'user_message_un_read_message',
+          page: '/Message/ReadMessage',
+          name: 'Read',
+          type: 'message'
+        }
+      ]
     }
   ]
   return json
