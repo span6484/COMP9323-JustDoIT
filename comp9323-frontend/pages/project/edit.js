@@ -121,7 +121,7 @@ const TextIndex = ({ USERMESSAGE }) => {
                         <Title level={3}>Change project progress</Title>
                         <Button></Button>
                         <Select defaultValue={"2"}
-                                disabled={true} style={{ width: 400 }}>
+                                 style={{ width: 400 }}>
                             <Option value="0">Pending</Option>
                             <Option value="1">Approved</Option>
                             <Option value="2">Open to join</Option>
