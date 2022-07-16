@@ -116,7 +116,7 @@ const IndexTabTop = ({ msg, tabPaneInit, loginOut , topRef }) => {
             {loginType === 'loginOut'
               ? 'Login'
               : loginType === 'loginIn'
-              ? `${nameText || name}`
+              ? `Hi,${nameText || name}`
               : ''}
           </h6>
         </div>

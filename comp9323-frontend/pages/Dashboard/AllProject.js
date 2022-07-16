@@ -19,22 +19,25 @@ const AllProject = ({ USERMESSAGE, urlMsg }) => {
   const [asPath] = useState(urlMsg.asPath);
   const [projectList,changeProject] = useState([{
     key : null,
-    value : "All Projects"
+    value : "All"
   },{
-    key : "pending",
-    value : "Pending Projects"
+    key : 0,
+    value : "Pending"
   },{
-    key : "passed",
-    value : "Passed Projects"
+    key : 1,
+    value : "Approved"
   },{
-    key : "processing",
-    value : "Processing Projects"
+    key : 2,
+    value : "Published"
   },{
-    key : "done",
-    value : "Done Projects"
+    key : 3,
+    value : "In Progress"
   },{
-    key : "unpassed",
-    value : "Unpassed Projects"
+    key : 4,
+    value : "Ended"
+  },{
+    key : 5,
+    value : "Failed"
   }]);
   const [courseList,changeCourseList] = useState([{
     key : null,
@@ -68,37 +71,43 @@ const AllProject = ({ USERMESSAGE, urlMsg }) => {
       title: 'Course Authority',
       dataIndex: 'courseAuthority',
       key: 'courseAuthority',
-      width: 150,
+      width: 100,
     },
     {
-      title: 'Current Student Number',
+      title: 'Project Capacity',
       dataIndex: 'currentStudentNumber',
       key: 'currentStudentNumber',
-      width: 150,
-    },
-    {
-      title: 'Max Student Number',
-      dataIndex: 'maxStudentNumber',
-      key: 'maxStudentNumber',
-      width: 150,
-    },
-    {
-      title: 'Start Time',
-      dataIndex: 'startTime',
-      key: 'startTime',
-      width: 150,
-    },
-    {
-      title: 'Close Time',
-      dataIndex: 'closeTime',
-      key: 'closeTime',
-      width: 150,
+      width: 100,
+      render:()=>{
+        return <div> 1 / 100</div>
+      }
     },
     {
       title: 'Statues',
       dataIndex: 'statues',
       key: 'statues',
-      width: 150,
+      width: 100,
+      render:(statues)=>{
+        const filterList = projectList && projectList.filter((item) =>{
+          return item.key === statues
+        })
+        if(!filterList || filterList.length === 0){
+          return null;
+        }
+        return <div>{filterList[0].value}</div>
+      }
+    },
+    {
+      title: 'Start Time',
+      dataIndex: 'startTime',
+      key: 'startTime',
+      width: 120,
+    },
+    {
+      title: 'Close Time',
+      dataIndex: 'closeTime',
+      key: 'closeTime',
+      width: 120,
     },
     {
       title: 'Action',
@@ -106,7 +115,12 @@ const AllProject = ({ USERMESSAGE, urlMsg }) => {
       fixed: 'right',
       width: 100,
       render: () =>{
-        return <a>Detail</a>
+        return <div
+            className={"go-detail"}
+           onClick={()=>{
+             goDetail()
+           }}
+        >Detail</div>
       }
     },
   ];
@@ -132,6 +146,13 @@ const AllProject = ({ USERMESSAGE, urlMsg }) => {
       })
     },0)
   },[]);
+  function goDetail(){
+    ref.current.setTabPane(
+        `Project detail`,
+        '',
+        `/project/detail?id=123`
+    )
+  }
   function initList(initPage,initSearch) {
     initPage = initPage || page;
     initSearch = initSearch || search;
@@ -141,45 +162,54 @@ const AllProject = ({ USERMESSAGE, urlMsg }) => {
       courseAuthority : "adad",
       currentStudentNumber : 1,
       maxStudentNumber : 3,
-      startTime : "2010-12-11 13:40:20",
-      closeTime : "2022-12-11 13:40:20",
-      statues : "4",
+      startTime : "2022-12-11",
+      closeTime : "2022-12-13",
+      statues : 0,
     },{
       projectName : "English",
       course : "aaa",
       courseAuthority : "adad",
       currentStudentNumber : 1,
       maxStudentNumber : 3,
-      startTime : "2010-12-11 13:40:20",
-      closeTime : "2022-12-11 13:40:20",
-      statues : "4",
+      startTime : "2022-12-11",
+      closeTime : "2022-12-13",
+      statues : 1,
     },{
       projectName : "English",
       course : "aaa",
       courseAuthority : "adad",
       currentStudentNumber : 1,
       maxStudentNumber : 3,
-      startTime : "2010-12-11 13:40:20",
-      closeTime : "2022-12-11 13:40:20",
-      statues : "4",
+      startTime : "2022-12-11",
+      closeTime : "2022-12-13",
+      statues : 2,
     },{
       projectName : "English",
       course : "aaa",
       courseAuthority : "adad",
       currentStudentNumber : 1,
       maxStudentNumber : 3,
-      startTime : "2010-12-11 13:40:20",
-      closeTime : "2022-12-11 13:40:20",
-      statues : "4",
+      startTime : "2022-12-11",
+      closeTime : "2022-12-13",
+      statues : 3,
     },{
       projectName : "English",
       course : "aaa",
       courseAuthority : "adad",
       currentStudentNumber : 1,
       maxStudentNumber : 3,
-      startTime : "2010-12-11 13:40:20",
-      closeTime : "2022-12-11 13:40:20",
-      statues : "4",
+      startTime : "2022-12-11",
+      closeTime : "2022-12-11",
+      statues : 4,
+    },{
+      projectName : "English",
+      course : "aaa",
+      courseAuthority : "adad",
+      currentStudentNumber : 1,
+      maxStudentNumber : 3,
+      startTime : "2022-12-11",
+      closeTime : "2022-12-11",
+      statues : 5,
     }]
     changeData(_data);
     changePage({
