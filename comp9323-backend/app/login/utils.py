@@ -2,7 +2,8 @@
 import datetime
 import functools
 import hashlib
-
+import time
+import re
 import jwt
 from flask import request, jsonify, g
 from jwt import ExpiredSignatureError, PyJWTError
@@ -10,17 +11,17 @@ from jwt import ExpiredSignatureError, PyJWTError
 from config import SECRET_KEY
 
 
-def EnPassWord(password: str) -> str:
+def encode_password(password: str) -> str:
     return hashlib.sha256(password.encode('utf-8')).hexdigest()
 
 
 # 生成Token
-def GenToken(user) -> str:
+def generate_token(user) -> str:
     dic = {
         'exp': datetime.datetime.now() + datetime.timedelta(hours=2),  # 设置过期时间
         'iat': datetime.datetime.now(),  # 开始时间
         'data': {  # 内容，一般存放该用户id和开始时间
-            'id': user.id,
+            'id': user.uid,
             'username': user.username,
         },
     }
@@ -50,3 +51,29 @@ def login_require(func):
         return func(*args, **kwargs)
 
     return wrapper
+
+
+def get_time():
+
+    time_stamp = time.localtime(time.time())  # 132131232434
+    time_form = time.strftime('%Y-%m-%d %H:%M:%S', time_stamp)  # 2022-6-27 12:13:00
+
+    time_stamp = int(time.mktime(time_stamp))
+    return [time_form, time_stamp]
+
+
+def check_email(email):
+    pattern = re.compile("^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$")
+    if 7 < len(email) < 60:
+        if pattern.match(email) is not None:
+            return 1
+    return 0
+
+
+def check_username(username):
+    pattern = re.compile("^[A-Z][a-z]+[ ]([A-Z][a-z]+[ ])*[A-Z][a-z]+$")
+    if 3 < len(username) < 200:
+        if pattern.match(username) is not None:
+            return 1
+    return 0
+
