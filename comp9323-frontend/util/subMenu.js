@@ -37,6 +37,18 @@ export const fatherSubMenu = (type) => {
                     title: (name) => {
                       return `${name}`
                     }
+                  },
+                  {
+                    schema: /^(\/project\/edit\?id=)([0-9a-zA-Z]+)+/,
+                    title: (name) => {
+                      return `${name}`
+                    }
+                  },
+                  {
+                    schema: /^(\/project\/work\?id=)([0-9a-zA-Z]+)+/,
+                    title: (name) => {
+                      return `${name}`
+                    }
                   }
                 ]
         },
@@ -44,7 +56,15 @@ export const fatherSubMenu = (type) => {
           value: 'dash_board_award_projects',
           page: '/Dashboard/AwardProjects',
           name: 'Award',
-          type: 'award'
+          type: 'award',
+          hasPage: [
+            {
+              schema: /^(\/project\/showcase\?id=)([0-9a-zA-Z]+)+/,
+              title: (name) => {
+                return `${name}`
+              }
+            }
+          ]
         }
       ]
     },

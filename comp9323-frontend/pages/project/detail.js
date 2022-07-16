@@ -38,23 +38,47 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     function CAButtons() {
         return (
             <>
-                <Button type="primary" href='/project/edit'>Edit Project</Button>
+                <Button type="primary" onClick={()=>{
+                    ref.current.setTabPane(
+                        `Project Edit`,
+                        '',
+                        `/project/edit?id=123`
+                    )
+                }}>Edit Project</Button>
                 <br />
-                <Button type="primary" href='/project/work'>View works</Button>
+                <Button type="primary" onClick={()=>{
+                    ref.current.setTabPane(
+                        `Project Work`,
+                        '',
+                        `/project/work?id=123`
+                    )
+                }}>View works</Button>
             </>
         )
     }
     function RButtons() {
         return (
             <>
-                <Button type="primary" href='/project/edit'>Approve Project</Button>
+                <Button type="primary" onClick={()=>{
+                    ref.current.setTabPane(
+                        `Project Edit`,
+                        '',
+                        `/project/edit?id=123`
+                    )
+                }}>Approve Project</Button>
             </>
         )
     }
     function PButtons() {
         return (
             <>
-                <Button type="primary" href='/project/work'>View works</Button>
+                <Button type="primary" onClick={()=>{
+                    ref.current.setTabPane(
+                        `Project Work`,
+                        '',
+                        `/project/work?id=123`
+                    )
+                }} >View works</Button>
             </>
         )
     }
