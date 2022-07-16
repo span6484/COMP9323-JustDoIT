@@ -18,7 +18,7 @@ const CourseDetail = ({ USERMESSAGE ,urlMsg}) => {
     },[]);
     const [requirementList,changeRequirementList] = useState([{ismine:true},{}])
     // 0:CA，1:S，2:P，3:R
-    const [user,changeUser] = useState({role:2})
+    const [user,changeUser] = useState({role:0})
     // changeUser({role:0})  internal server error
     const [projectList, changeProjectList] = useState([{}, {}])
     function publicToReviewers() {
@@ -71,7 +71,14 @@ const CourseDetail = ({ USERMESSAGE ,urlMsg}) => {
                             {user.role == 0  &&
                             <Col span={6}
                                  className={"action-button-box"}>
-                                <Button onClick={()=>{window.location.href ='http://localhost:8088/Dashboard/RequirementDetail?id=123132'}}>Add Requirement</Button>
+                                {/* <Button onClick={()=>{window.location.href ='http://localhost:8088/Dashboard/NewRequirement'}}>Add Requirement</Button> */}
+                                <Button onClick={()=>{
+                                              ref.current.setTabPane(
+                                                `New Requirement`,
+                                                '',
+                                                `/Dashboard/NewRequirement`
+                                              )
+                                            }}>Add Requirement</Button>
                                 <Button onClick={()=>publicToReviewers()}>Public to Reviewers</Button>
                                 <div className={"action-button-box-button"}/>
                                 <div className={"action-button-box-button"}/>
@@ -338,7 +345,6 @@ const CourseDetail = ({ USERMESSAGE ,urlMsg}) => {
                                               //todo
                                               window.location.href ='http://localhost:8088/Dashboard/RequirementDetail?id=123132'
                                               }}/>
-                                            <DeleteOutlined className={"icon-button"} />
                                           </div>
                                             }
                                           <p

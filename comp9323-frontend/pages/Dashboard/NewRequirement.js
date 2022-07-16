@@ -16,10 +16,10 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
   // const [requirement,changeRequirement] = useState({})
   const [projectList, changeProjectList] = useState([{}, {}])
   // 0:CA，1:S，2:P，3:R
-  const [user, changeUser] = useState({ role: 2 })
+  const [user, changeUser] = useState({ role: 0 })
   const [contentref, setContentref] = useState(true);
   const { TextArea } = Input
-  const [value, setValue] = useState("I need a two-month lab project to improve students'neural network building skills, and I need to use artificial intelligence knowledge in the process.");
+  const [value, setValue] = useState("");
   const [descVal, setDescVal] = useState(value)
   const getRequireMent = () => {
     getRequirement().then(res => {
@@ -49,40 +49,20 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
       }
     });
   }
-  function publishAllProjects() {
-    confirm({
-      title: 'Are you sure you want to publish all approved proposals?',
-      icon: <ExclamationCircleOutlined />,
-      okText : "YES",
-      cancelText : "NO",
-      // onOk() {
-      //   clearHistory({uid}).then(res => {
-      //      if(res.code === 200){
-      //         message.success("Clear successfully");
-      //         fetchData();
-      //      }else{
-      //        message.error("Clear failed");
-      //      }
-      //   })
-      // }
-      onOk(){
-        message.success("Publish successfully");
-      }
-    });
-  }
+  
   useEffect(() => {
     setTimeout(() => {
-      ref?.current.getTabPane(urlMsg.asPath, `Requirement Detail`)
+      ref?.current.getTabPane(urlMsg.asPath, `New Requirement`)
     }, 0)
     // getRequireMent()
   }, []);
   useEffect(() => {
     setValue(descVal)
   }, [descVal])
-  // useEffect(() => {
-  //   let content = sessionStorage.getItem("CONTENT")
-  //   setContentref(content)
-  // }, [])
+  useEffect(() => {
+    let content = sessionStorage.getItem("CONTENT")
+    setContentref(content)
+  }, [])
   return (
     <PageBase cRef={ref} USERMESSAGE={USERMESSAGE}>
       <style dangerouslySetInnerHTML={{
@@ -112,8 +92,7 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
                 </Space>
               </Col>
               <Col span={4} />
-              {user.role == 0 &&
-                <Col span={6}
+              <Col span={6}
                   className={"action-button-box"}>
                   {contentref ?
                     <Button onClick={() => setContentref(false)}>Edit</Button> :
@@ -121,26 +100,7 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
                       setContentref(true)
                       //todo 发起请求
                     }}>Confrim</Button>}
-                  {/* <Button onClick={contentref?()=>{setContentref(true)}:()=>{
-                                  setContentref(false)
-                                  //todo 发请求
-                                  setValue('netrrstr')
-                                  }}>{contentref?'Edit':'Confrim'}</Button> */}
-                  <Button onClick={()=>deleteRequirement()} disabled={!value&&true}>Delete</Button>
-                  {/* <Button>Add Proposal</Button> */}
-                  <Button onClick={()=>publishAllProjects()}>Publish All Approved Proposals</Button>
-                  {/* <div className={"action-button-box-button"}/> */}
-                  {/* <div className={"action-button-box-button"}/> */}
                 </Col>
-              }
-              {user.role == 2 &&
-                <Col span={6}
-                  className={"action-button-box"}>
-                  <Button onClick={()=>window.location.href="http://localhost:8088/Dashboard/NewProposal"}>Add Proposal</Button>
-                  <div className={"action-button-box-button"} />
-                  {/* <div className={"action-button-box-button"}/> */}
-                </Col>
-              }
             </Row>
             <br />
             <Row>
@@ -175,38 +135,6 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
               </Col>
             </Row>
             <Row>
-              <Col span={24}>
-                <div className={"requirementListBox"}>
-                  {
-                    projectList && projectList.map((item, index) => {
-                      // 改了这儿
-                      return <div className={"requirement_box"} key={"requirementList_" + index}>
-                        <p onClick={() => {
-                          ref.current.setTabPane(
-                            `Project Name`,
-                            '',
-                            `/project/detail?id=12444432`
-                          )
-                        }}>Project Name</p>
-                        <div className={"description"}>
-                          <strong>Proposer:</strong>&nbsp;Han Yan
-                          {/* I need two-months projects to empower students around creating a website. Students need to have knowledge of front-end, back-end, database, system architecture and recommendation algorithm. */}
-                        </div>
-                        <div className={"description"}>
-                          <strong>Status:</strong>&nbsp;Pending
-                        </div>
-                        <div className={"description"}>
-                          <strong>Project Capacity:</strong>&nbsp;1 / 100
-                        </div>
-                        <div className={"description"}>
-                          <strong>Duration:</strong>&nbsp;09/01/2022 - 03/02/2022
-                        </div>
-                      </div>
-                    })
-                  }
-                </div>
-
-              </Col>
             </Row>
           </Col>
           <Col span={2} />
