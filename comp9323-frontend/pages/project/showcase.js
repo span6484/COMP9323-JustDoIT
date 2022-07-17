@@ -77,13 +77,67 @@ const TextIndex = ({ USERMESSAGE }) => {
                                 </Space>
                             </Col>
                         </Row>
-
+                        <br />
+                        <Title level={3}>Course staff of project</Title>
+                        <Row>
+                            <Col span={12} >
+                                <Comment
+                                    className="comment-box-item"
+                                    author={<div>
+                                        Example course authority
+                                        <Tooltip placement="top" title={<div className={"email-tool-tip-component"}>
+                                            ExampleEmail@COMP9323.com
+                                            <CopyToClipboard
+                                                text={"ExampleEmail@COMP9323.com"}
+                                                onCopy={() => {
+                                                    message.success('copy email success');
+                                                }}
+                                            >
+                                                <span className={"email-tool-tip-component-copy"}>COPY</span>
+                                            </CopyToClipboard>
+                                        </div>}>
+                                            <MailOutlined className={"mail-box"} />
+                                        </Tooltip>
+                                    </div>
+                                    }
+                                    avatar={<Avatar src="/static/ca.png" />}
+                                    content={null}
+                                >
+                                </Comment>
+                            </Col>
+                            <Col span={12} >
+                                <Comment
+                                    className="comment-box-item"
+                                    author={<div>
+                                        Example proposer
+                                        <Tooltip placement="top" title={<div className={"email-tool-tip-component"}>
+                                            ExampleEmail@COMP9323.com
+                                            <CopyToClipboard
+                                                text={"ExampleEmail@COMP9323.com"}
+                                                onCopy={() => {
+                                                    message.success('copy email success');
+                                                }}
+                                            >
+                                                <span className={"email-tool-tip-component-copy"}>COPY</span>
+                                            </CopyToClipboard>
+                                        </div>}>
+                                            <MailOutlined className={"mail-box"} />
+                                        </Tooltip>
+                                    </div>
+                                    }
+                                    avatar={<Avatar src="/static/ca.png" />}
+                                    content={null}
+                                >
+                                </Comment>
+                            </Col>
+                        </Row>
                         <br />
                         <Row>
                             <Col span={24} >
                                 <Title level={2}>Example work to showcase</Title>
                                 <br />
-                                <Title level={2}>Example author</Title>
+
+                                <Title level={3}>Author of project</Title>
                                 <Comment
                                     className="comment-box-item"
                                     author={<div>
@@ -107,19 +161,29 @@ const TextIndex = ({ USERMESSAGE }) => {
                                     content={null}
                                 >
                                 </Comment>
-                                <iframe
-                                    src={"https://www.orimi.com/pdf-test.pdf"}
-                                    title="file"
-                                    width="100%"
-                                    height="1200"
-                                ></iframe>
                                 <br />
-                                <iframe
-                                    src={"https://www.orimi.com/pdf-test.pdf"}
-                                    title="file"
-                                    width="100%"
-                                    height="1200"
-                                ></iframe>
+                                <Collapse defaultActiveKey={['1']} onChange={onChange}>
+                                    <Panel header="Document 1" key="1">
+                                        <iframe
+                                            src={"https://www.orimi.com/pdf-test.pdf"}
+                                            title="file"
+                                            width="100%"
+                                            height="1200"
+                                        ></iframe>
+                                    </Panel>
+                                    <Panel header="Document 2" key="2">
+                                        <iframe src="https://onedrive.live.com/embed?resid=1B47937AD843C12%2184207&amp;authkey=%21AOztocS2WvBRawc&amp;em=2&amp;wdAr=1.7777777777777777" width="1200px" height="800px" frameborder="0">This is an embedded <a target="_blank" href="https://office.com">Microsoft Office</a> presentation, powered by <a target="_blank" href="https://office.com/webapps">Office</a>.</iframe>
+                                    </Panel>
+                                    <Panel header="Document 3" key="3">
+                                        <iframe
+                                            src={"https://www.orimi.com/pdf-test.pdf"}
+                                            title="file"
+                                            width="100%"
+                                            height="1200"
+                                        ></iframe>
+                                    </Panel>
+
+                                </Collapse>
                             </Col>
                         </Row>
                         <br />

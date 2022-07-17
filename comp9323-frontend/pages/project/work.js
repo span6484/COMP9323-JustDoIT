@@ -3,9 +3,10 @@ import projectStyle from "./project.less";
 
 import React, { useRef, onChange, useState } from 'react';
 import { UploadOutlined } from '@ant-design/icons';
-import { Col, Row, Collapse, Typography, Button, Space, Input, message, Upload, Comment, Avatar } from 'antd';
+import { Col, Row, Collapse, Typography, Button, Space, Input, message, Upload, Comment, Avatar, Tooltip } from 'antd';
 const { Dragger } = Upload;
-import { SP } from 'next/dist/next-server/lib/utils';
+import { CopyToClipboard } from 'react-copy-to-clipboard';
+import { MailOutlined, DeleteOutlined, FormOutlined } from "@ant-design/icons"
 const { Title, Paragraph, Text, Link } = Typography;
 
 const TextIndex = ({ USERMESSAGE }) => {
@@ -38,6 +39,30 @@ const TextIndex = ({ USERMESSAGE }) => {
         if (props.userRole != "S" || props.reviewed) {
             return (
                 <>
+                    <Title level={3}>Wrok submitted by student</Title>
+                    <Comment
+                        className="comment-box-item"
+                        author={<div>
+                            Example author
+                            <Tooltip placement="top" title={<div className={"email-tool-tip-component"}>
+                                ExampleEmail@COMP9323.com
+                                <CopyToClipboard
+                                    text={"ExampleEmail@COMP9323.com"}
+                                    onCopy={() => {
+                                        message.success('copy email success');
+                                    }}
+                                >
+                                    <span className={"email-tool-tip-component-copy"}>COPY</span>
+                                </CopyToClipboard>
+                            </div>}>
+                                <MailOutlined className={"mail-box"} />
+                            </Tooltip>
+                        </div>
+                        }
+                        avatar={<Avatar src="/static/ca.png" />}
+                        content={null}
+                    >
+                    </Comment>
                     <Title level={3}>Submitted documents</Title>
                     <Collapse defaultActiveKey={['1']} onChange={onChange}>
                         <Panel header="Document 1" key="1">
@@ -173,7 +198,61 @@ const TextIndex = ({ USERMESSAGE }) => {
                                 </Space>
                             </Col>
                         </Row>
+                        <br />
 
+                        <Title level={3}>Course staff of project</Title>
+                        <Row>
+                            <Col span={12} >
+                                <Comment
+                                    className="comment-box-item"
+                                    author={<div>
+                                        Example course authority
+                                        <Tooltip placement="top" title={<div className={"email-tool-tip-component"}>
+                                            ExampleEmail@COMP9323.com
+                                            <CopyToClipboard
+                                                text={"ExampleEmail@COMP9323.com"}
+                                                onCopy={() => {
+                                                    message.success('copy email success');
+                                                }}
+                                            >
+                                                <span className={"email-tool-tip-component-copy"}>COPY</span>
+                                            </CopyToClipboard>
+                                        </div>}>
+                                            <MailOutlined className={"mail-box"} />
+                                        </Tooltip>
+                                    </div>
+                                    }
+                                    avatar={<Avatar src="/static/ca.png" />}
+                                    content={null}
+                                >
+                                </Comment>
+                            </Col>
+                            <Col span={12} >
+                                <Comment
+                                    className="comment-box-item"
+                                    author={<div>
+                                        Example proposer
+                                        <Tooltip placement="top" title={<div className={"email-tool-tip-component"}>
+                                            ExampleEmail@COMP9323.com
+                                            <CopyToClipboard
+                                                text={"ExampleEmail@COMP9323.com"}
+                                                onCopy={() => {
+                                                    message.success('copy email success');
+                                                }}
+                                            >
+                                                <span className={"email-tool-tip-component-copy"}>COPY</span>
+                                            </CopyToClipboard>
+                                        </div>}>
+                                            <MailOutlined className={"mail-box"} />
+                                        </Tooltip>
+                                    </div>
+                                    }
+                                    avatar={<Avatar src="/static/ca.png" />}
+                                    content={null}
+                                >
+                                </Comment>
+                            </Col>
+                        </Row>
                         <br />
                         <Row>
                             <Col span={24} >

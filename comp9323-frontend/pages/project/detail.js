@@ -1,14 +1,15 @@
 import PageBase from '../basePage'
 
 import React, { useRef, onChange, useState, useEffect } from 'react'
-import { Col, Row, Button, Typography, Tooltip, Space, Collapse, Steps, Popover, Statistic, Comment, Avatar, Popconfirm } from 'antd';
+import { Col, Row, Button, Typography, Tooltip, Space, Collapse, Steps, Select, Statistic, Comment, Avatar, Popconfirm } from 'antd';
 import { MailOutlined, DeleteOutlined, FormOutlined } from "@ant-design/icons"
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 const { Title, Paragraph, Text, Link } = Typography;
 const { Step } = Steps;
 const TextIndex = ({ USERMESSAGE, urlMsg }) => {
-    var role = "CA"
+    var role = "S"
     var joined = true;
+
     const ref = useRef();
     const { Panel } = Collapse;
     const onChange = (key) => {
@@ -37,7 +38,9 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     function CAButtons() {
         return (
             <>
-                <Button type="primary" onClick={()=>{
+
+
+                <Button type="primary" onClick={() => {
                     ref.current.setTabPane(
                         `Project Edit`,
                         '',
@@ -45,20 +48,35 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                     )
                 }}>Edit Project</Button>
                 <br />
-                <Button type="primary" onClick={()=>{
+                <Button type="primary" onClick={() => {
                     ref.current.setTabPane(
                         `Project Work`,
                         '',
                         `/project/work?id=123`
                     )
                 }}>View works</Button>
+                <br />
+                <br />
+                <br />
+
+                <Button>
+                    Change project status
+                </Button>
+                <Select defaultValue={"2"}
+                >
+                    <Option value="0">Pending</Option>
+                    <Option value="1">Approved</Option>
+                    <Option value="2">Open to join</Option>
+                    <Option value="3">In Progress</Option>
+                    <Option value="4">Ended</Option>
+                </Select>
             </>
         )
     }
     function RButtons() {
         return (
             <>
-                <Button type="primary" onClick={()=>{
+                <Button type="primary" onClick={() => {
                     ref.current.setTabPane(
                         `Project Edit`,
                         '',
@@ -71,7 +89,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     function PButtons() {
         return (
             <>
-                <Button type="primary" onClick={()=>{
+                <Button type="primary" onClick={() => {
                     ref.current.setTabPane(
                         `Project Work`,
                         '',
@@ -94,7 +112,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                         <Button type="primary">Quit Project</Button>
                     </Popconfirm>
                     <br />
-                    <Button type="primary" onClick={()=>{
+                    <Button type="primary" onClick={() => {
                         ref.current.setTabPane(
                             `Project Work`,
                             '',
