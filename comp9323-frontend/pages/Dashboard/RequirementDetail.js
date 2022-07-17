@@ -16,7 +16,7 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
   // const [requirement,changeRequirement] = useState({})
   const [projectList, changeProjectList] = useState([{}, {}])
   // 0:CA，1:S，2:P，3:R
-  const [user, changeUser] = useState({ role: 0 })
+  const [user, changeUser] = useState({ role: 2 })
   const [contentref, setContentref] = useState(true);
   const { TextArea } = Input
   const [value, setValue] = useState("I need a two-month lab project to improve students'neural network building skills, and I need to use artificial intelligence knowledge in the process.");
@@ -106,8 +106,10 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
                       minRows: 3,
                       maxRows: 5,
                     }}
-                  />}
-                   
+                  />}                   
+                  </Paragraph>
+                  <Paragraph>
+                    <strong>Proposal submitted deadline:</strong> &nbsp;02/01/2022
                   </Paragraph>
                 </Space>
               </Col>
