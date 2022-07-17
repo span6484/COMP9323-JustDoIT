@@ -28,12 +28,16 @@ const AllProject = ({ USERMESSAGE, urlMsg }) => {
     value : "Approved"
   },{
     key : 2,
+    value : "Not approved"
+  },
+    {
+    key : 3,
     value : "Open to join"
   },{
-    key : 3,
+    key : 4,
     value : "In Progress"
   },{
-    key : 4,
+    key : 5,
     value : "Ended"
   }]);
   const [courseList,changeCourseList] = useState([{
@@ -156,22 +160,22 @@ const AllProject = ({ USERMESSAGE, urlMsg }) => {
     const _data = [{
       id : "p001",
       projectName : "Natural Language Processing with Disaster Tweets",
-      course : "Software as a Service Project",
+      course : "Machine Learning and Data Mining",
       courseAuthority : "Jerry ",
       currentStudentNumber : 43,
       maxStudentNumber : 3,
-      startTime : "11/05/2022",
-      closeTime : "13/05/2022",
+      startTime : "2022/06/11",
+      closeTime : "2022/09/11",
       statues : 0,
     },{
       id : "p002",
       projectName : "Movie finder system",
-      course : "Machine Learning and Data Mining",
+      course : "Software as a Service Project",
       courseAuthority : "Aaron",
       currentStudentNumber : 20,
       maxStudentNumber : 3,
-      startTime : "15/05/2022",
-      closeTime : "18/05/2022",
+      startTime : "2022/06/11",
+      closeTime : "2022/09/11",
       statues : 1,
     },{
       id : "p003",
@@ -180,8 +184,8 @@ const AllProject = ({ USERMESSAGE, urlMsg }) => {
       courseAuthority : "Adrian",
       currentStudentNumber : 30,
       maxStudentNumber : 3,
-      startTime : "11/06/2022",
-      closeTime : "13/06/2022",
+      startTime : "2022/06/11",
+      closeTime : "2022/09/11",
       statues : 2,
     }]
     changeData(_data);

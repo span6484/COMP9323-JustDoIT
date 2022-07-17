@@ -16,18 +16,18 @@ const CourseOverview = ({ USERMESSAGE }) => {
     const _list = [ {
       id : "c001",
       name : "Software as a Service Project",
-      startTime : "11/06/2022",
-      closeTime : "13/06/2022",
+      startTime : "2022/06/11",
+      closeTime : "2022/09/11",
     }, {
       id : "c002",
       name : "Machine Learning and Data Mining",
-      startTime : "11/06/2022",
-      closeTime : "13/06/2022",
+      startTime : "2022/06/11",
+      closeTime : "2022/09/11",
     }, {
       id : "c003",
       name : "Information Technology Project",
-      startTime : "11/06/2022",
-      closeTime : "13/06/2022",
+      startTime : "2022/06/11",
+      closeTime : "2022/09/11",
     }];
     changeCourseList(_list);
   },[])
