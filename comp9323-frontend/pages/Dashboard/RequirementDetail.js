@@ -137,12 +137,11 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
                 <Col span={6}
                   className={"action-button-box"}>
 <<<<<<< HEAD
-                  {/* <Button onClick={()=>window.location.href="http://localhost:8088/Dashboard/NewProposal?id=123132"}>Add Proposal</Button> */}
                   <Button onClick={()=>{
                                   ref.current.setTabPane(
                                       `New Proposal`,
                                       '',
-                                      `/Dashboard/NewProposal?id=123132`
+                                      `/Dashboard/NewProposal?id=123`
                                   )
                                 }}>Add Proposal</Button>
 =======

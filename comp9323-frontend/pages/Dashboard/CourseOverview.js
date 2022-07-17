@@ -47,7 +47,7 @@ const CourseOverview = ({ USERMESSAGE }) => {
                                   ref.current.setTabPane(
                                       `Course Detail`,
                                       '',
-                                      `/Dashboard/CourseDetail?id=123132`
+                                      `/Dashboard/CourseDetail?id=123`
                                   )
                                 }}
                             >Course Name:</h5>

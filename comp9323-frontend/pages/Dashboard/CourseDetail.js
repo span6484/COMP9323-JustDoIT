@@ -76,7 +76,7 @@ const CourseDetail = ({ USERMESSAGE ,urlMsg}) => {
                                               ref.current.setTabPane(
                                                 `New Requirement`,
                                                 '',
-                                                `/Dashboard/NewRequirement?id=123132`
+                                                `/Dashboard/NewRequirement?id=123`
                                               )
                                             }}>Add Requirement</Button>
                                 <Button onClick={()=>publicToReviewers()}>Public to Reviewers</Button>
@@ -343,7 +343,7 @@ const CourseDetail = ({ USERMESSAGE ,urlMsg}) => {
                                               // Dispatch(editAction('wmq'))
                                               // dispatch();
                                               //todo
-                                              window.location.href ='http://localhost:8088/Dashboard/RequirementDetail?id=123132'
+                                              window.location.href ='http://localhost:8088/Dashboard/RequirementDetail?id=123'
                                               }}/>
                                           </div>
                                             }
@@ -352,7 +352,7 @@ const CourseDetail = ({ USERMESSAGE ,urlMsg}) => {
                                               ref.current.setTabPane(
                                                 `Requirement Detail`,
                                                 '',
-                                                `/Dashboard/RequirementDetail?id=123132`
+                                                `/Dashboard/RequirementDetail?id=123`
                                               )
                                             }}
                                           >Requirement Detail</p>
