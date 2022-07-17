@@ -24,7 +24,7 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
   const getRequireMent = () => {
     getRequirement().then(res => {
       // console.log(res);
-      setValue("I need a two-month lab project to improve students'neural network building skills, and I need to use artificial intelligence knowledge in the process.")
+      setValue("")
     })
   }
   function deleteRequirement() {
@@ -101,7 +101,7 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
                     :<TextArea
                     value={value}
                     onChange={(e) =>setDescVal(e.target.value)}
-                    placeholder="Controlled autosize"
+                    placeholder="Please enter your requirement here"
                     autoSize={{
                       minRows: 3,
                       maxRows: 5,
@@ -120,12 +120,12 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
                     <Button onClick={() => {
                       setContentref(true)
                       //todo 发起请求
-                    }}>Confrim</Button>}
+                    }}>Submit</Button>}
                   {/* <Button onClick={contentref?()=>{setContentref(true)}:()=>{
                                   setContentref(false)
                                   //todo 发请求
                                   setValue('netrrstr')
-                                  }}>{contentref?'Edit':'Confrim'}</Button> */}
+                                  }}>{contentref?'Edit':'Submit'}</Button> */}
                   <Button onClick={()=>deleteRequirement()} disabled={!value&&true}>Delete</Button>
                   {/* <Button>Add Proposal</Button> */}
                   <Button onClick={()=>publishAllProjects()}>Publish All Approved Proposals</Button>
@@ -136,6 +136,15 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
               {user.role == 2 &&
                 <Col span={6}
                   className={"action-button-box"}>
+<<<<<<< HEAD
+                  <Button onClick={()=>{
+                                  ref.current.setTabPane(
+                                      `New Proposal`,
+                                      '',
+                                      `/Dashboard/NewProposal?id=123`
+                                  )
+                                }}>Add Proposal</Button>
+=======
                   <Button onClick={()=>{
                     ref.current.setTabPane(
                         `New Proposal`,
@@ -143,6 +152,7 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
                         `/Dashboard/NewProposal?id=123`
                     )
                   }}>Add Proposal</Button>
+>>>>>>> e4f8aecc23d50134c12ebf6ff118772764666799
                   <div className={"action-button-box-button"} />
                   {/* <div className={"action-button-box-button"}/> */}
                 </Col>

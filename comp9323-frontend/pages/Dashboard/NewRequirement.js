@@ -81,7 +81,7 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
                     :<TextArea
                     value={value}
                     onChange={(e) =>setDescVal(e.target.value)}
-                    placeholder="Controlled autosize"
+                    placeholder="Please enter your requirement here"
                     autoSize={{
                       minRows: 3,
                       maxRows: 5,
@@ -99,7 +99,8 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
                     <Button onClick={() => {
                       setContentref(true)
                       //todo 发起请求
-                    }}>Confrim</Button>}
+                    }}>Submit</Button>}
+                  <Button onClick={()=>deleteRequirement()} disabled={!value&&true}>Cancel</Button>
                 </Col>
             </Row>
             <br />

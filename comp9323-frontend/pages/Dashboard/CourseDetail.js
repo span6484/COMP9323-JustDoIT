@@ -13,7 +13,7 @@ const CourseDetail = ({ USERMESSAGE ,urlMsg}) => {
     const ref = useRef();
     useEffect(()=>{
         setTimeout(()=>{
-            ref?.current.getTabPane(urlMsg.asPath, `Course Name`)
+            ref?.current.getTabPane(urlMsg.asPath, `Course Detail`)
         },0)
     },[]);
     const [requirementList,changeRequirementList] = useState([{ismine:true},{}])
@@ -343,7 +343,7 @@ const CourseDetail = ({ USERMESSAGE ,urlMsg}) => {
                                               // Dispatch(editAction('wmq'))
                                               // dispatch();
                                               //todo
-                                              window.location.href ='http://localhost:8088/Dashboard/RequirementDetail?id=123132'
+                                              window.location.href ='http://localhost:8088/Dashboard/RequirementDetail?id=123'
                                               }}/>
                                           </div>
                                             }
@@ -352,7 +352,7 @@ const CourseDetail = ({ USERMESSAGE ,urlMsg}) => {
                                               ref.current.setTabPane(
                                                 `Requirement Detail`,
                                                 '',
-                                                `/Dashboard/RequirementDetail?id=123132`
+                                                `/Dashboard/RequirementDetail?id=123`
                                               )
                                             }}
                                           >Requirement Detail</p>

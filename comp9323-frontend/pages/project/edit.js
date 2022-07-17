@@ -15,7 +15,7 @@ const TextIndex = ({ USERMESSAGE }) => {
     var role = "R"
     // 0待审核Pending, 1已通过approved, 2已发布open to join 
     // 3进行中in progress 4已结束ended 5未通过not approved 
-    var status = 5;
+    var status = 1;
     const fileList = [
         {
             uid: '-1',
@@ -33,40 +33,17 @@ const TextIndex = ({ USERMESSAGE }) => {
     function ProgressBars(props) {
         const userRole = props.userRole;
         const status = props.status;
-        if (status == 5) {
-            return (
-                <>
-                    <Steps current={status}>
-                        <Step title="Pending" description="Project being reviewed" />
-                        <Step title="Not Approved" description="Not approved by course authority" />
-                    </Steps>
-                </>
-            );
-        } else {
-            if (userRole != "S") {
-                return (
-                    <>
-                        <Steps current={status}>
-                            <Step title="Pending" description="Project being reviewed" />
-                            <Step title="Approved" description="Approved by course authority" />
-                            <Step title="Open to join" description="Open to student to join" />
-                            <Step title="In Progress" description="Project in progress" />
-                            <Step title="Ended" description="Student works are submitted" />
-                        </Steps>
-                    </>
-                );
-            } else {
-                return (
-                    <>
-                        <Steps current={status}>
-                            <Step title="Open to join" description="Open to student to join" />
-                            <Step title="In Progress" description="Project in progress" />
-                            <Step title="Ended" description="Student works are submitted" />
-                        </Steps>
-                    </>
-                );
-            }
-        }
+        return (
+            <>
+                <Steps current={status}>
+                    <Step title="Pending" description="Project being reviewed" />
+                    <Step title="Approved" description="Approved by course authority" />
+                    <Step title="Open to join" description="Open to student to join" />
+                    <Step title="In Progress" description="Project in progress" />
+                    <Step title="Ended" description="Student works are submitted" />
+                </Steps>
+            </>
+        );
     }
     const disabledDate = (current) => {
         // Can not select days before today and today
@@ -111,14 +88,14 @@ const TextIndex = ({ USERMESSAGE }) => {
                             <br />
                             <Title level={4}>Change project name</Title>
                             <Input
-                                value={"Example project name"}
+                                value={"Natural Language Processing with Disaster Tweets"}
                                 placeholder="Enter new project name here" />
                             <br />
                             <Title level={4}>Change project description</Title>
                             <Input.TextArea
                                 maxLength={1200}
                                 autoSize={{ minRows: 4, maxRows: 8 }}
-                                value={"More than 1.2 billion invoices are exchanged in Australia every year, with around 90 percent of invoice processing still partly or fully manual. Over the past 2 years, the Government has invested nearly $20M to facilitate e-invoicing adoption across Australia. In New South Wales state government, agencies will have to use e-invoicing for goods and services valued at up to AUD 1 million from 2022. It is expected that this will be extended to all transactions in the longer term. The use of e-invoicing requires each company participating in an e-invoice exchange to have a specialised software infrastructure to satisfy existing regulations. Most provided solutions are in the form of a complete package that offers several functionalities for participating in the e-invoicing exchange. However, such solutions may not be suitable in all contexts and are often expensive or tied to the use of other products. For example, Xero offers e-invoicing facilities as part of their cloud solution, but a company would need to migrate all their accounting system to Xero first before they can use them. Therefore, there is a need to offer custom-made solutions for niche areas that will address the requirements of small players like SMEs."}
+                                value={"Twitter has become an important communication channel in times of emergency. The ubiquitousness of smartphones enables people to announce an emergency they’re observing in real-time. Because of this, more agencies are interested in programatically monitoring Twitter (i.e. disaster relief organizations and news agencies)."}
                                 placeholder="Enter new project description here" />
 
                         </Space>
