@@ -24,7 +24,7 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
   const getRequireMent = () => {
     getRequirement().then(res => {
       // console.log(res);
-      setValue("I need a two-month lab project to improve students'neural network building skills, and I need to use artificial intelligence knowledge in the process.")
+      setValue("")
     })
   }
   function deleteRequirement() {
@@ -101,13 +101,15 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
                     :<TextArea
                     value={value}
                     onChange={(e) =>setDescVal(e.target.value)}
-                    placeholder="Controlled autosize"
+                    placeholder="Please enter your requirement here"
                     autoSize={{
                       minRows: 3,
                       maxRows: 5,
                     }}
-                  />}
-                   
+                  />}                   
+                  </Paragraph>
+                  <Paragraph>
+                    <strong>Proposal submitted deadline:</strong> &nbsp;02/01/2022
                   </Paragraph>
                 </Space>
               </Col>
@@ -120,12 +122,12 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
                     <Button onClick={() => {
                       setContentref(true)
                       //todo 发起请求
-                    }}>Confrim</Button>}
+                    }}>Submit</Button>}
                   {/* <Button onClick={contentref?()=>{setContentref(true)}:()=>{
                                   setContentref(false)
                                   //todo 发请求
                                   setValue('netrrstr')
-                                  }}>{contentref?'Edit':'Confrim'}</Button> */}
+                                  }}>{contentref?'Edit':'Submit'}</Button> */}
                   <Button onClick={()=>deleteRequirement()} disabled={!value&&true}>Delete</Button>
                   {/* <Button>Add Proposal</Button> */}
                   <Button onClick={()=>publishAllProjects()}>Publish All Approved Proposals</Button>
@@ -193,7 +195,7 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
                             '',
                             `/project/detail?id=12444432`
                           )
-                        }}>Project Name</p>
+                        }}>Movie recommendation website</p>
                         <div className={"description"}>
                           <strong>Proposer:</strong>&nbsp;Han Yan
                           {/* I need two-months projects to empower students around creating a website. Students need to have knowledge of front-end, back-end, database, system architecture and recommendation algorithm. */}

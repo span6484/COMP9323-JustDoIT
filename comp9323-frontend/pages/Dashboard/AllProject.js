@@ -28,29 +28,30 @@ const AllProject = ({ USERMESSAGE, urlMsg }) => {
     value : "Approved"
   },{
     key : 2,
-    value : "Published"
-  },{
+    value : "Not approved"
+  },
+    {
     key : 3,
-    value : "In Progress"
+    value : "Open to join"
   },{
     key : 4,
-    value : "Ended"
+    value : "In Progress"
   },{
     key : 5,
-    value : "Failed"
+    value : "Ended"
   }]);
   const [courseList,changeCourseList] = useState([{
     key : null,
     value : "All Courses"
   },{
-    key : "Course1",
-    value : "Course1"
+    key : "c001",
+    value : "Software as a Service Project"
   },{
-    key : "Course2",
-    value : "Course2"
+    key : "c002",
+    value : "Machine Learning and Data Mining"
   },{
-    key : "Course3",
-    value : "Course3"
+    key : "c003",
+    value : "Information Technology Project"
   }]);
   const columns = [
     {
@@ -78,8 +79,8 @@ const AllProject = ({ USERMESSAGE, urlMsg }) => {
       dataIndex: 'currentStudentNumber',
       key: 'currentStudentNumber',
       width: 100,
-      render:()=>{
-        return <div> 1 / 100</div>
+      render:(currentStudentNumber)=>{
+        return <div> {currentStudentNumber} / 100</div>
       }
     },
     {
@@ -114,11 +115,11 @@ const AllProject = ({ USERMESSAGE, urlMsg }) => {
       key: 'operation',
       fixed: 'right',
       width: 100,
-      render: () =>{
+      render: (operation,actionInfo) =>{
         return <div
             className={"go-detail"}
            onClick={()=>{
-             goDetail()
+             goDetail(actionInfo.id)
            }}
         >Detail</div>
       }
@@ -146,76 +147,52 @@ const AllProject = ({ USERMESSAGE, urlMsg }) => {
       })
     },0)
   },[]);
-  function goDetail(){
+  function goDetail(id){
     ref.current.setTabPane(
         `Project detail`,
         '',
-        `/project/detail?id=123`
+        `/project/detail?id=${id}`
     )
   }
   function initList(initPage,initSearch) {
     initPage = initPage || page;
     initSearch = initSearch || search;
     const _data = [{
-      projectName : "English",
-      course : "aaa",
-      courseAuthority : "adad",
-      currentStudentNumber : 1,
+      id : "p001",
+      projectName : "Natural Language Processing with Disaster Tweets",
+      course : "Machine Learning and Data Mining",
+      courseAuthority : "Jerry ",
+      currentStudentNumber : 43,
       maxStudentNumber : 3,
-      startTime : "2022-12-11",
-      closeTime : "2022-12-13",
+      startTime : "2022/06/11",
+      closeTime : "2022/09/11",
       statues : 0,
     },{
-      projectName : "English",
-      course : "aaa",
-      courseAuthority : "adad",
-      currentStudentNumber : 1,
+      id : "p002",
+      projectName : "Movie finder system",
+      course : "Software as a Service Project",
+      courseAuthority : "Aaron",
+      currentStudentNumber : 20,
       maxStudentNumber : 3,
-      startTime : "2022-12-11",
-      closeTime : "2022-12-13",
+      startTime : "2022/06/11",
+      closeTime : "2022/09/11",
       statues : 1,
     },{
-      projectName : "English",
-      course : "aaa",
-      courseAuthority : "adad",
-      currentStudentNumber : 1,
+      id : "p003",
+      projectName : "CVPR 2018 WAD Video Segmentation Challenge",
+      course : "Information Technology Project",
+      courseAuthority : "Adrian",
+      currentStudentNumber : 30,
       maxStudentNumber : 3,
-      startTime : "2022-12-11",
-      closeTime : "2022-12-13",
+      startTime : "2022/06/11",
+      closeTime : "2022/09/11",
       statues : 2,
-    },{
-      projectName : "English",
-      course : "aaa",
-      courseAuthority : "adad",
-      currentStudentNumber : 1,
-      maxStudentNumber : 3,
-      startTime : "2022-12-11",
-      closeTime : "2022-12-13",
-      statues : 3,
-    },{
-      projectName : "English",
-      course : "aaa",
-      courseAuthority : "adad",
-      currentStudentNumber : 1,
-      maxStudentNumber : 3,
-      startTime : "2022-12-11",
-      closeTime : "2022-12-11",
-      statues : 4,
-    },{
-      projectName : "English",
-      course : "aaa",
-      courseAuthority : "adad",
-      currentStudentNumber : 1,
-      maxStudentNumber : 3,
-      startTime : "2022-12-11",
-      closeTime : "2022-12-11",
-      statues : 5,
     }]
     changeData(_data);
     changePage({
       ...initPage,
       ...{
-        total : 30
+        total : 3
       }
     });
   }

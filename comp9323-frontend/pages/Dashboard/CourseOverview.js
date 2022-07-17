@@ -13,7 +13,22 @@ const CourseOverview = ({ USERMESSAGE }) => {
   });
   const [loading, changeLoading] = useState(false)
   useEffect(()=>{
-    const _list = [ {}, {}, {}, {}, {},{}, {}, {}, {}, {},{}, {}];
+    const _list = [ {
+      id : "c001",
+      name : "Software as a Service Project",
+      startTime : "2022/06/11",
+      closeTime : "2022/09/11",
+    }, {
+      id : "c002",
+      name : "Machine Learning and Data Mining",
+      startTime : "2022/06/11",
+      closeTime : "2022/09/11",
+    }, {
+      id : "c003",
+      name : "Information Technology Project",
+      startTime : "2022/06/11",
+      closeTime : "2022/09/11",
+    }];
     changeCourseList(_list);
   },[])
   function itemDom(value){
@@ -47,12 +62,12 @@ const CourseOverview = ({ USERMESSAGE }) => {
                                   ref.current.setTabPane(
                                       `Course Detail`,
                                       '',
-                                      `/Dashboard/CourseDetail?id=123132`
+                                      `/Dashboard/CourseDetail?id=${item.id}`
                                   )
                                 }}
-                            >Course Name:</h5>
+                            >{item.name}</h5>
                       </Tooltip>
-                      <h6>Duration: 09/01/2022 - 03/02/2022</h6>
+                      <h6>Duration: {item.startTime} - {item.closeTime}</h6>
                   </div>
             })
           }

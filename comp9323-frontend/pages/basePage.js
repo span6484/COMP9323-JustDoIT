@@ -164,7 +164,7 @@ const Page = ({ router, children, cRef, USERMESSAGE }) => {
             for (let z = 0; z < _child.hasPage.length; z++) {
               const _hasPage = _child.hasPage[z]
               if (_hasPage.schema.test(_asPath || asPath) && !choose) {
-                menu = _child.value
+                menu = null
                 href = _asPath || asPath
                 title = _hasPage.title('')
                 fMenu = _fatherSubMenu.value

@@ -1,14 +1,14 @@
 import PageBase from '../basePage';
 import NewProposalStyle from "./NewProposal.less";
-
-import React, { useRef, onChange, useState } from 'react';
-import { UploadOutlined } from '@ant-design/icons';
-import { Col, Row, Button, Typography, Input, Space, Select, message, Upload, Comment, Avatar } from 'antd';
+import React, { useRef, onChange, useState, useEffect } from 'react';
+import { UploadOutlined,MailOutlined } from '@ant-design/icons';
+import { Col, Row, Button, Typography, Input, Space, Select, message, Upload, Comment, Avatar, Tooltip } from 'antd';
+import { CopyToClipboard } from 'react-copy-to-clipboard';
 const { Dragger } = Upload;
 import { SP } from 'next/dist/next-server/lib/utils';
 const { Title, Paragraph, Text, Link } = Typography;
 
-const TextIndex = ({ USERMESSAGE }) => {
+const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     const ref = useRef();
     const { Option } = Select;
 
@@ -26,6 +26,11 @@ const TextIndex = ({ USERMESSAGE }) => {
         //     status: 'error',
         // },
     ];
+useEffect(() => {
+    setTimeout(() => {
+        ref?.current.getTabPane(urlMsg.asPath, `New Proposal`)
+        }, 0)
+    }, []);
     return (
         <PageBase cRef={ref} USERMESSAGE={USERMESSAGE}>
             <style dangerouslySetInnerHTML={{
@@ -50,8 +55,31 @@ const TextIndex = ({ USERMESSAGE }) => {
                             <Title level={4}>Project Name</Title>
                             <Input placeholder="Enter new project name here" />
                             <br />
-                            <Title level={4}>Project proposer</Title>
-                            <Input placeholder="Enter new project proposer here" />
+                            <Title level={4}>Project Proposer</Title>
+                            <div className={"comment-box"}>
+                                <Comment
+                                    className="comment-box-item"
+                                    author={<div>
+                                    Proposer Name&nbsp;&nbsp;&nbsp;
+                                    <Tooltip placement="top" title={<div className={"email-tool-tip-component"}>
+                                        email12131@qq.com
+                                        <CopyToClipboard
+                                        text={"email12131@qq.com"}
+                                        onCopy={() => {
+                                            message.success('copy email success');
+                                        }}
+                                        >
+                                        <span className={"email-tool-tip-component-copy"}>COPY</span>
+                                        </CopyToClipboard>
+                                    </div>}>
+                                        <MailOutlined className={"mail-box"} />
+                                    </Tooltip>
+                                    </div>
+                                    }
+                                    avatar={<Avatar src="/static/ca.png" alt="Han Solo" />}
+                                    content={null}
+                                />
+                            </div>
                             <br />
                             <Title level={4}>Project Description</Title>
                             <Input placeholder="Enter new project description here" />
@@ -98,5 +126,14 @@ const TextIndex = ({ USERMESSAGE }) => {
             </>    </PageBase>
     )
 }
+
+TextIndex.getInitialProps = async (status) => {
+    const asPath = status.asPath;
+    return {
+      urlMsg: {
+        asPath
+      }
+    }
+  }
 
 export default TextIndex
