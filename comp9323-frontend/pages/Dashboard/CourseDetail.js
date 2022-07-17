@@ -403,6 +403,30 @@ const CourseDetail = ({ USERMESSAGE ,urlMsg}) => {
                                  <div className={"description"}>
                                    <strong>Duration:</strong>&nbsp;09/01/2022 - 03/02/2022
                                  </div>
+                                 <div className={"comment-box"}>
+                                <Comment
+                                    className="comment-box-item"
+                                    author={<div>
+                                    Proposer Name&nbsp;&nbsp;&nbsp;
+                                    <Tooltip placement="top" title={<div className={"email-tool-tip-component"}>
+                                        email12131@qq.com
+                                        <CopyToClipboard
+                                        text={"email12131@qq.com"}
+                                        onCopy={() => {
+                                            message.success('copy email success');
+                                        }}
+                                        >
+                                        <span className={"email-tool-tip-component-copy"}>COPY</span>
+                                        </CopyToClipboard>
+                                    </div>}>
+                                        <MailOutlined className={"mail-box"} />
+                                    </Tooltip>
+                                    </div>
+                                    }
+                                    avatar={<Avatar src="/static/ca.png" alt="Han Solo" />}
+                                    content={null}
+                                />
+                            </div>
                                </div>
                              })
                             }
