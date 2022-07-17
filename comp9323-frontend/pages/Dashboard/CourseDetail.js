@@ -44,22 +44,9 @@ const CourseDetail = ({ USERMESSAGE ,urlMsg}) => {
                         <Row>
                             <Col span={14}>
                                 <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
-                                    <Title>Course name</Title>
+                                    <Title>Software as a Service Project</Title>
                                     <Paragraph>
-                                        <strong>Course Description:</strong> &nbsp;quis volutpat sit amet, tincidunt d
-                                        ignissim lectus. Donec nec posuere turpis, eu vulput
-                                        ate felis. Curabitur fringilla, velquis volutpat sit amet, tincidunt d
-                                        ignissim lectus. Donec nec posuere turpis, eu vulput
-                                        ate felis. Curabitur fringilla, velquis volutpat sit amet, tincidunt d
-                                        ignissim lectus. Donec nec posuere turpis, eu vulput
-                                        ate felis. Curabitur fringilla, velquis volutpat sit amet, tincidunt d
-                                        ignissim lectus. Donec nec posuere turpis, eu vulput
-                                        ate felis. Curabitur fringilla, veleger at nisi nec augue congue finibus
-                                        . Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin tincidunt
-                                        tortor magna. Donec vitae pulvinar sapien, quis tempus massa. Nulla dignissim
-                                        nisl non viverra suscipit. Etiam eget imperdiet orci. Suspendisse est odio, i
-                                        mperdiet id euismod ac, facilisis vel odio. Cras gravida tempor lacus, non matt
-                                        is sem tempor ut.
+                                        <strong>Course Description:</strong> &nbsp;This course allows students to explore principles, techniques, architectures, and enabling technologies for the development of the different components and layers of complex SaaS systems. 
                                     </Paragraph>
                                      <Paragraph>
                                       <strong>Duration:</strong> &nbsp;09/01/2022 - 03/02/2022
@@ -71,7 +58,6 @@ const CourseDetail = ({ USERMESSAGE ,urlMsg}) => {
                             {user.role == 0  &&
                             <Col span={6}
                                  className={"action-button-box"}>
-                                {/* <Button onClick={()=>{window.location.href ='http://localhost:8088/Dashboard/NewRequirement'}}>Add Requirement</Button> */}
                                 <Button onClick={()=>{
                                               ref.current.setTabPane(
                                                 `New Requirement`,
@@ -332,7 +318,7 @@ const CourseDetail = ({ USERMESSAGE ,urlMsg}) => {
                             {
                               requirementList && requirementList.map((item,index) => {
                                 return <div className={"requirement_box"} key={"requirementList_" + index}>
-                                          {item.ismine &&
+                                          {user.role == 0 && item.ismine &&
                                           <div className={"action_box"}>
                                             <FormOutlined className={"icon-button"} onClick={()=>{
                                               // console.log(window.location.href);
@@ -393,7 +379,7 @@ const CourseDetail = ({ USERMESSAGE ,urlMsg}) => {
                         {user.role == 1 &&
                           <Col span={24}> 
                            <div className={"requirementListBox"}>
-                           {
+                            {
                              projectList && projectList.map((item, index) => {
                                // 改了这儿
                                return <div className={"requirement_box"} key={"requirementList_" + index}>
@@ -403,7 +389,7 @@ const CourseDetail = ({ USERMESSAGE ,urlMsg}) => {
                                      '',
                                      `/project/detail?id=12444432`
                                    )
-                                 }}>Project Name</p>
+                                 }}>Movie recommendation website</p>
                                  <div className={"description"}>
                                    <strong>Proposer:</strong>&nbsp;Han Yan
                                    {/* I need two-months projects to empower students around creating a website. Students need to have knowledge of front-end, back-end, database, system architecture and recommendation algorithm. */}
@@ -419,9 +405,9 @@ const CourseDetail = ({ USERMESSAGE ,urlMsg}) => {
                                  </div>
                                </div>
                              })
-                           }
-                         </div>
-                        </Col>
+                            }
+                            </div>
+                          </Col>
                         }                       
                       </Row>
                     </Col>

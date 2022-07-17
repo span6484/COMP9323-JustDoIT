@@ -16,7 +16,7 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
   // const [requirement,changeRequirement] = useState({})
   const [projectList, changeProjectList] = useState([{}, {}])
   // 0:CA，1:S，2:P，3:R
-  const [user, changeUser] = useState({ role: 2 })
+  const [user, changeUser] = useState({ role: 0 })
   const [contentref, setContentref] = useState(true);
   const { TextArea } = Input
   const [value, setValue] = useState("I need a two-month lab project to improve students'neural network building skills, and I need to use artificial intelligence knowledge in the process.");
@@ -136,15 +136,6 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
               {user.role == 2 &&
                 <Col span={6}
                   className={"action-button-box"}>
-<<<<<<< HEAD
-                  <Button onClick={()=>{
-                                  ref.current.setTabPane(
-                                      `New Proposal`,
-                                      '',
-                                      `/Dashboard/NewProposal?id=123`
-                                  )
-                                }}>Add Proposal</Button>
-=======
                   <Button onClick={()=>{
                     ref.current.setTabPane(
                         `New Proposal`,
@@ -152,7 +143,6 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
                         `/Dashboard/NewProposal?id=123`
                     )
                   }}>Add Proposal</Button>
->>>>>>> e4f8aecc23d50134c12ebf6ff118772764666799
                   <div className={"action-button-box-button"} />
                   {/* <div className={"action-button-box-button"}/> */}
                 </Col>
@@ -203,7 +193,7 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
                             '',
                             `/project/detail?id=12444432`
                           )
-                        }}>Project Name</p>
+                        }}>Movie recommendation website</p>
                         <div className={"description"}>
                           <strong>Proposer:</strong>&nbsp;Han Yan
                           {/* I need two-months projects to empower students around creating a website. Students need to have knowledge of front-end, back-end, database, system architecture and recommendation algorithm. */}
