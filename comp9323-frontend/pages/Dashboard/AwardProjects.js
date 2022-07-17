@@ -5,55 +5,45 @@ const AwardProjects = ({ USERMESSAGE }) => {
   const ref = useRef();
   const [awardList,changeAwardList] = useState([]);
   useEffect(()=>{
-    const _list = [ {
-      projectName : "English",
-      course : "aaa",
-      courseAuthority : "adad",
-      currentStudentNumber : 1,
-      maxStudentNumber : 3,
-      startTime : "2010-12-11 13:40:20",
-      closeTime : "2022-12-11 13:40:20",
-      statues : "4"}, {
-      projectName : "English",
-      course : "aaa",
-      courseAuthority : "adad",
-      currentStudentNumber : 1,
-      maxStudentNumber : 3,
-      startTime : "2010-12-11 13:40:20",
-      closeTime : "2022-12-11 13:40:20",
-      statues : "4"}, {
-      projectName : "English",
-      course : "aaa",
-      courseAuthority : "adad",
-      currentStudentNumber : 1,
-      maxStudentNumber : 3,
-      startTime : "2010-12-11 13:40:20",
-      closeTime : "2022-12-11 13:40:20",
-      statues : "4"}, {
-      projectName : "English",
-      course : "aaa",
-      courseAuthority : "adad",
-      currentStudentNumber : 1,
-      maxStudentNumber : 3,
-      startTime : "2010-12-11 13:40:20",
-      closeTime : "2022-12-11 13:40:20",
-      statues : "4"}, {
-      projectName : "English",
-      course : "aaa",
-      courseAuthority : "adad",
-      currentStudentNumber : 1,
-      maxStudentNumber : 3,
-      startTime : "2010-12-11 13:40:20",
-      closeTime : "2022-12-11 13:40:20",
-      statues : "4"}, {
-      projectName : "English",
-      course : "aaa",
-      courseAuthority : "adad",
-      currentStudentNumber : 1,
-      maxStudentNumber : 3,
-      startTime : "2010-12-11 13:40:20",
-      closeTime : "2022-12-11 13:40:20",
-      statues : "4"}];
+    const _list = [
+      {
+        id : "a001",
+        projectName : "Natural Language Processing with Disaster Tweets",
+        course : "Software as a Service Project",
+        courseAuthority : "Jerry",
+        winner : "Marie",
+        proposer : "emotional analysis",
+        currentStudentNumber : 43,
+        maxStudentNumber : 3,
+        startTime : "11/05/2022",
+        closeTime : "13/05/2022",
+        statues : 0,
+      },{
+        id : "a002",
+        projectName : "Movie finder system",
+        course : "Machine Learning and Data Mining",
+        courseAuthority : "Aaron",
+        winner : "Jenny",
+        proposer : "emotional analysis",
+        currentStudentNumber : 20,
+        maxStudentNumber : 3,
+        startTime : "15/05/2022",
+        closeTime : "18/05/2022",
+        statues : 1,
+      },{
+        id : "a003",
+        projectName : "CVPR 2018 WAD Video Segmentation Challenge",
+        course : "Information Technology Project",
+        courseAuthority : "Adrian",
+        winner : "Jeanne",
+        proposer : "emotional analysis",
+        currentStudentNumber : 30,
+        maxStudentNumber : 3,
+        startTime : "11/06/2022",
+        closeTime : "13/06/2022",
+        statues : 2,
+      }
+     ];
     changeAwardList(_list);
   },[])
   function itemDom(value){
@@ -79,7 +69,7 @@ const AwardProjects = ({ USERMESSAGE }) => {
                     ref.current.setTabPane(
                         `Award Showcase`,
                         '',
-                        `/project/showcase?id=123`
+                        `/project/showcase?id=${item.id}`
                     )
                 }}
                 className={"award-project-component-item"} key={"award-project-component-" + index}>
