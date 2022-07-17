@@ -6,15 +6,23 @@ import { MailOutlined, DeleteOutlined, FormOutlined } from "@ant-design/icons"
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 const { Title, Paragraph, Text, Link } = Typography;
 const { Step } = Steps;
+
+
+
 const TextIndex = ({ USERMESSAGE, urlMsg }) => {
-    var role = "CA"
-    var joined = true;
 
     const ref = useRef();
     const { Panel } = Collapse;
     const onChange = (key) => {
         console.log(key);
     };
+    var role = "R"
+    var joined = true;
+    //joined = false;
+
+    // 0待审核Pending, 1已通过approved, 2已发布open to join 
+    // 3进行中in progress 4已结束ended 5未通过not approved 
+    var status = 1;
 
     useEffect(() => {
         setTimeout(() => {
@@ -25,55 +33,121 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     function Buttons(props) {
         const userRole = props.userRole;
         if (userRole == "CA") {
-            return <CAButtons />;
+            return <CAButtons status={status} />;
         }
         else if (userRole == "R") {
-            return <RButtons />;
+            return <RButtons status={status} />;
         }
         else if (userRole == "P") {
-            return <PButtons />;
+            return <PButtons status={status} />;
         }
-        return <SButtons />;
+        return <SButtons status={status} />;
     }
-    function CAButtons() {
-        return (
-            <>
+    function CAButtons(props) {
+        const status = props.status;
+        if (status < 1) {
+            return (
+                <>
+                    <Button type="primary" onClick={() => {
+                        ref.current.setTabPane(
+                            `Project Edit`,
+                            '',
+                            `/project/edit?id=123`
+                        )
+                    }}>Edit Project</Button>
+                    <br />
+                    <br />
+                    <br />
 
+                    <Button>
+                        Change project status
+                    </Button>
+                    <Select defaultValue="In Progress"
+                    >
+                        <Option value="0">Pending</Option>
+                        <Option value="1">Approved</Option>
+                        <Option value="2">Open to join</Option>
+                        <Option value="3">In Progress</Option>
+                        <Option value="4">Ended</Option>
+                    </Select>
+                </>
+            )
+        } else if (status <= 2) {
+            return (
+                <>
+                    <br />
+                    <br />
+                    <br />
 
-                <Button type="primary" onClick={() => {
-                    ref.current.setTabPane(
-                        `Project Edit`,
-                        '',
-                        `/project/edit?id=123`
-                    )
-                }}>Edit Project</Button>
-                <br />
-                <Button type="primary" onClick={() => {
-                    ref.current.setTabPane(
-                        `Project Work`,
-                        '',
-                        `/project/work?id=123`
-                    )
-                }}>View works</Button>
-                <br />
-                <br />
-                <br />
+                    <Button>
+                        Change project status
+                    </Button>
+                    <Select defaultValue="In Progress"
+                    >
+                        <Option value="0">Pending</Option>
+                        <Option value="1">Approved</Option>
+                        <Option value="2">Open to join</Option>
+                        <Option value="3">In Progress</Option>
+                        <Option value="4">Ended</Option>
+                    </Select>
+                </>
+            )
+        } else if (status < 5) {
+            return (
+                <>
+                    <br />
+                    <Button type="primary" onClick={() => {
+                        ref.current.setTabPane(
+                            `Project Work`,
+                            '',
+                            `/project/work?id=123`
+                        )
+                    }}>View works</Button>
+                    <br />
+                    <br />
+                    <br />
 
-                <Button>
-                    Change project status
-                </Button>
-                <Select defaultValue={"2"}
-                >
-                    <Option value="0">Pending</Option>
-                    <Option value="1">Approved</Option>
-                    <Option value="2">Open to join</Option>
-                    <Option value="3">In Progress</Option>
-                    <Option value="4">Ended</Option>
-                </Select>
-            </>
-        )
+                    <Button>
+                        Change project status
+                    </Button>
+                    <Select defaultValue="In Progress"
+                    >
+                        <Option value="0">Pending</Option>
+                        <Option value="1">Approved</Option>
+                        <Option value="2">Open to join</Option>
+                        <Option value="3">In Progress</Option>
+                        <Option value="4">Ended</Option>
+                    </Select>
+                </>
+            )
+        } else {
+            return (
+                <>
+                    <br />
+                    <br />
+                    <br />
+                    <Button>
+                        Not Approved
+                    </Button>
+                </>
+            )
+        }
+
     }
-    function RButtons() {
+    function RButtons(props) {
+        if (props.status > 0) {
+            return (
+                <>
+                    <Button disabled type="primary" onClick={() => {
+                        ref.current.setTabPane(
+                            `Project Edit`,
+                            '',
+                            `/project/edit?id=123`
+                        )
+                    }}>Approve Project</Button>
+                </>
+            )
+        }
         return (
             <>
                 <Button type="primary" onClick={() => {
@@ -86,10 +160,24 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
             </>
         )
     }
-    function PButtons() {
+    function PButtons(props) {
+        const status = props.status;
+        if (status <= 2 || status >= 5) {
+            return (
+                <>
+                    <Button type="primary" disabled onClick={() => {
+                        ref.current.setTabPane(
+                            `Project Work`,
+                            '',
+                            `/project/work?id=123`
+                        )
+                    }} >View works</Button>
+                </>
+            )
+        }
         return (
             <>
-                <Button type="primary" disabled onClick={() => {
+                <Button type="primary" onClick={() => {
                     ref.current.setTabPane(
                         `Project Work`,
                         '',
@@ -99,18 +187,48 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
             </>
         )
     }
-    function SButtons() {
-        if (joined) {
+    function SButtons(props) {
+        if (props.status < 5) {
+            if (joined) {
+                return (
+                    <>
+                        <Popconfirm
+                            placement="bottomRight"
+                            title={"Quit this project now?"}
+                            okText="Yes"
+                            cancelText="No"
+                        >
+                            <Button type="primary">Quit Project</Button>
+                        </Popconfirm>
+
+
+                    </>
+                )
+            } else {
+                return (
+                    <>
+
+                        <Popconfirm
+                            placement="bottomRight"
+                            title={"Join this project now?"}
+                            okText="Yes"
+                            cancelText="No"
+                        >
+                            <Button type="primary">Join Project</Button>
+                        </Popconfirm>
+                    </>
+                )
+            }
+        }
+        else {
+            return null;
+        }
+    }
+
+    function SubmitWorkButton(props) {
+        if (props.userRole == "S" && props.status == 3) {
             return (
                 <>
-                    <Popconfirm
-                        placement="bottomRight"
-                        title={"Quit this project now?"}
-                        okText="Yes"
-                        cancelText="No"
-                    >
-                        <Button type="primary">Quit Project</Button>
-                    </Popconfirm>
                     <br />
                     <Button type="primary" onClick={() => {
                         ref.current.setTabPane(
@@ -119,58 +237,102 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                             `/project/work?id=123`
                         )
                     }}>Submit Work</Button>
-
-                </>
-            )
-        } else {
-            return (
-                <>
-
-                    <Popconfirm
-                        placement="bottomRight"
-                        title={"Join this project now?"}
-                        okText="Yes"
-                        cancelText="No"
-                    >
-                        <Button type="primary">Join Project</Button>
-                    </Popconfirm>
                 </>
             )
         }
+        return null;
     }
     function ProgressBars(props) {
         const userRole = props.userRole;
-        if (userRole == "CA" || userRole == "R") {
-            return (
-                <>
-                    <Steps current={3}>
-                        <Step title="Pending" description="Project being reviewed" />
-                        <Step title="Approved" description="Approved by course authority" />
-                        <Step title="Open to join" description="Open to student to join" />
-                        <Step title="In Progress" description="Project in progress" />
-                        <Step title="Ended" description="Student works are submitted" />
-                    </Steps>
-                </>
-            );
-        } else if (userRole == "P") {
-            return (
-                <>
-                    <Steps current={1}>
-                        <Step title="Pending" description="Project being reviewed" />
-                        <Step title="Not Approved" description="Not approved by course authority" />
-                    </Steps>
-                </>
-            );
+
+        if (status < 5) {
+            if (userRole != "S") {
+
+                return (
+                    <>
+                        <Steps current={status}>
+                            <Step title="Pending" description="Project being reviewed" />
+                            <Step title="Approved" description="Approved by course authority" />
+                            <Step title="Open to join" description="Open to student to join" />
+                            <Step title="In Progress" description="Project in progress" />
+                            <Step title="Ended" description="Student works are submitted" />
+                        </Steps>
+                    </>
+                );
+            } else {
+                return (
+                    <>
+                        <Steps current={status - 2}>
+                            <Step title="Open to join" description="Open to student to join" />
+                            <Step title="In Progress" description="Project in progress" />
+                            <Step title="Ended" description="Student works are submitted" />
+                        </Steps>
+                    </>
+                );
+            }
         }
         return (
             <>
-                <Steps current={0}>
-                    <Step title="Open to join" description="Open to student to join" />
-                    <Step title="In Progress" description="Project in progress" />
-                    <Step title="Ended" description="Student works are submitted" />
+                <Steps current={1}>
+                    <Step title="Pending" description="Project being reviewed" />
+                    <Step title="Not Approved" description="Not approved by course authority" />
                 </Steps>
             </>
         );
+    }
+    function ProjectCapacity(props) {
+        const status = props.status;
+        if (status <= 1 || status >= 5) {
+            return null;
+
+        } else {
+            return <Statistic style={{ textAlign: 'center' }} title="Project Capacity" value={23} suffix="/ 33" />
+        }
+    }
+
+    function ProjectForum(props) {
+        if (props.status >= 2 && props.status < 5) {
+            return (
+                <>
+                    <Title level={3}>Forum</Title>
+
+                    <Comment
+                        actions={[<span key="comment-nested-reply-to">Reply</span>]}
+                        author={<a>Example student</a>}
+                        avatar={<Avatar src="https://joeschmoe.io/api/v1/random" />}
+                        content={
+                            <p>
+                                Hi course staff, are there any other prerequisites learning modules for this project?
+                            </p>
+                        }
+                    >
+                        <Comment
+                            actions={[<span key="comment-nested-reply-to">Reply</span>]}
+                            author={<a>Example course authority</a>}
+                            avatar={<Avatar src="/static/ca.png" />}
+                            content={
+                                <p>
+                                    No, you can enroll as long as you are in the course.
+                                </p>
+                            }
+                        >
+                        </Comment>
+                    </Comment>
+                    <Comment
+                        actions={[<span key="comment-nested-reply-to">Reply</span>]}
+                        author={<a>Example student</a>}
+                        avatar={<Avatar src="https://joeschmoe.io/api/v1/random" />}
+                        content={
+                            <p>
+                                Hi course staff, are suspendisse est odio imperdiet id euismod included in this project's work?
+                            </p>
+                        }
+                    >
+                    </Comment>
+                </>
+            )
+        }
+        return null;
     }
     return (
         <PageBase cRef={ref} USERMESSAGE={USERMESSAGE}>
@@ -257,10 +419,10 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                             <Col span={4}></Col>
                             <Col span={6} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'start' }}>
                                 <br />
-                                <Statistic style={{ textAlign: 'center' }} title="Project Capacity" value={23} suffix="/ 33" />
+                                <ProjectCapacity status={status} />
                                 <br />
-                                <Buttons userRole={role} />
-
+                                <Buttons userRole={role} status={status} />
+                                <SubmitWorkButton userRole={role} status={status} />
                             </Col>
                         </Row>
                         <br />
@@ -299,42 +461,10 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                         <br />
                         <br />
                         <Row>
-                            <Col span={24}>
-                                <Title level={3}>Forum</Title>
 
-                                <Comment
-                                    actions={[<span key="comment-nested-reply-to">Reply</span>]}
-                                    author={<a>Example student</a>}
-                                    avatar={<Avatar src="https://joeschmoe.io/api/v1/random" />}
-                                    content={
-                                        <p>
-                                            Hi course staff, are there any other prerequisites learning modules for this project?
-                                        </p>
-                                    }
-                                >
-                                    <Comment
-                                        actions={[<span key="comment-nested-reply-to">Reply</span>]}
-                                        author={<a>Example course authority</a>}
-                                        avatar={<Avatar src="/static/ca.png" />}
-                                        content={
-                                            <p>
-                                                No, you can enroll as long as you are in the course.
-                                            </p>
-                                        }
-                                    >
-                                    </Comment>
-                                </Comment>
-                                <Comment
-                                    actions={[<span key="comment-nested-reply-to">Reply</span>]}
-                                    author={<a>Example student</a>}
-                                    avatar={<Avatar src="https://joeschmoe.io/api/v1/random" />}
-                                    content={
-                                        <p>
-                                            Hi course staff, are suspendisse est odio imperdiet id euismod included in this project's work?
-                                        </p>
-                                    }
-                                >
-                                </Comment>
+                            <Col span={24}>
+                                < ProjectForum status={status} />
+
                             </Col>
                         </Row>
                     </Col>

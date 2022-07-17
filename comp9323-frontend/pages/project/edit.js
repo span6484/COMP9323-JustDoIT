@@ -12,10 +12,10 @@ const dateFormat = 'YYYY/MM/DD';
 const TextIndex = ({ USERMESSAGE }) => {
     const ref = useRef();
     const { Option } = Select;
-    var role = "R"
+    var role = "CA"
     // 0待审核Pending, 1已通过approved, 2已发布open to join 
     // 3进行中in progress 4已结束ended 5未通过not approved 
-    var status = 1;
+    var status = 0;
     const fileList = [
         {
             uid: '-1',
