@@ -23,6 +23,18 @@ export const fatherSubMenu = (type) => {
               title: (name) => {
                 return `${name}`
               }
+            },
+            {
+              schema: /^(\/Dashboard\/NewRequirement\?id=)([0-9a-zA-Z]+)+/,
+              title: (name) => {
+                return `${name}`
+              }
+            },
+            {
+              schema: /^(\/Dashboard\/NewProposal\?id=)([0-9a-zA-Z]+)+/,
+              title: (name) => {
+                return `${name}`
+              }
             }
           ]
         },

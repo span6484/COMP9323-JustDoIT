@@ -13,7 +13,7 @@ const CourseDetail = ({ USERMESSAGE ,urlMsg}) => {
     const ref = useRef();
     useEffect(()=>{
         setTimeout(()=>{
-            ref?.current.getTabPane(urlMsg.asPath, `Course Name`)
+            ref?.current.getTabPane(urlMsg.asPath, `Course Detail`)
         },0)
     },[]);
     const [requirementList,changeRequirementList] = useState([{ismine:true},{}])
@@ -76,7 +76,7 @@ const CourseDetail = ({ USERMESSAGE ,urlMsg}) => {
                                               ref.current.setTabPane(
                                                 `New Requirement`,
                                                 '',
-                                                `/Dashboard/NewRequirement`
+                                                `/Dashboard/NewRequirement?id=123132`
                                               )
                                             }}>Add Requirement</Button>
                                 <Button onClick={()=>publicToReviewers()}>Public to Reviewers</Button>
