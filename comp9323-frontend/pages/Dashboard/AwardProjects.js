@@ -74,7 +74,15 @@ const AwardProjects = ({ USERMESSAGE }) => {
         <div className={"awardList-box"}>
         {
           awardList && awardList.map((item,index) => {
-            return <div className={"award-project-component-item"} key={"award-project-component-" + index}>
+            return <div
+                onClick={()=>{
+                    ref.current.setTabPane(
+                        `Award Showcase`,
+                        '',
+                        `/project/showcase?id=123`
+                    )
+                }}
+                className={"award-project-component-item"} key={"award-project-component-" + index}>
                <div className={"award-project-component-tab"}>
                  <h6>Project name:</h6>
                  {itemDom(item.projectName)}

@@ -136,6 +136,7 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
               {user.role == 2 &&
                 <Col span={6}
                   className={"action-button-box"}>
+<<<<<<< HEAD
                   {/* <Button onClick={()=>window.location.href="http://localhost:8088/Dashboard/NewProposal?id=123132"}>Add Proposal</Button> */}
                   <Button onClick={()=>{
                                   ref.current.setTabPane(
@@ -144,6 +145,15 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
                                       `/Dashboard/NewProposal?id=123132`
                                   )
                                 }}>Add Proposal</Button>
+=======
+                  <Button onClick={()=>{
+                    ref.current.setTabPane(
+                        `New Proposal`,
+                        '',
+                        `/Dashboard/NewProposal?id=123`
+                    )
+                  }}>Add Proposal</Button>
+>>>>>>> e4f8aecc23d50134c12ebf6ff118772764666799
                   <div className={"action-button-box-button"} />
                   {/* <div className={"action-button-box-button"}/> */}
                 </Col>

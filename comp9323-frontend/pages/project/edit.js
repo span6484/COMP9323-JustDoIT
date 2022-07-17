@@ -1,18 +1,21 @@
 import PageBase from '../basePage';
 import projectStyle from "./project.less";
-
+import moment from 'moment';
 import React, { useRef, onChange, useState } from 'react';
 import { UploadOutlined } from '@ant-design/icons';
-import { Col, Row, Button, Typography, Input, Space, Select, message, Upload, Comment, Avatar } from 'antd';
+import { Col, Row, Button, Typography, Input, Space, Select, message, Upload, Comment, Avatar, DatePicker, Steps } from 'antd';
 const { Dragger } = Upload;
 import { SP } from 'next/dist/next-server/lib/utils';
 const { Title, Paragraph, Text, Link } = Typography;
-
+const { Step } = Steps;
+const dateFormat = 'YYYY/MM/DD';
 const TextIndex = ({ USERMESSAGE }) => {
     const ref = useRef();
     const { Option } = Select;
-
-
+    var role = "R"
+    // 0待审核Pending, 1已通过approved, 2已发布open to join 
+    // 3进行中in progress 4已结束ended 5未通过not approved 
+    var status = 1;
     const fileList = [
         {
             uid: '-1',
@@ -26,6 +29,49 @@ const TextIndex = ({ USERMESSAGE }) => {
             status: 'error',
         },
     ];
+
+    function ProgressBars(props) {
+        const userRole = props.userRole;
+        const status = props.status;
+        return (
+            <>
+                <Steps current={status}>
+                    <Step title="Pending" description="Project being reviewed" />
+                    <Step title="Approved" description="Approved by course authority" />
+                    <Step title="Open to join" description="Open to student to join" />
+                    <Step title="In Progress" description="Project in progress" />
+                    <Step title="Ended" description="Student works are submitted" />
+                </Steps>
+            </>
+        );
+    }
+    const disabledDate = (current) => {
+        // Can not select days before today and today
+        return current && current < moment().endOf('day');
+    };
+    function UploadDocumnets(props) {
+        const status = props.status;
+        if (status <= 1) {
+            return (
+                <>
+                    <Title level={3}>Upload documents</Title>
+                    <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
+                    </Space>
+
+                    <br />
+                    <Upload
+                        action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
+                        listType="picture"
+                        defaultFileList={[...fileList]}
+                        className="upload-list-inline"
+                    >
+                        <Button icon={<UploadOutlined />}>Upload</Button>
+                    </Upload>
+                </>
+            );
+        }
+        return null;
+    }
     return (
         <PageBase cRef={ref} USERMESSAGE={USERMESSAGE}>
             <style dangerouslySetInnerHTML={{
@@ -40,45 +86,40 @@ const TextIndex = ({ USERMESSAGE }) => {
                         <Space direction="vertical" size="middle" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'start' }}>
                             <Title>Edit Project</Title>
                             <br />
-                            <Title level={2}>Example project name</Title>
-                            <br />
-                            <Paragraph>
-                                More than 1.2 billion invoices are exchanged in Australia every year, with around 90 percent of invoice processing still partly or fully manual. Over the past 2 years, the Government has invested nearly $20M to facilitate e-invoicing adoption across Australia. In New South Wales state government, agencies will have to use e-invoicing for goods and services valued at up to AUD 1 million from 2022. It is expected that this will be extended to all transactions in the longer term. The use of e-invoicing requires each company participating in an e-invoice exchange to have a specialised software infrastructure to satisfy existing regulations. Most provided solutions are in the form of a complete package that offers several functionalities for participating in the e-invoicing exchange. However, such solutions may not be suitable in all contexts and are often expensive or tied to the use of other products. For example, Xero offers e-invoicing facilities as part of their cloud solution, but a company would need to migrate all their accounting system to Xero first before they can use them. Therefore, there is a need to offer custom-made solutions for niche areas that will address the requirements of small players like SMEs.
-                            </Paragraph>
-                            <br />
-
                             <Title level={4}>Change project name</Title>
-                            <Input placeholder="Enter new project name here" />
+                            <Input
+                                value={"Natural Language Processing with Disaster Tweets"}
+                                placeholder="Enter new project name here" />
                             <br />
                             <Title level={4}>Change project description</Title>
-                            <Input placeholder="Enter new project description here" />
+                            <Input.TextArea
+                                maxLength={1200}
+                                autoSize={{ minRows: 4, maxRows: 8 }}
+                                value={"Twitter has become an important communication channel in times of emergency. The ubiquitousness of smartphones enables people to announce an emergency they’re observing in real-time. Because of this, more agencies are interested in programatically monitoring Twitter (i.e. disaster relief organizations and news agencies)."}
+                                placeholder="Enter new project description here" />
 
                         </Space>
+                        <br />
+                        <Row>
+                            <Col span={20}>
+                                <Title level={4}>Start Time - End Time</Title>
+                                <Title level={5}>
+                                    <DatePicker.RangePicker
+                                        disabledDate={disabledDate}
+                                        defaultValue={[moment('2022/07/26', dateFormat), moment('2022/07/28', dateFormat)]}
+                                        format={dateFormat}
+                                    />
+                                </Title>
+                            </Col>
+                        </Row>
+                        <br />
+                        <Title level={3}>Project current progress</Title>
+                        <br />
+                        <ProgressBars userRole={role} status={status} />
 
                         <br />
-                        <Title level={3}>Change project progress</Title>
-                        <Select defaultValue="Open to join" style={{ width: 400 }}>
-                            <Option value="0">Pending</Option>
-                            <Option value="1">Approved</Option>
-                            <Option value="2">Open to join</Option>
-                            <Option value="3">In Progress</Option>
-                            <Option value="4">Ended</Option>
-                        </Select>
                         <br />
-                        <br />
-                        <Title level={3}>Upload documents</Title>
-                        <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
-                        </Space>
-
-                        <br />
-                        <Upload
-                            action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
-                            listType="picture"
-                            defaultFileList={[...fileList]}
-                            className="upload-list-inline"
-                        >
-                            <Button icon={<UploadOutlined />}>Upload</Button>
-                        </Upload>
+                        <UploadDocumnets status={status} />
                         <br />
                         <br />
                         <br />

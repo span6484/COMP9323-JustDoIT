@@ -1,14 +1,15 @@
 import PageBase from '../basePage'
 
 import React, { useRef, onChange, useState, useEffect } from 'react'
-import { Col, Row, Button, Typography, Tooltip, Space, Collapse, Steps, Popover, Statistic, Comment, Avatar, Popconfirm } from 'antd';
+import { Col, Row, Button, Typography, Tooltip, Space, Collapse, Steps, Select, Statistic, Comment, Avatar, Popconfirm } from 'antd';
 import { MailOutlined, DeleteOutlined, FormOutlined } from "@ant-design/icons"
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 const { Title, Paragraph, Text, Link } = Typography;
-
+const { Step } = Steps;
 const TextIndex = ({ USERMESSAGE, urlMsg }) => {
-    var role = "S"
+    var role = "CA"
     var joined = true;
+
     const ref = useRef();
     const { Panel } = Collapse;
     const onChange = (key) => {
@@ -20,7 +21,6 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
             ref?.current.getTabPane(urlMsg.asPath, `Project Name`)
         }, 0)
     }, [])
-    const { Step } = Steps;
     // var userRole = ("CA", "S", "P","R");
     function Buttons(props) {
         const userRole = props.userRole;
@@ -38,23 +38,64 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     function CAButtons() {
         return (
             <>
-                <Button type="primary" href='/project/edit'>Edit Project</Button>
+
+
+                <Button type="primary" onClick={() => {
+                    ref.current.setTabPane(
+                        `Project Edit`,
+                        '',
+                        `/project/edit?id=123`
+                    )
+                }}>Edit Project</Button>
                 <br />
-                <Button type="primary" href='/project/work'>View works</Button>
+                <Button type="primary" onClick={() => {
+                    ref.current.setTabPane(
+                        `Project Work`,
+                        '',
+                        `/project/work?id=123`
+                    )
+                }}>View works</Button>
+                <br />
+                <br />
+                <br />
+
+                <Button>
+                    Change project status
+                </Button>
+                <Select defaultValue={"2"}
+                >
+                    <Option value="0">Pending</Option>
+                    <Option value="1">Approved</Option>
+                    <Option value="2">Open to join</Option>
+                    <Option value="3">In Progress</Option>
+                    <Option value="4">Ended</Option>
+                </Select>
             </>
         )
     }
     function RButtons() {
         return (
             <>
-                <Button type="primary" href='/project/edit'>Approve Project</Button>
+                <Button type="primary" onClick={() => {
+                    ref.current.setTabPane(
+                        `Project Edit`,
+                        '',
+                        `/project/edit?id=123`
+                    )
+                }}>Approve Project</Button>
             </>
         )
     }
     function PButtons() {
         return (
             <>
-                <Button type="primary" href='/project/work'>View works</Button>
+                <Button type="primary" disabled onClick={() => {
+                    ref.current.setTabPane(
+                        `Project Work`,
+                        '',
+                        `/project/work?id=123`
+                    )
+                }} >View works</Button>
             </>
         )
     }
@@ -71,7 +112,13 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                         <Button type="primary">Quit Project</Button>
                     </Popconfirm>
                     <br />
-                    <Button type="primary" href='/project/work'>Submit Work</Button>
+                    <Button type="primary" onClick={() => {
+                        ref.current.setTabPane(
+                            `Project Work`,
+                            '',
+                            `/project/work?id=123`
+                        )
+                    }}>Submit Work</Button>
 
                 </>
             )
@@ -136,36 +183,20 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                         <Row>
                             <Col span={14}>
                                 <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
-                                    <Title>Example project name</Title>
-                                    <Title level={2}>A project for Example course name</Title>
+                                    <Title>Natural Language Processing with Disaster Tweets</Title>
+                                    <Title level={2}>A project for Machine Learning and Data Mining</Title>
                                     <Row>
                                         <Col span={12}>
                                             <Title level={4}>Start Time</Title>
-                                            <Title level={5}>2025/01/01</Title>
+                                            <Title level={5}>2022/05/01</Title>
                                         </Col>
                                         <Col span={12}>
                                             <Title level={4}>End time</Title>
-                                            <Title level={5}>2025/03/01</Title>
+                                            <Title level={5}>2022/08/01</Title>
                                         </Col>
                                     </Row>
                                     <Paragraph>
-                                        Example project description
-                                        <br />
-                                        More than 1.2 billion invoices are exchanged in Australia every year, with around 90 percent
-                                        of invoice processing still partly or fully manual. Over the past 2 years, the Government has
-                                        invested nearly $20M to facilitate e-invoicing adoption across Australia. In New South Wales
-                                        state government, agencies will have to use e-invoicing for goods and services valued at up to
-                                        AUD 1 million from 2022. It is expected that this will be extended to all transactions in the
-                                        longer term.
-                                        The use of e-invoicing requires each company participating in an e-invoice exchange to have
-                                        a specialised software infrastructure to satisfy existing regulations. Most provided solutions
-                                        are in the form of a complete package that offers several functionalities for participating in
-                                        the e-invoicing exchange. However, such solutions may not be suitable in all contexts and are
-                                        often expensive or tied to the use of other products. For example, Xero offers e-invoicing
-                                        facilities as part of their cloud solution, but a company would need to migrate all their
-                                        accounting system to Xero first before they can use them. Therefore, there is a need to offer
-                                        custom-made solutions for niche areas that will address the requirements of small players like
-                                        SMEs.
+                                        Twitter has become an important communication channel in times of emergency. The ubiquitousness of smartphones enables people to announce an emergency they’re observing in real-time. Because of this, more agencies are interested in programatically monitoring Twitter (i.e. disaster relief organizations and news agencies)
                                     </Paragraph>
                                     <Space direction="vertical" size="middle" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around' }}>
                                         <div>
