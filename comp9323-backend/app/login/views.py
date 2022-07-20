@@ -48,3 +48,6 @@ def register():
 @login_require
 def check_login():
     return jsonify({'code': 200, 'msg': '已登陆', 'user': g.user})
+
+
+#test
