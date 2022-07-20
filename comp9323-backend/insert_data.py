@@ -90,7 +90,7 @@ for row in cu_sheet.rows:
     cu_attrs = [attr_temp[0], attr_temp[1], attr_temp[2], datetime, datetime, 1]
     print(cu_attrs)
     cur.execute(
-        "insert into course_user(cuid, cid, uid, ctime, utime, active)"
+        "insert into course_user(cu_id, cid, uid, ctime, utime, active)"
         "value(%s, %s, %s, %s, %s, %s)",
         cu_attrs)
 
