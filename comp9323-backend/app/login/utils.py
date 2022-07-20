@@ -5,6 +5,7 @@ import hashlib
 import time
 import re
 import jwt
+import random
 from flask import request, jsonify, g
 from jwt import ExpiredSignatureError, PyJWTError
 
@@ -76,4 +77,35 @@ def check_username(username):
         if pattern.match(username) is not None:
             return 1
     return 0
+
+
+def generate_id(type, num):
+    if type == "user":
+        uid = "u" + "%05d" % num
+        return uid
+    elif type == "requirement":
+        rid = "r" + "%05d" % num
+        return rid
+    elif type == "project":
+        proj_id = "proj" + "%05d" % num
+        return proj_id
+    elif type == "file":
+        fid = "f" + "%05d" % num
+        return fid
+    elif type == "comment":
+        cm_id = "cm" + "%05d" % num
+        return cm_id
+    elif type == "selection":
+        sel_id = "sel" + "%05d" % num
+        return sel_id
+    elif type == "message":
+        msg_id = "msg" + "%05d" % num
+        return msg_id
+    else:
+        return None
+
+
+def random_string(num):
+    a = random.sample('0123456789', num)
+    return ''.join(a)
 

@@ -21,7 +21,7 @@ class UserModel(db.Model):
     username = db.Column(db.String(120))
     email = db.Column(db.String(256), unique=True)
     password = db.Column(db.String(256))
-    detail = db.Column(db.TEXT, nullable=False)  # user detail
+    detail = db.Column(db.TEXT)  # user detail
 
     ctime = db.Column(db.DateTime, nullable=False)  # create time
     utime = db.Column(db.DateTime, nullable=False)  # update time

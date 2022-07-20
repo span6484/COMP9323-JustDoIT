@@ -13,13 +13,13 @@ cur = conn.cursor()
 
 
 def random_string(num) -> str:
-    a = random.sample('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789', num)
+    a = random.sample('0123456789', num)
     return ''.join(a)
 
 
 def get_time():
 
-    time_stamp = time.localtime(time.time()) # 132131232434
+    time_stamp = time.localtime(time.time())  # 132131232434
     time_form = time.strftime('%Y-%m-%d %H:%M:%S', time_stamp)  # 2022-6-27 12:13:00
 
     time_stamp = int(time.mktime(time_stamp))
