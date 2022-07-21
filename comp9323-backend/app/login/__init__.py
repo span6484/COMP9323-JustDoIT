@@ -7,3 +7,4 @@ def init_route(app: Flask):
     app.add_url_rule('/register', view_func=views.register, methods=['POST'])
     app.add_url_rule('/check_login', view_func=views.check_login)
     app.add_url_rule('/view_project', view_func=projects.view_project, methods=['POST'])
+    app.add_url_rule('/change_project_status', view_func=projects.change_project_status, methods=['POST'])
