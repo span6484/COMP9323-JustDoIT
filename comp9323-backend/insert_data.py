@@ -55,19 +55,28 @@ for row in courses_sheet.rows:
         course_attrs)
 
 # insert users
-# 有报错
 users_sheet = workbook.get_sheet_by_name(sheets[1])
 print(users_sheet)
+i = 0
 for row in users_sheet.rows:
     attr_temp = []
     for cell in row:
         attr_temp.append(cell.value)
-    # print(attr_temp)
     datetime = get_time()[0]
+    role = int(attr_temp[1])
+    if role == 0 or role == 3:
+        r = 'a'
+    elif role == 1:
+        r = 's'
+    else:
+        print("Wrong role.")
+        break
     # key: uid
     # id, role, username, email, password, detail, ctime, utime, active
-
-    user_attrs = [attr_temp[0], attr_temp[1], int(attr_temp[2]), None, None, None, None, datetime, datetime, 1]
+    i = i + 1
+    temp = random_string(7 - len(str(i)))
+    id = r + temp + str(i)
+    user_attrs = [attr_temp[0], id, role, None, None, None, None, datetime, datetime, 1]
     print(user_attrs)
     cur.execute(
         "insert into users(uid, id, role, username, email, password, detail, ctime, utime, active)"
@@ -88,7 +97,7 @@ for row in cu_sheet.rows:
     # ctime, utime, active
 
     cu_attrs = [attr_temp[0], attr_temp[1], attr_temp[2], datetime, datetime, 1]
-    print(cu_attrs)
+    # print(cu_attrs)
     cur.execute(
         "insert into course_user(cu_id, cid, uid, ctime, utime, active)"
         "value(%s, %s, %s, %s, %s, %s)",
