@@ -4,7 +4,7 @@ from sqlalchemy import exists
 from app.login.utils import *
 from app.models import *
 
-
+#test
 # view project details
 def view_project():
     data = request.get_json(force=True)
