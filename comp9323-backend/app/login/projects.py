@@ -25,11 +25,12 @@ def view_project():
     if not authority:
         return jsonify({'code': 400, 'msg': 'no course authority'})
 
-    pid = proj.pid
+    pid = proj.pid      # proposer_id
     proposer = UserModel.query.filter(UserModel.uid == pid and UserModel.role == 2).first()
     if not proposer:
         return jsonify({'code': 400, 'msg': 'no proposer'})
 
+    files = FileModel.query.filter(FileModel.proj_id == proj_id, FileModel.active == 1).all()
     result["proj_name"] = proj.proj_name
     result["description"] = proj.description
     result["start_time"] = proj.start_time
@@ -39,8 +40,24 @@ def view_project():
     result["max_num"] = proj.max_num
     result["course_name"] = course.name
     result["course_description"] = course.description
-    result["course_name"] = proposer.username
+    result["proposer_id"] = proposer.uid
     result["proposer_name"] = proposer.username
-    ##lack file
+    result["proposer_email"] = proposer.email
+    result["authority_name"] = authority.username
+    result["authority_email"] = authority.email
+    result["authority_id"] = authority.uid
+    ##list file
+    if files:
+        file_lst = list()
+        file = dict()
+        for f in files:
+            file["file_name"] = f.file_name
+            file["file_url"] = f.file_url
+            file["type"] = f.type
+            file["utime"] = f.utime
+            file_lst.append(file)
+        result["files"] = file_lst
+    else :
+        result["files"] = None
 
     return jsonify({'code': 200, 'result': result})
