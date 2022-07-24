@@ -173,7 +173,7 @@ def show_reply_comment(root_id, proj_id):
 
 
 
-def comment():
+def view_comment():
     data = request.get_json(force=True)
     proj_id = data["proj_id"]
     proj = ProjectModel.query.filter(ProjectModel.proj_id == proj_id).first()
