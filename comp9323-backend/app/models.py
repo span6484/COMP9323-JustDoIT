@@ -161,8 +161,8 @@ class CommentModel(db.Model):
     cm_id = db.Column(db.String(256), primary_key=True)
     proj_id = db.Column(db.String(256), nullable=False)  # project.proj_id
     owner_uid = db.Column(db.String(256), nullable=False)  # comment poster
-    target_uid = db.Column(db.String(256), nullable=False)  # reply who's uid, if poster: None
-    parent_id = db.Column(db.String(256), nullable=False)  # comment replier, if poster: None
+    target_uid = db.Column(db.String(256), nullable=True)  # reply who's uid, if poster: None
+    parent_id = db.Column(db.String(256), nullable=True)  # comment replier, if poster: None
     root_id = db.Column(db.String(256), nullable=False)  # the level id, can be canceled if it is not necessary
     content = db.Column(db.TEXT, nullable=False)  # comment content
 

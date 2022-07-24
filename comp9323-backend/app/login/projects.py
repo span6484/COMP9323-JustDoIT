@@ -130,3 +130,85 @@ def change_project_status2():
             return jsonify({'code': 200, 'msg': 'modify status to 4 (In Progress) successfully'})
         else:
             return jsonify({'code': 200, 'msg': 'Wait the start time'})
+
+# [username, email, role]
+def show_usr_info(owner_uid):
+    user = UserModel.query.filter(UserModel.uid == owner_uid).first()
+    if not user:
+        return []
+    user_lst = []
+    user_lst.append(user.username)
+    user_lst.append(user.email)
+    user_lst.append(user.role)
+    return user_lst
+
+# all reply comment to comment
+def show_reply_comment(root_id, proj_id):
+    post_lst = list()
+    posts = CommentModel.query.filter(CommentModel.proj_id == proj_id, CommentModel.root_id == root_id, CommentModel.cm_id != root_id, CommentModel.active == 1).order_by(CommentModel.utime).all()
+    if not posts:
+        return posts
+    for post in posts:
+        post_dic = dict()
+        owner_uid = post.owner_uid
+        owner_info = show_usr_info(owner_uid)
+        if len(owner_info) != 0:
+            post_dic["owner_uid"] = owner_uid
+            post_dic["owner_name"] = owner_info[0]
+            post_dic["owner_email"] = owner_info[1]
+            post_dic["owner_role"] = owner_info[2]
+        target_uid = post.target_uid
+        target_info = show_usr_info(target_uid)
+        if len(target_info) != 0:
+            post_dic["target_uid"] = target_uid
+            post_dic["target_name"] = target_info[0]
+            post_dic["target_email"] = target_info[1]
+            post_dic["target_role"] = target_info[2]
+
+        post_dic["parent_id"] = post.parent_id
+        post_dic["content"] = post.content
+        post_dic["utime"] = post.utime
+        post_lst.append(post_dic)
+    return post_lst
+
+
+
+def comment():
+    data = request.get_json(force=True)
+    proj_id = data["proj_id"]
+    proj = ProjectModel.query.filter(ProjectModel.proj_id == proj_id).first()
+    if not proj:
+        return jsonify({'code': 400, 'msg': 'not related project'})
+    comments = CommentModel.query.filter(CommentModel.proj_id == proj_id, CommentModel.active == 1).order_by(CommentModel.utime).all()
+
+    if not comments:
+        return jsonify({'code': 400, 'msg': 'no related comment'})
+    result = {}
+    # 层主
+    posts = CommentModel.query.filter(CommentModel.proj_id == proj_id, CommentModel.target_uid == None,CommentModel.parent_id == None, CommentModel.active == 1).order_by(CommentModel.utime).all()
+    post_lst = []
+    count = 0
+    for post in posts:
+        post_info = {}
+        root_id = post.root_id  # get poster id
+        root_usr_info = show_usr_info(post.owner_uid) # username, email, role
+        if len(root_usr_info) != 0:
+            root_name = root_usr_info[0]
+            root_email = root_usr_info[1]
+            root_role = root_usr_info[2]
+            post_info["root_id"] = root_id
+            post_info["root_name"] = root_name
+            post_info["root_email"] = root_email
+            post_info["root_role"] = root_role
+            post_info["root_content"] = post.content
+            post_info["reply_comment"] = show_reply_comment(root_id, proj_id)
+            post_info["reply_count"] = len(post_info["reply_comment"])
+        post_lst.append(post_info)
+        count += 1
+    result["posts_count"] = count
+    result["posts"] = post_lst
+    return jsonify({'code': 200, 'result': result})
+
+
+
+
