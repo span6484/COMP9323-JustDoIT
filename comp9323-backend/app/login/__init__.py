@@ -10,4 +10,5 @@ def init_route(app: Flask):
     app.add_url_rule('/change_project_status', view_func=projects.change_project_status, methods=['POST'])
     app.add_url_rule('/change_project_status2', view_func=projects.change_project_status2, methods=['POST'])
     app.add_url_rule('/view_comment', view_func=projects.view_comment, methods=['POST'])
+    app.add_url_rule('/add_comment', view_func=projects.add_comment, methods=['POST'])
 

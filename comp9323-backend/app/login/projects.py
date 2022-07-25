@@ -8,7 +8,7 @@ from app.models import *
 def view_project():
     data = request.get_json(force=True)
     result = {}
-    proj_id = data["projid"]
+    proj_id = data["proj_id"]
 
     proj = ProjectModel.query.filter(ProjectModel.proj_id == proj_id).first()
     if not proj:
@@ -16,7 +16,7 @@ def view_project():
 
     cid = proj.cid
     course = CourseModel.query.filter(CourseModel.cid == cid and CourseModel.active == 1).first()
-    if not cid:
+    if not course:
         return jsonify({'code': 400, 'msg': 'not related course'})
 
     aid = proj.aid
@@ -208,6 +208,50 @@ def view_comment():
     result["posts_count"] = count
     result["posts"] = post_lst
     return jsonify({'code': 200, 'result': result})
+
+def add_comment():
+    data = request.get_json(force=True)
+    result = {}
+    proj_id = data["proj_id"]
+    uid = data["uid"]
+    content = data["content"]
+    # target_uid = data["target_uid"]
+    # parent_id = data["parent_id"]
+    # root_id = data["root_id"]
+
+    # determine the project json data
+    proj = ProjectModel.query.filter(ProjectModel.proj_id == proj_id).first()
+    if not proj:
+        return jsonify({'code': 400, 'msg': 'not related project'})
+    cid = proj.cid
+    course = CourseModel.query.filter(CourseModel.cid == cid and CourseModel.active == 1).first()
+    if not course:
+        return jsonify({'code': 400, 'msg': 'not related course'})
+    ## users json
+    user = ProjectModel.query.filter((ProjectModel.aid == uid) or (ProjectModel.pid == uid) and UserModel.role == 0).first()
+    is_user_exist = False
+    if user:
+        is_user_exist = True
+    else:
+        user = SelectionModel.query.filter(SelectionModel.sid == uid, SelectionModel.proj_id == proj_id, SelectionModel.active == 1).first()
+        if user:
+            is_user_exist = True
+    if not is_user_exist:
+        return jsonify({'code': 400, 'msg': 'no related user exist'})
+
+    ## content json
+    if not content or content.isspace():
+        return jsonify({'code': 400, 'msg': 'content is empty'})
+    try:
+        cm_num = CommentModel.query.count()
+        cm_id = generate_id("comment", cm_num + 1)
+        date_time = get_time()[0]
+        comment = CommentModel(cm_id = cm_id ,proj_id = proj_id ,owner_uid = uid,target_uid = None,parent_id = None,root_id = cm_id,content=content,ctime=date_time, utime=date_time, active = 1)
+        db.session.add(comment)
+        db.session.commit()
+        return jsonify({'code': 200, 'msg': 'add comment successfully'})
+    except Exception as e:
+        return jsonify({'code': 400, 'msg': 'add comment failed.', 'error_msg': str(e)})
 
 
 
