@@ -140,6 +140,7 @@ def show_usr_info(owner_uid):
     user_lst.append(user.username)
     user_lst.append(user.email)
     user_lst.append(user.role)
+    user_lst.append(user.uid)
     return user_lst
 
 # all reply comment to comment
@@ -164,7 +165,7 @@ def show_reply_comment(root_id, proj_id):
             post_dic["target_name"] = target_info[0]
             post_dic["target_email"] = target_info[1]
             post_dic["target_role"] = target_info[2]
-
+        post_dic["cm_id"] = post.cm_id
         post_dic["parent_id"] = post.parent_id
         post_dic["content"] = post.content
         post_dic["utime"] = post.utime
@@ -196,10 +197,12 @@ def view_comment():
             root_name = root_usr_info[0]
             root_email = root_usr_info[1]
             root_role = root_usr_info[2]
+            root_uid = root_usr_info[3]
             post_info["root_id"] = root_id
             post_info["root_name"] = root_name
             post_info["root_email"] = root_email
             post_info["root_role"] = root_role
+            post_info["root_uid"] = root_uid
             post_info["root_content"] = post.content
             post_info["reply_comment"] = show_reply_comment(root_id, proj_id)
             post_info["reply_count"] = len(post_info["reply_comment"])
@@ -211,13 +214,9 @@ def view_comment():
 
 def add_comment():
     data = request.get_json(force=True)
-    result = {}
     proj_id = data["proj_id"]
     uid = data["uid"]
     content = data["content"]
-    # target_uid = data["target_uid"]
-    # parent_id = data["parent_id"]
-    # root_id = data["root_id"]
 
     # determine the project json data
     proj = ProjectModel.query.filter(ProjectModel.proj_id == proj_id).first()
@@ -228,7 +227,7 @@ def add_comment():
     if not course:
         return jsonify({'code': 400, 'msg': 'not related course'})
     ## users json
-    user = ProjectModel.query.filter((ProjectModel.aid == uid) or (ProjectModel.pid == uid) and UserModel.role == 0).first()
+    user = ProjectModel.query.filter((ProjectModel.aid == uid) or (ProjectModel.pid == uid)).first()
     is_user_exist = False
     if user:
         is_user_exist = True
@@ -237,7 +236,7 @@ def add_comment():
         if user:
             is_user_exist = True
     if not is_user_exist:
-        return jsonify({'code': 400, 'msg': 'no related user exist'})
+        return jsonify({'code': 400, 'msg': 'no related user exist, please check CA, proposer, or student link to this project'})
 
     ## content json
     if not content or content.isspace():
@@ -252,6 +251,58 @@ def add_comment():
         return jsonify({'code': 200, 'msg': 'add comment successfully'})
     except Exception as e:
         return jsonify({'code': 400, 'msg': 'add comment failed.', 'error_msg': str(e)})
+
+
+
+def reply_comment():
+    data = request.get_json(force=True)
+    proj_id = data["proj_id"]
+    uid = data["uid"]
+    content = data["content"]
+    target_uid = data["target_uid"]
+    parent_id = data["parent_id"]
+    root_id = data["root_id"]
+
+    # determine the project json data
+    proj = ProjectModel.query.filter(ProjectModel.proj_id == proj_id).first()
+    if not proj:
+        return jsonify({'code': 400, 'msg': 'not related project'})
+    cid = proj.cid
+    course = CourseModel.query.filter(CourseModel.cid == cid and CourseModel.active == 1).first()
+    if not course:
+        return jsonify({'code': 400, 'msg': 'not related course'})
+    ## users json
+    print(uid)
+    user = ProjectModel.query.filter((ProjectModel.aid == uid) or (ProjectModel.pid == uid)).first()
+
+    is_user_exist = False
+    if user:
+        is_user_exist = True
+    else:
+        user = SelectionModel.query.filter(SelectionModel.sid == uid, SelectionModel.proj_id == proj_id, SelectionModel.active == 1).first()
+        if user:
+            is_user_exist = True
+    if not is_user_exist:
+        return jsonify({'code': 400, 'msg': 'no related user exist'})
+
+    ## content json
+    if not content or content.isspace():
+        return jsonify({'code': 400, 'msg': 'content is empty'})
+    print(target_uid)
+    ## root exist
+    root = CommentModel.query.filter(CommentModel.root_id == root_id, CommentModel.active == 1).order_by(CommentModel.utime).all()
+    if not root:
+        return jsonify({'code': 400, 'msg': 'no root comment'})
+    try:
+        cm_num = CommentModel.query.count()
+        cm_id = generate_id("comment", cm_num + 1)
+        date_time = get_time()[0]
+        comment = CommentModel(cm_id = cm_id ,proj_id = proj_id ,owner_uid = uid,target_uid = target_uid,parent_id = parent_id,root_id = root_id,content=content,ctime=date_time, utime=date_time, active = 1)
+        db.session.add(comment)
+        db.session.commit()
+        return jsonify({'code': 200, 'msg': 'reply comment successfully'})
+    except Exception as e:
+        return jsonify({'code': 400, 'msg': 'reply comment failed.', 'error_msg': str(e)})
 
 
 
