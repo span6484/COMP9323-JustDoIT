@@ -305,5 +305,35 @@ def reply_comment():
         return jsonify({'code': 400, 'msg': 'reply comment failed.', 'error_msg': str(e)})
 
 
+def delete_comment() :
+    data = request.get_json(force=True)
+    uid = data["uid"]
+    cm_id = data["cm_id"]
+    comments = CommentModel.query.filter(CommentModel.cm_id == cm_id,CommentModel.owner_uid == uid, CommentModel.active == 1).order_by(CommentModel.utime).first()
+    if not comments:
+        return jsonify({'code': 400, 'msg': 'not related comments'})
+
+    # poster
+    date_time = get_time()[0]
+    if comments.target_uid is None and comments.parent_id is None :
+        reply_comments = CommentModel.query.filter(CommentModel.root_id == cm_id ,CommentModel.active == 1).all()
+
+        if reply_comments :
+            for reply_comment in reply_comments:
+                reply_comment.active = 0
+                reply_comment.utime = date_time
+                db.session.commit()
+    comments.active = 0
+    comments.utime = date_time
+    return jsonify({'code': 200, 'msg': 'delete comment successfully'})
+
+
+
+
+
+
+
+
+
 
 
