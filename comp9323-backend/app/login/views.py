@@ -93,3 +93,38 @@ def register():
 @login_require
 def check_login():
     return jsonify({'code': 200, 'msg': 'Already login.', 'user': g.user})
+
+
+def add_message(uid, content):
+    user = UserModel.query.filter(UserModel.uid == uid, UserModel.active == 1).first()
+    if not user or not content:
+        return 0
+
+    msg_num = MessageModel.query.count()
+    msg_id = generate_id("message", msg_num+1)
+    data_time = get_time()[0]
+
+    msg = MessageModel(msg_id=msg_id, uid=uid, content=content, read=0, ctime=data_time, utime=data_time, active=1)
+    db.session.add(msg)
+    db.session.commit()
+    return 1
+
+
+def get_message():
+    data = request.get_json(force=True)
+    uid = data["uid"]
+    user = UserModel.query.filter(UserModel.uid == uid, UserModel.active == 1).first()
+    if not user:
+        return jsonify({'code': 400, 'msg': 'No such user in database.'})
+
+    try:
+        msg_list = MessageModel.query.filter(MessageModel.uid == uid, MessageModel.active == 1).all()
+        result_list = []
+        for msg in msg_list:
+            msg_dict = {"content": msg.content, "read": msg.read, "ctime": msg.ctime}
+            result_list.append(msg_dict)
+        result = {"count": len(result_list), "list": result_list}
+        return jsonify({'code': 200, 'result': result})
+
+    except Exception as e:
+        return jsonify({'code': 400, 'msg': 'Get messages failed.', 'error_msg': str(e)})

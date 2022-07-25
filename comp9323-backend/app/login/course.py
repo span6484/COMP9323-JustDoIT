@@ -31,12 +31,11 @@ def get_courses():
             review_list = CourseModel.query.filter(CourseModel.public == 1, CourseModel.active == 1).all()
             course_list.extend(review_list)
         print(course_list)
-        result = {"count": len(course_list)}
         result_list = []
         for c in course_list:
             c_dict = {"cid": c.cid, "name": c.name, "start_time": c.start_time, "close_time": c.close_time}
             result_list.append(c_dict)
-        result["c_list"] = result_list
+        result = {"count": len(result_list), "c_list": result_list}
         return jsonify({'code': 200, 'result': result})
 
     except Exception as e:
