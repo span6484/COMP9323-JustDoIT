@@ -121,10 +121,29 @@ def get_message():
         msg_list = MessageModel.query.filter(MessageModel.uid == uid, MessageModel.active == 1).all()
         result_list = []
         for msg in msg_list:
-            msg_dict = {"content": msg.content, "read": msg.read, "ctime": msg.ctime}
+            msg_dict = {"msg_id":msg.msg_id, "content": msg.content, "read": msg.read, "ctime": msg.ctime}
             result_list.append(msg_dict)
         result = {"count": len(result_list), "list": result_list}
         return jsonify({'code': 200, 'result': result})
 
     except Exception as e:
         return jsonify({'code': 400, 'msg': 'Get messages failed.', 'error_msg': str(e)})
+
+
+def set_message_read():
+    data = request.get_json(force=True)
+    msg_id = data["msg_id"]
+    msg = MessageModel.query.filter(MessageModel.msg_id == msg_id, MessageModel.read == 0, MessageModel.active == 1).first()
+    if not msg:
+        return jsonify({'code': 400, 'msg': 'No such unread message in database.'})
+
+    try:
+        date_time = get_time()[0]
+        msg.read = 1
+        msg.utime = date_time
+        db.session.commit()
+        return jsonify({'code': 200, 'msg': 'Set message read successfully.'})
+
+    except Exception as e:
+        return jsonify({'code': 400, 'msg': 'Get messages failed.', 'error_msg': str(e)})
+
