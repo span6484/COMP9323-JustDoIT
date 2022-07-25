@@ -3,7 +3,7 @@ from sqlalchemy import exists
 from datetime import datetime as dt
 from app.login.utils import *
 from app.models import *
-
+from sqlalchemy import or_, and_, not_
 # view project details
 def view_project():
     data = request.get_json(force=True)
@@ -273,8 +273,8 @@ def reply_comment():
         return jsonify({'code': 400, 'msg': 'not related course'})
     ## users json
     print(uid)
-    user = ProjectModel.query.filter((ProjectModel.aid == uid) or (ProjectModel.pid == uid)).first()
-
+    user = ProjectModel.query.filter(or_(ProjectModel.aid == uid, ProjectModel.pid == uid)).first()
+    print("aid: ", user.aid)
     is_user_exist = False
     if user:
         is_user_exist = True
@@ -323,6 +323,14 @@ def delete_comment() :
                 reply_comment.active = 0
                 reply_comment.utime = date_time
                 db.session.commit()
+
+    related_comments = CommentModel.query.filter(CommentModel.parent_id == cm_id ,CommentModel.active == 1).all()
+    if related_comments:
+        for related_comment in related_comments:
+            related_comment.active = 0
+            related_comment.utime = date_time
+            db.session.commit()
+
     comments.active = 0
     comments.utime = date_time
     return jsonify({'code': 200, 'msg': 'delete comment successfully'})
