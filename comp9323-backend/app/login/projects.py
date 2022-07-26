@@ -4,6 +4,7 @@ from datetime import datetime as dt
 from app.login.utils import *
 from app.models import *
 from sqlalchemy import or_, and_, not_
+from app.login.views import *
 # view project details
 def view_project():
     data = request.get_json(force=True)
@@ -274,7 +275,6 @@ def reply_comment():
     ## users json
     print(uid)
     user = ProjectModel.query.filter(or_(ProjectModel.aid == uid, ProjectModel.pid == uid)).first()
-    print("aid: ", user.aid)
     is_user_exist = False
     if user:
         is_user_exist = True
@@ -300,6 +300,9 @@ def reply_comment():
         comment = CommentModel(cm_id = cm_id ,proj_id = proj_id ,owner_uid = uid,target_uid = target_uid,parent_id = parent_id,root_id = root_id,content=content,ctime=date_time, utime=date_time, active = 1)
         db.session.add(comment)
         db.session.commit()
+        add_comment()
+        msg = add_message(uid, "You have one unread message")
+
         return jsonify({'code': 200, 'msg': 'reply comment successfully'})
     except Exception as e:
         return jsonify({'code': 400, 'msg': 'reply comment failed.', 'error_msg': str(e)})
