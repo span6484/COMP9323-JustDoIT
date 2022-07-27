@@ -1,7 +1,7 @@
-### creat a database named iMovie
+### creat a database
 ```shell
 mysql -u root -p
-create database projectManagement
+create database pmpsys
 ```
 ### install package
 ```shell
