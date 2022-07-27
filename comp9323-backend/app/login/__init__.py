@@ -11,6 +11,7 @@ def init_route(app: Flask):
     app.add_url_rule('/set_message_read', view_func=views.set_message_read, methods=['POST'])
     # project
     app.add_url_rule('/view_project', view_func=projects.view_project, methods=['POST'])
+    app.add_url_rule('/edit_project', view_func=projects.edit_project, methods=['POST'])
     app.add_url_rule('/change_project_status', view_func=projects.change_project_status, methods=['POST'])
     app.add_url_rule('/change_project_status2', view_func=projects.change_project_status2, methods=['POST'])
     app.add_url_rule('/view_comment', view_func=projects.view_comment, methods=['POST'])

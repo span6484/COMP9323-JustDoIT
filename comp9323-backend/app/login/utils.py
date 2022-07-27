@@ -109,5 +109,12 @@ def random_string(num):
     a = random.sample('0123456789', num)
     return ''.join(a)
 
-
+# list(year, month, day) list:int
+# argv: string  "2021-07-08"
+def time_list(time):
+    st_lst = time.split('-')
+    result = list()
+    for i in st_lst:
+        result.append(int(i))
+    return result
 
