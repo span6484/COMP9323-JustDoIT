@@ -25,7 +25,7 @@ class UserModel(db.Model):
 
     ctime = db.Column(db.DateTime, nullable=False)  # create time
     utime = db.Column(db.DateTime, nullable=False)  # update time
-    active = db.Column(db.Integer, nullable=False, default=1)  # 0:delete,  1:not delete
+    active = db.Column(db.Integer, nullable=False, default=0)  # 0:not active,  1:active
 
     def save_to_db(self):
         db.session.add(self)

@@ -43,7 +43,7 @@ def register():
         print("role == 0 or 1")
         if not username or not email or not password:
             return jsonify({'code': 400, 'msg': 'Have empty content.'})
-        user = UserModel.query.filter(UserModel.id == id).first()
+        user = UserModel.query.filter(UserModel.id == id, UserModel.active == 0).first()
         if not user:
             return jsonify({'code': 400, 'msg': 'User has no access to this system.'})
         try:
@@ -56,6 +56,7 @@ def register():
                 date_time = get_time()[0]
                 user.ctime = date_time
                 user.utime = date_time
+                user.active = 1
                 db.session.commit()
                 return jsonify({'code': 200, 'msg': 'Register successfully.'})
             else:
@@ -80,7 +81,8 @@ def register():
                 pid = "p" + temp + str(p_num + 1)
                 print("pid", pid)
 
-                user = UserModel(uid=uid, id=pid, role=2, username=username, email=email, password=en_pass, detail=detail, ctime=date_time, utime=date_time)
+                user = UserModel(uid=uid, id=pid, role=2, username=username, email=email, password=en_pass,
+                                 detail=detail, ctime=date_time, utime=date_time, active=1)
                 db.session.add(user)
                 db.session.commit()
                 return jsonify({'code': 200, 'msg': 'Register successfully.'})
