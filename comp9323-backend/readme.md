@@ -1,7 +1,7 @@
 ### creat a database
 ```shell
 mysql -u root -p
-create database pmpsys
+create database pmsys
 ```
 ### install package
 ```shell
