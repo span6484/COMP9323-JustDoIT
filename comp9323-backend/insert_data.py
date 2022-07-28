@@ -76,7 +76,7 @@ for row in users_sheet.rows:
     i = i + 1
     temp = random_string(7 - len(str(i)))
     id = r + temp + str(i)
-    user_attrs = [attr_temp[0], id, role, None, None, None, None, datetime, datetime, 1]
+    user_attrs = [attr_temp[0], id, role, None, None, None, None, datetime, datetime, 0]
     print(user_attrs)
     cur.execute(
         "insert into users(uid, id, role, username, email, password, detail, ctime, utime, active)"

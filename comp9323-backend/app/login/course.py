@@ -40,3 +40,42 @@ def get_courses():
 
     except Exception as e:
         return jsonify({'code': 400, 'msg': 'Get course failed.', 'error_msg': str(e)})
+
+
+def add_requirement():
+    data = request.get_json(force=True)
+    print(data)
+    content = data["content"]
+    if not content:
+        return jsonify({'code': 400, 'msg': 'Empty content.'})
+
+    uid = data["uid"]
+    user = UserModel.query.filter(UserModel.uid == uid, UserModel.active == 1).first()
+    if not user:
+        return jsonify({'code': 400, 'msg': 'No such active user in database.'})
+
+    if user.role != 0 and user.role != 3:
+        return jsonify({'code': 400, 'msg': 'User has no access to add requirement.'})
+
+    cid = data["cid"]
+    course = CourseModel.query.filter(CourseModel.cid == cid, CourseModel.active == 1).first()
+    if not course:
+        return jsonify({'code': 400, 'msg': 'No such course in database.'})
+
+    cu = CourseUserModel.query.filter(CourseUserModel.uid == uid, CourseUserModel.cid == cid, CourseUserModel.active == 1).first()
+    if not cu:
+        return jsonify({'code': 400, 'msg': 'User is not in this course.'})
+
+    try:
+        r_num = RequirementModel.query.count()
+        rid = generate_id("requirement", r_num+1)
+        date_time = get_time()[0]
+        requirement = RequirementModel(rid=rid, cid=cid, aid=uid, content=content, ctime=date_time, utime=date_time, active=1)
+        db.session.add(requirement)
+        db.session.commit()
+        return jsonify({'code': 200, 'msg': 'Add requirement successfully.'})
+
+    except Exception as e:
+        return jsonify({'code': 400, 'msg': 'Add requirement failed.', 'error_msg': str(e)})
+
+
