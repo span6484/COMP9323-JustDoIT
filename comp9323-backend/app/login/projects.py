@@ -5,6 +5,9 @@ from app.login.utils import *
 from app.models import *
 from sqlalchemy import or_, and_, not_
 from app.login.views import *
+from flask import Flask, flash, request, redirect, url_for
+from werkzeug.utils import secure_filename
+import os
 # view project details
 def view_project():
     data = request.get_json(force=True)
@@ -351,7 +354,6 @@ def delete_comment() :
 
 def edit_project():
     data = request.get_json(force=True)
-    result = {}
     proj_id = data["proj_id"]
     proj_name = data["proj_name"]
     description = data["description"]
@@ -362,6 +364,9 @@ def edit_project():
     proj = ProjectModel.query.filter(ProjectModel.proj_id == proj_id).first()
     if not proj:
         return jsonify({'code': 400, 'msg': 'not related project'})
+
+    if proj.status != 0:
+        return jsonify({'code': 400, 'msg': 'this project is not pending status, so you could not modify it'})
 
     user = UserModel.query.filter(UserModel.uid == uid, UserModel.active == 1).first()
     if not user :
@@ -391,8 +396,8 @@ def edit_project():
             start_time_lst = time_list(start_time)
             proj.start_time = dt(start_time_lst[0],start_time_lst[1], start_time_lst[2])
             is_changed = True
-        if end_time:
-            end_time_lst = time_list(end_time)
+        if close_time:
+            end_time_lst = time_list(close_time)
             proj.start_time = dt(end_time_lst[0],end_time_lst[1], end_time_lst[2])
             is_changed = True
         if status:
@@ -406,9 +411,6 @@ def edit_project():
 
     except Exception as e:
         return jsonify({'code': 400, 'msg': 'edit project failed.', 'error_msg': str(e)})
-
-
-
 
 
 
