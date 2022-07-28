@@ -1,5 +1,4 @@
 import PageBase from '../basePage'
-
 import React, { useRef, onChange, useState, useEffect } from 'react'
 import { Col, Row, Button, Typography, Tooltip, Space, Collapse, Steps, Select, Statistic, Comment, Avatar, Popconfirm } from 'antd';
 import { MailOutlined, DeleteOutlined, FormOutlined } from "@ant-design/icons"
@@ -10,12 +9,64 @@ const { Step } = Steps;
 
 
 const TextIndex = ({ USERMESSAGE, urlMsg }) => {
-
     const ref = useRef();
+    // get project id from url 
+    var pid = urlMsg.asPath.toString().replace('/project/detail?id=', '');
+    console.log(pid);
     const { Panel } = Collapse;
     const onChange = (key) => {
         console.log(key);
     };
+    // fetch project info on load
+    // try {
+    //     fetch('http://localhost:5000/view_project', {
+    //         method: 'POST',
+    //         headers: {
+    //             "content": 'application/json',
+    //             'Access-Control-Allow-Origin':'*'
+    //         },
+    //         body: JSON.stringify({ "proj_id": pid })
+    //     }).then(res => {
+    //         res.json().then((val) => {
+    //             console.log(val);
+    //         });
+    //     });
+    // } catch (e) {
+    //     console.log(e)
+    // }
+    // mock data
+    const val = {
+        "code": 200,
+        "result": {
+            "authority_email": "heyheyname@somemail.com",
+            "authority_id": "u00001",
+            "authority_name": "heyheyname",
+            "close_time": "Sun, 21 Aug 2022 00:00:00 GMT",
+            "course_description": "This course allows students to explore principles, techniques, architectures, and enabling technologies for the development of the different components and layers of complex SaaS systems. ",
+            "course_name": "Software as a Service Project",
+            "cur_num": 1,
+            "description": "hello world",
+            "files": [
+                {
+                    "file_name": "COM9323.txt",
+                    "file_url": "www.file.com",
+                    "type": "txt",
+                    "utime": "Thu, 21 Jul 2022 00:00:00 GMT"
+                }
+            ],
+            "max_num": 20,
+            "proj_name": "COM9323",
+            "proposer_email": "yaxin.su@student.unsw.edu.au",
+            "proposer_id": "u00009",
+            "proposer_name": "Yaxin Su",
+            "start_time": "Thu, 21 Jul 2022 00:00:00 GMT",
+            "status": 0
+        }
+    };
+    var project_detail = val.result;
+
+
+
     var role = "R"
     var joined = true;
     //joined = false;
