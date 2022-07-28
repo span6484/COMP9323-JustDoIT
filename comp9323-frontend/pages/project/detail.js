@@ -10,6 +10,7 @@ const { Step } = Steps;
 
 const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     const ref = useRef();
+    console.log(USERMESSAGE);
     // get project id from url 
     var pid = urlMsg.asPath.toString().replace('/project/detail?id=', '');
     console.log(pid);
@@ -17,6 +18,8 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     const onChange = (key) => {
         console.log(key);
     };
+    var useRole;
+    //======= uncomment this to test
     // fetch project info on load
     // try {
     //     fetch('http://localhost:5000/view_project', {
@@ -34,6 +37,11 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     // } catch (e) {
     //     console.log(e)
     // }
+    // uid = USERMESSAGE.id
+    // userRole = USERMESSAGE.userRole;
+    // ========================================
+
+    //======= comment out this to test
     // mock data
     const val = {
         "code": 200,
@@ -48,6 +56,12 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
             "description": "hello world",
             "files": [
                 {
+                    "file_name": "test.pdf",
+                    "file_url": "https://www.orimi.com/pdf-test.pdf",
+                    "type": "pdf",
+                    "utime": "Thu, 21 Jul 2022 00:00:00 GMT"
+                },
+                {
                     "file_name": "COM9323.txt",
                     "file_url": "www.file.com",
                     "type": "txt",
@@ -57,23 +71,41 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
             "max_num": 20,
             "proj_name": "COM9323",
             "proposer_email": "yaxin.su@student.unsw.edu.au",
-            "proposer_id": "u00009",
+            "proposer_id": "u00002",
             "proposer_name": "Yaxin Su",
             "start_time": "Thu, 21 Jul 2022 00:00:00 GMT",
             "status": 0
         }
     };
-    var project_detail = val.result;
+    const uid = "u00001";
+    // ========================================
 
+    var project = val.result;
+    console.log(project);
+    // convert datetime
+    project.start_time = (new Date(project.start_time)).toLocaleDateString();
+    project.close_time = (new Date(project.close_time)).toLocaleDateString();
 
+    // get roles based project users
 
-    var role = "R"
+    var useRole = "S";
+    switch (uid) {
+        case project.authority_id:
+            useRole = "CA";
+            break;
+        case project.proposer_id:
+            useRole = "P";
+            break;
+        case project.reviewer_id:
+            useRole = "R";
+            break;
+    }
     var joined = true;
     //joined = false;
 
     // 0待审核Pending, 1已通过approved, 2已发布open to join 
     // 3进行中in progress 4已结束ended 5未通过not approved 
-    var status = 1;
+    var status = project.status;
 
     useEffect(() => {
         setTimeout(() => {
@@ -96,54 +128,29 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     }
     function CAButtons(props) {
         const status = props.status;
-        if (status < 1) {
+        if (status == 0) {
             return (
                 <>
                     <Button type="primary" onClick={() => {
                         ref.current.setTabPane(
                             `Project Edit`,
                             '',
-                            `/project/edit?id=123`
+                            `/project/edit?id=${pid}`
                         )
                     }}>Edit Project</Button>
                     <br />
+                    <Button type="primary">Approve Project</Button>
                     <br />
-                    <br />
-
-                    <Button>
-                        Change project status
-                    </Button>
-                    <Select defaultValue="In Progress"
-                    >
-                        <Option value="0">Pending</Option>
-                        <Option value="1">Approved</Option>
-                        <Option value="2">Open to join</Option>
-                        <Option value="3">In Progress</Option>
-                        <Option value="4">Ended</Option>
-                    </Select>
+                    <Button type="primary">Disapprove Project</Button>
                 </>
             )
-        } else if (status <= 2) {
+        } else if (status == 2) {
             return (
                 <>
-                    <br />
-                    <br />
-                    <br />
-
-                    <Button>
-                        Change project status
-                    </Button>
-                    <Select defaultValue="In Progress"
-                    >
-                        <Option value="0">Pending</Option>
-                        <Option value="1">Approved</Option>
-                        <Option value="2">Open to join</Option>
-                        <Option value="3">In Progress</Option>
-                        <Option value="4">Ended</Option>
-                    </Select>
+                    <Button type="primary">Open Project To Join</Button>
                 </>
             )
-        } else if (status < 5) {
+        } else if (status == 3 || status == 4) {
             return (
                 <>
                     <br />
@@ -154,34 +161,11 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                             `/project/work?id=123`
                         )
                     }}>View works</Button>
-                    <br />
-                    <br />
-                    <br />
 
-                    <Button>
-                        Change project status
-                    </Button>
-                    <Select defaultValue="In Progress"
-                    >
-                        <Option value="0">Pending</Option>
-                        <Option value="1">Approved</Option>
-                        <Option value="2">Open to join</Option>
-                        <Option value="3">In Progress</Option>
-                        <Option value="4">Ended</Option>
-                    </Select>
                 </>
             )
         } else {
-            return (
-                <>
-                    <br />
-                    <br />
-                    <br />
-                    <Button>
-                        Not Approved
-                    </Button>
-                </>
-            )
+            return;
         }
 
     }
@@ -396,20 +380,20 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                         <Row>
                             <Col span={14}>
                                 <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
-                                    <Title>Natural Language Processing with Disaster Tweets</Title>
-                                    <Title level={2}>A project for Machine Learning and Data Mining</Title>
+                                    <Title>{project.project_name}</Title>
+                                    <Title level={2}>A project for {project.course_name}</Title>
                                     <Row>
                                         <Col span={12}>
                                             <Title level={4}>Start Time</Title>
-                                            <Title level={5}>2022/05/01</Title>
+                                            <Title level={5}>{project.start_time}</Title>
                                         </Col>
                                         <Col span={12}>
                                             <Title level={4}>End time</Title>
-                                            <Title level={5}>2022/08/01</Title>
+                                            <Title level={5}>{project.close_time}</Title>
                                         </Col>
                                     </Row>
                                     <Paragraph>
-                                        Twitter has become an important communication channel in times of emergency. The ubiquitousness of smartphones enables people to announce an emergency they’re observing in real-time. Because of this, more agencies are interested in programatically monitoring Twitter (i.e. disaster relief organizations and news agencies)
+                                        {project.description}
                                     </Paragraph>
                                     <Space direction="vertical" size="middle" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around' }}>
                                         <div>
@@ -417,11 +401,11 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                                             <Comment
                                                 className="comment-box-item"
                                                 author={<div>
-                                                    Example Course Authority
+                                                    {project.authority_name}
                                                     <Tooltip placement="top" title={<div className={"email-tool-tip-component"}>
-                                                        ExampleEmail@COMP9323.com
+                                                        {project.authority_email}
                                                         <CopyToClipboard
-                                                            text={"ExampleEmail@COMP9323.com"}
+                                                            text={project.authority_email}
                                                             onCopy={() => {
                                                                 message.success('copy email success');
                                                             }}
@@ -443,11 +427,11 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                                             <Comment
                                                 className="comment-box-item"
                                                 author={<div>
-                                                    Example Project Proposer
+                                                    {project.proposer_name}
                                                     <Tooltip placement="top" title={<div className={"email-tool-tip-component"}>
-                                                        ExampleEmail@COMP9323.com
+                                                        {project.proposer_email}
                                                         <CopyToClipboard
-                                                            text={"ExampleEmail@COMP9323.com"}
+                                                            text={project.proposer_email}
                                                             onCopy={() => {
                                                                 message.success('copy email success');
                                                             }}
@@ -472,41 +456,33 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                                 <br />
                                 <ProjectCapacity status={status} />
                                 <br />
-                                <Buttons userRole={role} status={status} />
-                                <SubmitWorkButton userRole={role} status={status} />
+                                <Buttons userRole={useRole} status={status} />
+                                <SubmitWorkButton userRole={useRole} status={status} />
                             </Col>
                         </Row>
                         <br />
                         <Title level={3}>Project current progress</Title>
                         <br />
-                        <ProgressBars userRole={role} />
+                        <ProgressBars userRole={useRole} />
                         <br />
                         <Row>
                             <Col span={24}>
-                                <Title level={3}>Embedded documents</Title>
-                                <Collapse defaultActiveKey={['1']} onChange={onChange}>
-                                    <Panel header="Document 1" key="1">
+                                <Title level={3}>Specification documents</Title>
+                                <Collapse defaultActiveKey={['0']} onChange={onChange}>
+                                {project.files.map((item,index) =>{
+                                    return (
+                                        <Panel header={item.file_name} key={index}>
                                         <iframe
-                                            src={"https://www.orimi.com/pdf-test.pdf"}
-                                            title="file"
+                                            src={item.file_url}
+                                            title={item.file_name}
                                             width="100%"
                                             height="1200"
                                         ></iframe>
                                     </Panel>
-                                    <Panel header="Document 2" key="2">
-                                        <iframe src="https://onedrive.live.com/embed?resid=1B47937AD843C12%2184207&amp;authkey=%21AOztocS2WvBRawc&amp;em=2&amp;wdAr=1.7777777777777777" width="476px" height="288px" frameborder="0">This is an embedded <a target="_blank" href="https://office.com">Microsoft Office</a> presentation, powered by <a target="_blank" href="https://office.com/webapps">Office</a>.</iframe>
-                                    </Panel>
-                                    <Panel header="Document 3" key="3">
-                                        <iframe
-                                            src={"https://www.orimi.com/pdf-test.pdf"}
-                                            title="file"
-                                            width="100%"
-                                            height="1200"
-                                        ></iframe>
-                                    </Panel>
-
+                                    )
+                                })}
+                                    
                                 </Collapse>
-
                             </Col>
                         </Row>
                         <br />
