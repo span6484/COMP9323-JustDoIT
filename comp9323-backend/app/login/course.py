@@ -42,6 +42,31 @@ def get_courses():
         return jsonify({'code': 400, 'msg': 'Get course failed.', 'error_msg': str(e)})
 
 
+def get_course_detail():
+    data = request.get_json(force=True)
+    print(data)
+    cid = data["cid"]
+    course = CourseModel.query.filter(CourseModel.cid == cid, CourseModel.active == 1).first()
+    if not course:
+        return jsonify({'code': 400, 'msg': 'No such course in database.'})
+
+    try:
+        ca_list = []
+        cu_list = CourseUserModel.query.filter(CourseUserModel.cid == cid, CourseUserModel.active == 1).all()
+        for cu in cu_list:
+            print(cu.uid)
+            user = UserModel.query.filter(UserModel.uid == cu.uid, UserModel.active == 1).first()
+            if user and (user.role == 0 or user.role == 3):
+                print(user.username)
+                ca_list.append(user.username)
+        result = {"course_name": course.name, "description": course.description, "start_time": course.start_time,
+                  "close_time": course.close_time, "course_cas": ca_list}
+        return jsonify({'code': 200, 'result': result})
+
+    except Exception as e:
+        return jsonify({'code': 400, 'msg': 'Add requirement failed.', 'error_msg': str(e)})
+
+
 def add_requirement():
     data = request.get_json(force=True)
     print(data)
@@ -77,5 +102,9 @@ def add_requirement():
 
     except Exception as e:
         return jsonify({'code': 400, 'msg': 'Add requirement failed.', 'error_msg': str(e)})
+
+
+# def get_requirements():
+#
 
 
