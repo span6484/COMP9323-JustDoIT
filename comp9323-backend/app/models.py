@@ -123,7 +123,7 @@ class FileModel(db.Model):
 
     file_name = db.Column(db.String(120), nullable=False)
     file_url = db.Column(db.String(256), nullable=True)
-    type = db.Column(db.String(120), nullable=True)
+    type = db.Column(db.String(120), nullable=True)  # work or description document
 
     ctime = db.Column(db.DateTime, nullable=False)  # create time
     utime = db.Column(db.DateTime, nullable=False)  # update time

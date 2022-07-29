@@ -3,6 +3,7 @@ from sqlalchemy import exists, or_
 
 from app.login.utils import *
 from app.models import *
+from app.login.views import add_message
 
 
 def get_courses():
@@ -154,3 +155,46 @@ def get_requirement_detail():
 
     except Exception as e:
         return jsonify({'code': 400, 'msg': 'Get requirement detail failed.', 'error_msg': str(e)})
+
+
+def add_proposal():
+    data = request.get_json(force=True)
+    # uid, rid, proj_name, description, files
+    uid = data["uid"]
+    user = UserModel.query.filter(UserModel.uid == uid, UserModel.role == 2, UserModel.active == 1).first()
+    if not user:
+        return jsonify({'code': 400, 'msg': 'No such proposer in database.'})
+
+    rid = data["rid"]
+    requirement = RequirementModel.query.filter(RequirementModel.rid == rid, RequirementModel.active == 1).first()
+    if not requirement:
+        return jsonify({'code': 400, 'msg': 'No such requirement in database.'})
+
+    proj_name = data["proj_name"]
+    description = data["description"]
+    files = data["files"]
+    # add_files ?
+    if not proj_name or not description or not files:
+        return jsonify({'code': 400, 'msg': 'Proposal name and description cannot be empty.'})
+
+    try:
+        proj_num = ProjectModel.query.count()
+        proj_id = generate_id("project", proj_num+1)
+        date_time = get_time()[0]
+        course = CourseModel.query.filter(CourseModel.cid == requirement.cid, CourseModel.active == 1).first()
+        if not course:
+            return jsonify({'code': 400, 'msg': 'Course id in requirement does not exist.'})
+        proposal = ProjectModel(proj_id=proj_id, cid=requirement.cid, aid=requirement.aid, pid=uid, proj_name=proj_name,
+                                description=description, start_time=course.start_time, close_time=course.close_time,
+                                ctime=date_time, utime=date_time, status=0)
+
+        msg = add_message(requirement.aid, f"Proposer {user.username} add a proposal to your requirement in course {course.name}.")
+        if msg:
+            db.session.add(proposal)
+            db.session.commit()
+            return jsonify({'code': 200, 'msg': 'Add proposal and send message to authority successfully.'})
+        else:
+            return jsonify({'code': 400, 'msg': 'Add proposal and send message to authority failed.'})
+
+    except Exception as e:
+        return jsonify({'code': 400, 'msg': 'Add proposal failed.', 'error_msg': str(e)})
