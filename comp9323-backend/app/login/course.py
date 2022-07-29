@@ -1,5 +1,5 @@
 from flask import jsonify, request, g
-from sqlalchemy import exists
+from sqlalchemy import exists, or_
 
 from app.login.utils import *
 from app.models import *
@@ -52,19 +52,17 @@ def get_course_detail():
 
     try:
         ca_list = []
-        cu_list = CourseUserModel.query.filter(CourseUserModel.cid == cid, CourseUserModel.active == 1).all()
-        for cu in cu_list:
-            print(cu.uid)
-            user = UserModel.query.filter(UserModel.uid == cu.uid, UserModel.active == 1).first()
-            if user and (user.role == 0 or user.role == 3):
-                print(user.username)
-                ca_list.append(user.username)
+        temp_list = UserModel.query.join(CourseUserModel, CourseUserModel.uid == UserModel.uid).filter(
+            CourseUserModel.cid == cid, or_(UserModel.role == 0, UserModel.role == 3), UserModel.active == 1).all()
+        if temp_list:
+            for ca in temp_list:
+                ca_list.append(ca.username)
         result = {"course_name": course.name, "description": course.description, "start_time": course.start_time,
                   "close_time": course.close_time, "course_cas": ca_list}
         return jsonify({'code': 200, 'result': result})
 
     except Exception as e:
-        return jsonify({'code': 400, 'msg': 'Add requirement failed.', 'error_msg': str(e)})
+        return jsonify({'code': 400, 'msg': 'Get course detail failed.', 'error_msg': str(e)})
 
 
 def add_requirement():
@@ -104,7 +102,55 @@ def add_requirement():
         return jsonify({'code': 400, 'msg': 'Add requirement failed.', 'error_msg': str(e)})
 
 
-# def get_requirements():
-#
+def get_requirements():
+    data = request.get_json(force=True)
+    print(data)
+    uid = data["uid"]
+    user = UserModel.query.filter(UserModel.uid == uid, UserModel.active == 1).first()
+    if not user:
+        return jsonify({'code': 400, 'msg': 'No such active user in database.'})
+
+    cid = data["cid"]
+    course = CourseModel.query.filter(CourseModel.cid == cid, CourseModel.active == 1).first()
+    if not course:
+        return jsonify({'code': 400, 'msg': 'No such course in database.'})
+
+    try:
+        # if user.role == 0 or user.role == 3:
+        requirements_list = RequirementModel.query.filter(RequirementModel.cid == cid, RequirementModel.active == 1).all()
+        if not requirements_list:
+            return jsonify({'code': 200, 'msg': 'There is no requirement in this course.'})
+        result_list = []
+        for r in requirements_list:
+            ca = UserModel.query.filter(UserModel.uid == r.aid, UserModel.active == 1).first()
+            if uid == r.aid:
+                edit = 1
+            else:
+                edit = 0
+            r_dict = {"rid": r.rid, "content": r.content, "course_authority": ca.username, "edit": edit}
+            result_list.append(r_dict)
+        result = {"count": len(result_list), "result_list": result_list}
+        return jsonify({'code': 200, 'result': result})
+
+    except Exception as e:
+        return jsonify({'code': 400, 'msg': 'Get requirements failed.', 'error_msg': str(e)})
 
 
+def get_requirement_detail():
+    data = request.get_json(force=True)
+    print(data)
+    rid = data["rid"]
+    requirement = RequirementModel.query.filter(RequirementModel.rid == rid, RequirementModel.active == 1).first()
+    if not requirement:
+        return jsonify({'code': 400, 'msg': 'No such requirement in database.'})
+
+    try:
+        course = CourseModel.query.filter(CourseModel.cid == requirement.cid, CourseModel.active == 1).first()
+        auth = UserModel.query.filter(UserModel.uid == requirement.aid, UserModel.active == 1).first()
+        submit_ddl = course.start_time - datetime.timedelta(days=14)
+        # print(course.start_time, submit_ddl)
+        result = {"content": requirement.content, "submit_ddl": submit_ddl, "course_authority": auth.username}
+        return jsonify({'code': 200, 'result': result})
+
+    except Exception as e:
+        return jsonify({'code': 400, 'msg': 'Get requirement detail failed.', 'error_msg': str(e)})

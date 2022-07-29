@@ -23,5 +23,9 @@ def init_route(app: Flask):
     app.add_url_rule('/delete_comment', view_func=projects.delete_comment, methods=['POST'])
     # course
     app.add_url_rule('/get_courses', view_func=course.get_courses, methods=['POST'])
-    app.add_url_rule('/add_requirement', view_func=course.add_requirement, methods=['POST'])
     app.add_url_rule('/get_course_detail', view_func=course.get_course_detail, methods=['POST'])
+    app.add_url_rule('/add_requirement', view_func=course.add_requirement, methods=['POST'])
+    app.add_url_rule('/get_requirements', view_func=course.get_requirements, methods=['POST'])
+    app.add_url_rule('/get_requirement_detail', view_func=course.get_requirement_detail, methods=['POST'])
+
+
