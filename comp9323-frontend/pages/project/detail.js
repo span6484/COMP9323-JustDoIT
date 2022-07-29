@@ -19,68 +19,95 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
         console.log(key);
     };
     var useRole;
-    //======= uncomment this to test
+    const [project, setProject] = useState({});
+    function approveProject(pid, uid) {
+        sendChangeProjectStatus(pid, uid, 1);
+    }
+    function disapproveProject(pid, uid) {
+        sendChangeProjectStatus(pid, uid, 2);
+    }
+    function sendChangeProjectStatus(pid, uid, status) {
+        try {
+            fetch('http://localhost:5000/change_project_status', {
+                method: 'POST',
+                headers: {
+                    "content": 'application/json',
+                },
+                body: JSON.stringify({ "proj_id": pid, "uid": uid, "status": status })
+            }).then(res => {
+                res.json().then((val) => {
+                    console.log(val);
+                    window.location.reload();
+                });
+            });
+        } catch (e) {
+            console.log(e)
+        }
+    }
     // fetch project info on load
-    // try {
-    //     fetch('http://localhost:5000/view_project', {
-    //         method: 'POST',
-    //         headers: {
-    //             "content": 'application/json',
-    //             'Access-Control-Allow-Origin':'*'
-    //         },
-    //         body: JSON.stringify({ "proj_id": pid })
-    //     }).then(res => {
-    //         res.json().then((val) => {
-    //             console.log(val);
-    //         });
-    //     });
-    // } catch (e) {
-    //     console.log(e)
-    // }
+    try {
+        fetch('http://localhost:5000/view_project', {
+            method: 'POST',
+            headers: {
+                "content": 'application/json',
+                'Access-Control-Allow-Origin':'*'
+            },
+            body: JSON.stringify({ "proj_id": pid })
+        }).then(res => {
+            res.json().then((val) => {
+                //console.log(val);
+                setProject(val.result);
+                console.log(project);
+            });
+        });
+    } catch (e) {
+        console.log(e)
+    }
     // uid = USERMESSAGE.id
     // userRole = USERMESSAGE.userRole;
     // ========================================
 
     //======= comment out this to test
     // mock data
-    const val = {
-        "code": 200,
-        "result": {
-            "authority_email": "heyheyname@somemail.com",
-            "authority_id": "u00001",
-            "authority_name": "heyheyname",
-            "close_time": "Sun, 21 Aug 2022 00:00:00 GMT",
-            "course_description": "This course allows students to explore principles, techniques, architectures, and enabling technologies for the development of the different components and layers of complex SaaS systems. ",
-            "course_name": "Software as a Service Project",
-            "cur_num": 1,
-            "description": "hello world",
-            "files": [
-                {
-                    "file_name": "test.pdf",
-                    "file_url": "https://www.orimi.com/pdf-test.pdf",
-                    "type": "pdf",
-                    "utime": "Thu, 21 Jul 2022 00:00:00 GMT"
-                },
-                {
-                    "file_name": "COM9323.txt",
-                    "file_url": "www.file.com",
-                    "type": "txt",
-                    "utime": "Thu, 21 Jul 2022 00:00:00 GMT"
-                }
-            ],
-            "max_num": 20,
-            "proj_name": "COM9323",
-            "proposer_email": "yaxin.su@student.unsw.edu.au",
-            "proposer_id": "u00002",
-            "proposer_name": "Yaxin Su",
-            "start_time": "Thu, 21 Jul 2022 00:00:00 GMT",
-            "status": 0
-        }
-    };
+    // const val = {
+    //     "code": 200,
+    //     "result": {
+    //         "authority_email": "heyheyname@somemail.com",
+    //         "authority_id": "u00001",
+    //         "authority_name": "heyheyname",
+    //         "close_time": "Sun, 21 Aug 2022 00:00:00 GMT",
+    //         "course_description": "This course allows students to explore principles, techniques, architectures, and enabling technologies for the development of the different components and layers of complex SaaS systems. ",
+    //         "course_name": "Software as a Service Project",
+    //         "cur_num": 1,
+    //         "description": "hello world",
+    //         "files": [
+    //             {
+    //                 "file_name": "test.pdf",
+    //                 "file_url": "",
+    //                 "type": "pdf",
+    //                 "utime": "Thu, 21 Jul 2022 00:00:00 GMT"
+    //             },
+    //             {
+    //                 "file_name": "COM9323.txt",
+    //                 "file_url": "",
+    //                 "type": "txt",
+    //                 "utime": "Thu, 21 Jul 2022 00:00:00 GMT"
+    //             }
+    //         ],
+    //         "max_num": 20,
+    //         "proj_name": "COM9323",
+    //         "proposer_email": "yaxin.su@student.unsw.edu.au",
+    //         "proposer_id": "u00002",
+    //         "proposer_name": "Yaxin Su",
+    //         "start_time": "Thu, 21 Jul 2022 00:00:00 GMT",
+    //         "status": 0
+    //     }
+    // };
+    //project = val.result;
     const uid = "u00001";
     // ========================================
 
-    var project = val.result;
+    
     console.log(project);
     // convert datetime
     project.start_time = (new Date(project.start_time)).toLocaleDateString();
@@ -139,9 +166,13 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                         )
                     }}>Edit Project</Button>
                     <br />
-                    <Button type="primary">Approve Project</Button>
+                    <Button type="primary" onClick={() => {
+                        approveProject(pid, uid);
+                    }}>Approve Project</Button>
                     <br />
-                    <Button type="primary">Disapprove Project</Button>
+                    <Button type="primary" onClick={() => {
+                        disapproveProject(pid, uid);
+                    }}>Disapprove Project</Button>
                 </>
             )
         } else if (status == 2) {
@@ -158,7 +189,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                         ref.current.setTabPane(
                             `Project Work`,
                             '',
-                            `/project/work?id=123`
+                            `/project/work?id=${pid}`
                         )
                     }}>View works</Button>
 
@@ -170,57 +201,52 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
 
     }
     function RButtons(props) {
-        if (props.status > 0) {
+        if (props.status = 0) {
             return (
                 <>
-                    <Button disabled type="primary" onClick={() => {
-                        ref.current.setTabPane(
-                            `Project Edit`,
-                            '',
-                            `/project/edit?id=123`
-                        )
+                    <Button type="primary" onClick={() => {
+                        approveProject(pid, uid);
                     }}>Approve Project</Button>
+                    <br />
+                    <Button type="primary" onClick={() => {
+                        disapproveProject(pid, uid);
+                    }}>Disapprove Project</Button>
                 </>
             )
         }
-        return (
-            <>
-                <Button type="primary" onClick={() => {
-                    ref.current.setTabPane(
-                        `Project Edit`,
-                        '',
-                        `/project/edit?id=123`
-                    )
-                }}>Approve Project</Button>
-            </>
-        )
+        return;
     }
     function PButtons(props) {
         const status = props.status;
-        if (status <= 2 || status >= 5) {
+        if (status == 0) {
             return (
                 <>
-                    <Button type="primary" disabled onClick={() => {
+                    <Button type="primary" onClick={() => {
+                        ref.current.setTabPane(
+                            `Project Edit`,
+                            '',
+                            `/project/edit?id=${pid}`
+                        )
+                    }}>Edit Project</Button>
+                </>
+            )
+        } else if (status == 3 || status == 4) {
+            return (
+                <>
+                    <br />
+                    <Button type="primary" onClick={() => {
                         ref.current.setTabPane(
                             `Project Work`,
                             '',
-                            `/project/work?id=123`
+                            `/project/work?id=${pid}`
                         )
-                    }} >View works</Button>
+                    }}>View works</Button>
+
                 </>
             )
+        } else {
+            return;
         }
-        return (
-            <>
-                <Button type="primary" onClick={() => {
-                    ref.current.setTabPane(
-                        `Project Work`,
-                        '',
-                        `/project/work?id=123`
-                    )
-                }} >View works</Button>
-            </>
-        )
     }
     function SButtons(props) {
         if (props.status < 5) {
@@ -269,7 +295,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                         ref.current.setTabPane(
                             `Project Work`,
                             '',
-                            `/project/work?id=123`
+                            `/project/work?id=${pid}`
                         )
                     }}>Submit Work</Button>
                 </>
@@ -469,19 +495,19 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                             <Col span={24}>
                                 <Title level={3}>Specification documents</Title>
                                 <Collapse defaultActiveKey={['0']} onChange={onChange}>
-                                {project.files.map((item,index) =>{
-                                    return (
-                                        <Panel header={item.file_name} key={index}>
-                                        <iframe
-                                            src={item.file_url}
-                                            title={item.file_name}
-                                            width="100%"
-                                            height="1200"
-                                        ></iframe>
-                                    </Panel>
-                                    )
-                                })}
-                                    
+                                    {project.files.map((item, index) => {
+                                        return (
+                                            <Panel header={item.file_name} key={index}>
+                                                <iframe
+                                                    src={item.file_url}
+                                                    title={item.file_name}
+                                                    width="100%"
+                                                    height="1200"
+                                                ></iframe>
+                                            </Panel>
+                                        )
+                                    })}
+
                                 </Collapse>
                             </Col>
                         </Row>
