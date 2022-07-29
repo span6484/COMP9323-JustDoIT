@@ -32,11 +32,12 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                 method: 'POST',
                 headers: {
                     "content": 'application/json',
+                    'Access-Control-Allow-Origin': '*'
                 },
                 body: JSON.stringify({ "proj_id": pid, "uid": uid, "status": status })
             }).then(res => {
                 res.json().then((val) => {
-                    console.log(val);
+                    console.log("res val = ",val);
                     window.location.reload();
                 });
             });
@@ -110,8 +111,8 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     
     console.log(project);
     // convert datetime
-    project.start_time = (new Date(project.start_time)).toLocaleDateString();
-    project.close_time = (new Date(project.close_time)).toLocaleDateString();
+    // project.start_time = (new Date(project.start_time)).toLocaleDateString();
+    // project.close_time = (new Date(project.close_time)).toLocaleDateString();
 
     // get roles based project users
 
@@ -494,7 +495,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                         <Row>
                             <Col span={24}>
                                 <Title level={3}>Specification documents</Title>
-                                <Collapse defaultActiveKey={['0']} onChange={onChange}>
+                                {/* <Collapse defaultActiveKey={['0']} onChange={onChange}>
                                     {project.files.map((item, index) => {
                                         return (
                                             <Panel header={item.file_name} key={index}>
@@ -508,7 +509,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                                         )
                                     })}
 
-                                </Collapse>
+                                </Collapse> */}
                             </Col>
                         </Row>
                         <br />

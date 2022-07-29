@@ -1,8 +1,11 @@
 from flask import Flask
 from . import login, index, models
+from flask_cors import CORS
 
 # 创建flask app
 app = Flask(__name__)
+# setup cors config
+CORS(app)
 # 从py文件中加载flask配置
 app.config.from_pyfile('../config.py')
 # 注册数据库连接
