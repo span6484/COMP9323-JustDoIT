@@ -61,7 +61,7 @@ const UgcLogin = ({}) => {
       if(res.code === 200){
           message.success("login was successful");
           const time = (new Date()).getTime() + 10*24*60*60*1000;
-          const {username,email,role,uid} = res.user;
+          const {username,email,role,uid} = res.result;
           setCookie("USER_MESSAGE",JSON.stringify({
             name : username,
             type : role,
