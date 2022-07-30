@@ -116,24 +116,21 @@ const AllProject = ({ USERMESSAGE, urlMsg }) => {
         },{
           key : 1,
           value : "Approved"
+        },{
+          key : 2,
+          value : "Not approved"
         }]]
       }
       projectStatusList = [...projectStatusList,...[{
-        key : 2,
-        value : "Published"
-      },{
         key : 3,
-        value : "In Progress"
+        value : "Open to join"
       },{
         key : 4,
+        value : "In Progress"
+      },{
+        key : 5,
         value : "Ended"
       }]]
-      if(userType !== 1 && userType !== undefined && userType !== null && userType !== ""){
-        projectStatusList = [...projectStatusList,...[{
-          key : 5,
-          value : "Failed"
-        }]]
-      }
       changeProject(projectStatusList)
       getCourseList(()=>{
         initList({
