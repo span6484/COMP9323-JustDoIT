@@ -1,2 +1,6 @@
 frontend/node_modules/.bin/acorn
 .idea/
+*.iml
+*.pyc
+./comp9323-backend/app/__pycache__
+./comp9323-backend/app/login/__pycache__
