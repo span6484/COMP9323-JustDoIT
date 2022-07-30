@@ -19,3 +19,6 @@ export function getRequirement(param) {
 export function getMessage(param) {
     return fetchData('http://127.0.0.1:5000/get_message', param);
 }
+export function getCourses(param) {
+    return fetchData('http://127.0.0.1:5000/get_courses', param);
+}

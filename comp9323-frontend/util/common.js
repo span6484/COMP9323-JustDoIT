@@ -16,6 +16,16 @@ export const setDate = (day) => {
   const s = ten(_newDate.getSeconds())
   return `${y}-${mon}-${d} ${h}:${min}:${s}`
 }
+export const setDay = (day) => {
+  if (!day) {
+    return ''
+  }
+  const _newDate = new Date(day)
+  const y = _newDate.getFullYear()
+  const mon = ten(_newDate.getMonth() + 1)
+  const d = ten(_newDate.getDate())
+  return `${y}-${mon}-${d}`
+}
 export const tableSet = (name, value,goType) => {
   const data = {};
   for (let i in value) {
