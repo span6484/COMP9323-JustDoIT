@@ -16,17 +16,17 @@ def view_project():
         return jsonify({'code': 400, 'msg': 'not related project'})
 
     cid = proj.cid
-    course = CourseModel.query.filter(CourseModel.cid == cid and CourseModel.active == 1).first()
+    course = CourseModel.query.filter(CourseModel.cid == cid, CourseModel.active == 1).first()
     if not course:
         return jsonify({'code': 400, 'msg': 'not related course'})
 
     aid = proj.aid
-    authority = UserModel.query.filter(UserModel.uid == aid and UserModel.role == 0).first()
+    authority = UserModel.query.filter(UserModel.uid == aid, UserModel.role == 0).first()
     if not authority:
         return jsonify({'code': 400, 'msg': 'no course authority'})
 
     pid = proj.pid      # proposer_id
-    proposer = UserModel.query.filter(UserModel.uid == pid and UserModel.role == 2).first()
+    proposer = UserModel.query.filter(UserModel.uid == pid, UserModel.role == 2).first()
     if not proposer:
         return jsonify({'code': 400, 'msg': 'no proposer'})
 
@@ -71,12 +71,12 @@ def change_project_status():
     proj = ProjectModel.query.filter(ProjectModel.proj_id == proj_id).first()
     if not proj:
         return jsonify({'code': 400, 'msg': 'not related project'})
-    user = UserModel.query.filter(UserModel.uid == uid and UserModel.active == 1).first()
+    user = UserModel.query.filter(UserModel.uid == uid, UserModel.active == 1).first()
     if not user:
         return jsonify({'code': 400, 'msg': 'not related user'})
 
     course_id = proj.cid
-    course = CourseModel.query.filter(CourseModel.cid == course_id and CourseModel.active == 1).first()
+    course = CourseModel.query.filter(CourseModel.cid == course_id, CourseModel.active == 1).first()
     if not course:
         return jsonify({'code': 400, 'msg': 'not related course'})
 
@@ -107,7 +107,7 @@ def change_project_status2():
     if not proj:
         return jsonify({'code': 400, 'msg': 'not related project'})
     course_id = proj.cid
-    course = CourseModel.query.filter(CourseModel.cid == course_id and CourseModel.active == 1).first()
+    course = CourseModel.query.filter(CourseModel.cid == course_id, CourseModel.active == 1).first()
     if not course:
         return jsonify({'code': 400, 'msg': 'not related course'})
 
@@ -224,11 +224,15 @@ def add_comment():
     if not proj:
         return jsonify({'code': 400, 'msg': 'not related project'})
     cid = proj.cid
-    course = CourseModel.query.filter(CourseModel.cid == cid and CourseModel.active == 1).first()
+    course = CourseModel.query.filter(CourseModel.cid == cid, CourseModel.active == 1).first()
     if not course:
         return jsonify({'code': 400, 'msg': 'not related course'})
     ## users json
-    user = ProjectModel.query.filter((ProjectModel.aid == uid) or (ProjectModel.pid == uid)).first()
+    usr = UserModel.query.filter(UserModel.uid == uid, UserModel.active == 1).first()
+    if not usr :
+        return jsonify({'code': 400, 'msg': 'not related user'})
+
+    user = ProjectModel.query.filter(or_(ProjectModel.aid == uid, ProjectModel.pid == uid)).first()
     is_user_exist = False
     if user:
         is_user_exist = True
@@ -269,11 +273,13 @@ def reply_comment():
     if not proj:
         return jsonify({'code': 400, 'msg': 'not related project'})
     cid = proj.cid
-    course = CourseModel.query.filter(CourseModel.cid == cid and CourseModel.active == 1).first()
+    course = CourseModel.query.filter(CourseModel.cid == cid, CourseModel.active == 1).first()
     if not course:
         return jsonify({'code': 400, 'msg': 'not related course'})
     ## users json
-    print(uid)
+    usr = UserModel.query.filter(UserModel.uid == uid, UserModel.active == 1).first()
+    if not usr :
+        return jsonify({'code': 400, 'msg': 'not related user'})
     user = ProjectModel.query.filter(or_(ProjectModel.aid == uid, ProjectModel.pid == uid)).first()
     is_user_exist = False
     if user:
@@ -315,7 +321,9 @@ def delete_comment() :
     comments = CommentModel.query.filter(CommentModel.cm_id == cm_id,CommentModel.owner_uid == uid, CommentModel.active == 1).order_by(CommentModel.utime).first()
     if not comments:
         return jsonify({'code': 400, 'msg': 'not related comments'})
-
+    usr = UserModel.query.filter(UserModel.uid == uid, UserModel.active == 1).first()
+    if not usr :
+        return jsonify({'code': 400, 'msg': 'not related user'})
     # poster
     date_time = get_time()[0]
     if comments.target_uid is None and comments.parent_id is None :
@@ -341,6 +349,63 @@ def delete_comment() :
 
 
 
+def edit_project():
+    data = request.get_json(force=True)
+    result = {}
+    proj_id = data["proj_id"]
+    proj_name = data["proj_name"]
+    description = data["description"]
+    start_time = data["start_time"]
+    close_time = data["close_time"]
+    uid = data["uid"]
+    status = data["status"]
+    proj = ProjectModel.query.filter(ProjectModel.proj_id == proj_id).first()
+    if not proj:
+        return jsonify({'code': 400, 'msg': 'not related project'})
+
+    user = UserModel.query.filter(UserModel.uid == uid, UserModel.active == 1).first()
+    if not user :
+        return jsonify({'code': 400, 'msg': 'not related user'})
+
+    cid = proj.cid
+    course = CourseModel.query.filter(CourseModel.cid == cid, CourseModel.active == 1).first()
+    if not course:
+        return jsonify({'code': 400, 'msg': 'not related course'})
+
+    user = ProjectModel.query.filter(or_(ProjectModel.aid == uid, ProjectModel.pid == uid)).first()
+    if not user:
+        return jsonify({'code': 400, 'msg': 'no related user exist, Only CA or proposer has access'})
+
+    # files = FileModel.query.filter(FileModel.proj_id == proj_id, FileModel.active == 1).all()
+    try:
+        is_changed = False
+        if proj_name:
+            proj_name = proj_name.strip()
+            proj.proj_name = proj_name
+            is_changed = True
+        if description:
+            description = description.strip()
+            proj.description = description
+            is_changed = True
+        if start_time:
+            start_time_lst = time_list(start_time)
+            proj.start_time = dt(start_time_lst[0],start_time_lst[1], start_time_lst[2])
+            is_changed = True
+        if end_time:
+            end_time_lst = time_list(end_time)
+            proj.start_time = dt(end_time_lst[0],end_time_lst[1], end_time_lst[2])
+            is_changed = True
+        if status:
+            proj.status = status
+            is_changed = True
+        if is_changed:
+            date_time = get_time()[0]
+            proj.utime = date_time
+        db.session.commit()
+        return jsonify({'code': 200, 'msg': 'modify successfully'})
+
+    except Exception as e:
+        return jsonify({'code': 400, 'msg': 'edit project failed.', 'error_msg': str(e)})
 
 
 
