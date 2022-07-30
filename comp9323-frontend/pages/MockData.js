@@ -25,3 +25,9 @@ export function getCourses(param) {
 export function getAwards(param) {
     return fetchData('http://127.0.0.1:5000/get_awards', param);
 }
+export function setMessageRead(param) {
+    return fetchData('http://127.0.0.1:5000/set_message_read', param);
+}
+export function deleteMessage(param) {
+    return fetchData('http://127.0.0.1:5000/delete_message', param);
+}

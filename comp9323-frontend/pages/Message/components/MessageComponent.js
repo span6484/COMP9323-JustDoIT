@@ -4,7 +4,8 @@ import { Pagination ,Empty,Popconfirm,message,Tooltip} from "antd";
 import MessageComponentStyle from "./MessageComponent.less"
 import {MessageOutlined,DeleteOutlined} from "@ant-design/icons"
 import _ from "lodash"
-import {getMessage} from "../../MockData";
+import {deleteMessage, getMessage, setMessageRead} from "../../MockData";
+import {setDay} from "../../../util/common"
 const MessageComponent = ({ type,urlMsg,uid ,getTabPaneOption,setNewTabPane,USERMESSAGE}) => {
   const [messageList,changeMessageList] = useState();
   const [page,changePage] = useState({
@@ -20,9 +21,9 @@ const MessageComponent = ({ type,urlMsg,uid ,getTabPaneOption,setNewTabPane,USER
       uid : USERMESSAGE && USERMESSAGE.uid,
       read : type
     }).then(res => {
-      initPage.total = (res.list || []).length;
+      initPage.total = (res.result?.list || []).length;
       if(res.code === 200){
-        changeMessageList(res.list || []);
+        changeMessageList(res.result?.list || []);
       }else{
         changeMessageList([]);
       }
@@ -55,7 +56,7 @@ const MessageComponent = ({ type,urlMsg,uid ,getTabPaneOption,setNewTabPane,USER
         <div className={"message-box"}>
           {page.total > 0 &&messageList && messageList.map((item,index) => {
             return <div className={"message-item"}>
-                 <div className={`message-icon ${item.type === 2 && "message-body-read" || ""}`}>
+                 <div className={`message-icon ${item.read === 1 && "message-body-read" || ""}`}>
                    <MessageOutlined/>
                  </div>
                  <div className={"message-detail-box"}>
@@ -63,37 +64,56 @@ const MessageComponent = ({ type,urlMsg,uid ,getTabPaneOption,setNewTabPane,USER
                        <div
                            onClick={()=>{
                              const _messageList = _.cloneDeep(messageList);
-                             _messageList[index].type = 2;
+                             _messageList[index].read = 1;
                              changeMessageList(_messageList);
                            }}
-                           className={`message-body ${item.type === 2 && "message-body-read" || ""}`}>
+                           className={`message-body ${item.read === 1 && "message-body-read" || ""}`}>
                          <Tooltip
-                           placement="top" title={item.message}>
-                             {item.message}
+                           placement="top" title={item.content}>
+                             {item.content}
                          </Tooltip>
                        </div>
                      </div>
                    <div className={"message-time"}>
-                     {item.time}
+                     {setDay(item.ctime)}
                    </div>
                      <div className={"message-active"}>
                        {
-                         item.type === 1 ? <span
+                         item.read === 0 ? <span
                            onClick={()=>{
-                             const _messageList = _.cloneDeep(messageList);
-                             _messageList[index].type = 2;
-                             changeMessageList(_messageList);
+                             setMessageRead({
+                                uid : USERMESSAGE && USERMESSAGE.uid || null,
+                                 msg_id : item.msg_id
+                             }).then(res => {
+                                if(res.code === 200){
+                                  const _messageList = _.cloneDeep(messageList);
+                                  _messageList[index].read = 1;
+                                  changeMessageList(_messageList);
+                                  message.success("Set message read successfully.")
+                                }else{
+                                  message.error(res.msg)
+                                }
+                             })
+
                            }}
                            className={"read"}>Read</span> : <span/>
                        }
                        <Popconfirm
                          title="Are you sure you want to delete this message?"
                          onConfirm={()=>{
-                           message.success("delete success");
-                           const _messageList = _.cloneDeep(messageList);
-                           _messageList.splice(index,1);
-                           changeMessageList(_messageList);
-                           console.log("ok")
+                           deleteMessage({
+                             uid : USERMESSAGE && USERMESSAGE.uid || null,
+                             msg_id : item.msg_id
+                           }).then(res => {
+                             if(res.code === 200){
+                               message.success("Delete message successfully.");
+                               const _messageList = _.cloneDeep(messageList);
+                               _messageList.splice(index,1);
+                               changeMessageList(_messageList);
+                             }else{
+                               message.error(res.msg)
+                             }
+                           })
                          }}
                          okText="YES"
                          cancelText="NO"
@@ -106,7 +126,8 @@ const MessageComponent = ({ type,urlMsg,uid ,getTabPaneOption,setNewTabPane,USER
             </div>
           })}
           {
-            page.total === 0 && <Empty style={{
+              (page.total === 0 || !messageList || messageList.length === 0) &&
+              <Empty style={{
               marginTop:"80px"
             }}/>
           }

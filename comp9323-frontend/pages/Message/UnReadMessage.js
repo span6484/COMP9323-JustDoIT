@@ -10,7 +10,7 @@ const UnReadMessage = ({ USERMESSAGE, urlMsg }) => {
     <PageBase cRef={ref} USERMESSAGE={USERMESSAGE}>
       <MessageComponents
         urlMsg={urlMsg}
-        type={1}
+        type={2}
         getTabPaneOption={()=>{
           return ref.current.getTabPaneOption() || {};
         }}
