@@ -82,11 +82,11 @@ const UgcLogin = ({}) => {
   function getRole(type){
       switch (type){
           case 0:
-              return "student";
+              return "Course Authority";
           case 1:
-              return "authority";
+              return "Student";
           case 2:
-              return "proposer";
+              return "Proposer";
           default:
               return  "";
       }
@@ -191,6 +191,7 @@ const UgcLogin = ({}) => {
               }else{
                   changeUser(newUser.email);
               }
+              changePassword("");
               changeNewUser({
                 id: "",
                 userName : "",

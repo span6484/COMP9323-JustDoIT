@@ -70,13 +70,13 @@ const IndexTabTop = ({ msg, tabPaneInit, loginOut , topRef }) => {
   function getRole(type){
     switch (type){
       case 0:
-        return "student";
+        return "Course Authority";
       case 1:
-        return "authority";
+        return "Student";
       case 2:
-        return "proposer";
+        return "Proposer";
       case 3:
-        return "reviewer";
+        return "Reviewer";
       default:
         return  "";
     }
