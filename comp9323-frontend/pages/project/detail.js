@@ -26,15 +26,6 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     const [project, setProject] = useState({});
     const [posts, setPosts] = useState({});
 
-
-    const changeAddComment = (e) => {
-        setNewComment(e.target.value);
-        console.log(e.target.value, newComment);
-    };
-    const handleAddComment = (pid, uid) => {
-        console.log(pid, uid, newComment);
-    };
-
     function approveProject(pid, uid) {
         sendChangeProjectStatus(pid, uid, 1);
     }
@@ -447,6 +438,37 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
             </>
         )
     }
+    function CommentDeleteButton(props) {
+        if (props.uid == uid) {
+            return (
+                <Button style={{ border: 'none' }} onClick={() => handleDeleteComment(props.cm_id, uid)}><DeleteOutlined /></Button>
+            )
+        }
+        return null;
+    }
+
+    const handleDeleteComment = (cid, uid) => {
+        console.log("Delete comment ", cid, "by", uid);
+        try {
+            fetch('http://localhost:5000/delete_comment', {
+                method: 'POST',
+                headers: {
+                    "content": 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                body: JSON.stringify({
+                    "uid": uid,
+                    "cm_id": cid
+                })
+            }).then(res => {
+                res.json().then((val) => {
+                    window.location.reload();
+                });
+            });
+        } catch (e) {
+            console.log(e)
+        }
+    }
     function ProjectForum(props) {
         // "target_uid": "cm00002",
         // "parent_id": "u10002",
@@ -454,6 +476,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
         var status = props.status;
         console.log("project is in", status);
         console.log("posts ", posts);
+
         if (status >= 2 && status <= 4 && posts != undefined) {
             var comments = posts.posts;
             if (comments != undefined) {
@@ -468,10 +491,10 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                                     <Comment
                                         author={<a>{item.root_name}</a>}
                                         avatar={<Avatar src="/static/ca.png" />}
-                                        content={<p>
-                                            {item.root_content}
-                                        </p>}
+                                        content={<p>{item.root_content}</p>
+                                        }
                                     >
+                                        <CommentDeleteButton uid={item.root_uid} cm_id={item.root_id} />
                                         <ReplyComment target_uid={uid} parent_id={item.root_uid} root_id={item.root_id} />
                                         {item.reply_comment.map((item) => {
                                             return (
@@ -483,7 +506,10 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                                                             {item.content}
                                                         </p>}
                                                     >
+
                                                     </Comment>
+                                                    <CommentDeleteButton uid={item.owner_uid} cm_id={item.cm_id} />
+
                                                 </>
                                             )
                                         })}
