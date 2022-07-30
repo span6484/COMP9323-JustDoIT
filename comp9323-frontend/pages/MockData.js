@@ -16,3 +16,6 @@ export function userLogin(param) {
 export function getRequirement(param) {
     return fetchData('http://127.0.0.1:5000/requirement', param);
 }
+export function getMessage(param) {
+    return fetchData('http://127.0.0.1:5000/get_message', param);
+}
