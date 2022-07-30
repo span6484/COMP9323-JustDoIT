@@ -330,7 +330,8 @@ const Page = ({ router, children, cRef, USERMESSAGE }) => {
             userMessage,
             authorId,
             fatherSubMenu: __fatherSubMenu,
-            reward
+            reward,
+            role : USERMESSAGE && USERMESSAGE.type
           }}
           tabPaneInit={(href) => {
             tabPaneInit(href)

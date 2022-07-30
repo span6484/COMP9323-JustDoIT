@@ -16,8 +16,9 @@ const UgcLogin = ({}) => {
      password : "",
      email : "",
      passwordSure : "",
-      detail : "",
-     role : ""
+     detail : "",
+     role : "",
+     type : 1,
   });
   const [registerVisible, changeRegisterVisible] = useState(false)
   useEffect(() => {
@@ -85,7 +86,7 @@ const UgcLogin = ({}) => {
           case 1:
               return "authority";
           case 2:
-              return "role";
+              return "proposer";
           default:
               return  "";
       }
@@ -114,9 +115,20 @@ const UgcLogin = ({}) => {
             </div>
             <h6
               onClick={()=>{
-                changeRegisterVisible(true)
+                changeRegisterVisible(true);
+                  const _newPageMessage = _.clone(newUser);
+                  _newPageMessage.type = 1;
+                  changeNewUser(_newPageMessage);
               }}
-              className={"register"}>REGISTER</h6>
+              className={"register"}>STUDENT AND AUTHORITY REGISTER</h6>
+              <h6
+                  onClick={()=>{
+                      changeRegisterVisible(true);
+                      const _newPageMessage = _.clone(newUser);
+                      _newPageMessage.type = 2;
+                      changeNewUser(_newPageMessage);
+                  }}
+                  className={"register"}>PROPOSER REGISTER</h6>
             <Button type="primary" onClick={() => login()}>
               LOGIN
             </Button>
@@ -131,11 +143,13 @@ const UgcLogin = ({}) => {
         cancelText="CANCEL"
         width={700}
         onOk={() => {
-           const {userName,passwordSure,password,email,id,detail} = newUser;
-          if(!id || !(id && id.trim())){
-            message.warn("Please enter your id");
-            return;
-          }
+           const {userName,passwordSure,password,email,id,detail,type} = newUser;
+           if(type === 1){
+               if(!id || !(id && id.trim())){
+                   message.warn("Please enter your id");
+                   return;
+               }
+           }
           if(!userName || !(userName && userName.trim())){
              message.warn("Please enter your name");
              return;
@@ -169,11 +183,14 @@ const UgcLogin = ({}) => {
               password : _pass,
               detail : !!id.trim() ? "" : detail.trim()
           }).then(res => {
-            if(res.status === 200){
+            if(res.code === 200){
               message.success("register was successful");
               changeRegisterVisible(false);
-              changeUser(newUser.id);
-              changeRegisterVisible(false);
+              if(newUser.type === 1){
+                  changeUser(newUser.id);
+              }else{
+                  changeUser(newUser.email);
+              }
               changeNewUser({
                 id: "",
                 userName : "",
@@ -181,7 +198,8 @@ const UgcLogin = ({}) => {
                 email : "",
                 passwordSure : "",
                 detail : "",
-                role : ""
+                role : "",
+                  type : 1
               })
             }else{
               message.error(res.msg)
@@ -189,8 +207,8 @@ const UgcLogin = ({}) => {
           })
         }}
         okButtonProps={{
-            disabled : !(((newUser.id && (newUser.role !== undefined && newUser.role !== null &&
-            newUser.role !== "")) || (!newUser.id && newUser.detail)) && newUser.userName &&
+            disabled : !(((newUser.type === 1 && (newUser.role !== undefined && newUser.role !== null &&
+            newUser.role !== "")) || (newUser.type === 2 && newUser.detail)) && newUser.userName &&
                 newUser.password && newUser.passwordSure && newUser.email )
         }}
         onCancel={() => {
@@ -206,54 +224,56 @@ const UgcLogin = ({}) => {
           })
         }}>
         <div className={"modal_box_login_component"}>
-          <div className="box">
-            <h6>ID</h6>
-            <div className="switch_box">
-              <Input
-                value={newUser.id}
-                placeholder="Please enter your ID"
-                prefix={<UserOutlined />}
-                onChange={(e) => {
-                  const _value = e.target.value;
-                  const _newPageMessage = _.clone(newUser);
-                  _newPageMessage.id = _value;
-                    _newPageMessage.role = "";
-                  changeNewUser(_newPageMessage);
-                }}
-              />
-                <Button
-                    onClick={()=>{
-                        checkRole({
-                            id : newUser.id
-                        }).then(res => {
-                            const _newPageMessage = _.clone(newUser);
-                            if(res.code === 200){
-                                _newPageMessage.role = res.role;
-                            }else{
-                                _newPageMessage.role = "";
-                                message.error(res.msg);
-                            }
-                            changeNewUser(_newPageMessage)
-                        }).catch(err => {
-                            const _newPageMessage = _.clone(newUser);
+            {newUser.type === 1 &&
+                <div className="box">
+                    <h6>ID</h6>
+                    <div className="switch_box">
+                      <Input
+                        value={newUser.id}
+                        placeholder="Please enter your ID"
+                        prefix={<UserOutlined />}
+                        onChange={(e) => {
+                          const _value = e.target.value;
+                          const _newPageMessage = _.clone(newUser);
+                          _newPageMessage.id = _value;
                             _newPageMessage.role = "";
-                            changeNewUser(_newPageMessage)
-                        })
-                    }}
-                    disabled={!newUser.id}
-                    style={{
-                        marginLeft : "10px"
-                    }}
-                    type={"primary"}>CHECK</Button>
-            </div>
-              {
-                  newUser.role !== undefined && newUser.role !== null &&
-                  newUser.role !== "" &&
-                  <div className={"role-type"}>
-                      {getRole(newUser.role)}
+                          changeNewUser(_newPageMessage);
+                        }}
+                      />
+                        <Button
+                            onClick={()=>{
+                                checkRole({
+                                    id : newUser.id
+                                }).then(res => {
+                                    const _newPageMessage = _.clone(newUser);
+                                    if(res.code === 200){
+                                        _newPageMessage.role = res.role;
+                                    }else{
+                                        _newPageMessage.role = "";
+                                        message.error(res.msg);
+                                    }
+                                    changeNewUser(_newPageMessage)
+                                }).catch(err => {
+                                    const _newPageMessage = _.clone(newUser);
+                                    _newPageMessage.role = "";
+                                    changeNewUser(_newPageMessage)
+                                })
+                            }}
+                            disabled={!newUser.id}
+                            style={{
+                                marginLeft : "10px"
+                            }}
+                            type={"primary"}>CHECK</Button>
+                    </div>
+                      {
+                          newUser.role !== undefined && newUser.role !== null &&
+                          newUser.role !== "" &&
+                          <div className={"role-type"}>
+                              {getRole(newUser.role)}
+                          </div>
+                      }
                   </div>
-              }
-          </div>
+            }
           <div className="box">
             <h6>Name</h6>
             <div className="switch_box">
@@ -286,22 +306,23 @@ const UgcLogin = ({}) => {
               />
             </div>
           </div>
-            {/*<div className="box">*/}
-            {/*    <h6>Detail</h6>*/}
-            {/*    <div className="switch_box">*/}
-            {/*        <Input.TextArea*/}
+            {newUser.type === 2 &&
+                <div className="box">
+                <h6>Detail</h6>
+                <div className="switch_box">
+                    <Input.TextArea
 
-            {/*            value={newUser.detail}*/}
-            {/*            placeholder="Please enter your detail"*/}
-            {/*            onChange={(e) => {*/}
-            {/*                const _value = e.target.value;*/}
-            {/*                const _newPageMessage = _.clone(newUser);*/}
-            {/*                _newPageMessage.detail = _value;*/}
-            {/*                changeNewUser(_newPageMessage)*/}
-            {/*            }}*/}
-            {/*        />*/}
-            {/*    </div>*/}
-            {/*</div>*/}
+                        value={newUser.detail}
+                        placeholder="Please enter your detail"
+                        onChange={(e) => {
+                            const _value = e.target.value;
+                            const _newPageMessage = _.clone(newUser);
+                            _newPageMessage.detail = _value;
+                            changeNewUser(_newPageMessage)
+                        }}
+                    />
+                </div>
+            </div>}
           <div className="box">
             <h6>Password</h6>
             <div className="switch_box">
