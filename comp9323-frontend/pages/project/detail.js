@@ -4,6 +4,7 @@ import { Col, Row, Button, Typography, Tooltip, Space, Collapse, Steps, Input, S
 import { MailOutlined, DeleteOutlined, FormOutlined, UnderlineOutlined } from "@ant-design/icons"
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import Search from 'antd/lib/transfer/search';
+import { template } from 'lodash';
 const { Title, Paragraph, Text, Link } = Typography;
 const { Step } = Steps;
 
@@ -400,8 +401,56 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
             </>
         )
     }
+    function ReplyComment(props) {
+        // console.log(props);
+        var target_uid = props.target_uid;
+        var parent_id = props.parent_id;
+        var root_id = props.root_id;
+        console.log(target_uid, parent_id, root_id);
+        const [newComment, setNewComment] = useState("");
+        const handleClick = (event) => {
+            console.log("Reply comment to proj", pid, 'by', uid);
 
+            try {
+                fetch('http://localhost:5000/reply_comment', {
+                    method: 'POST',
+                    headers: {
+                        "content": 'application/json',
+                        'Access-Control-Allow-Origin': '*'
+                    },
+                    body: JSON.stringify({
+                        "proj_id": pid,
+                        "uid": uid,
+                        "content": newComment,
+                        "target_uid": target_uid,
+                        "parent_id": parent_id,
+                        "root_id": root_id
+                    })
+                }).then(res => {
+                    res.json().then((val) => {
+                        window.location.reload();
+                    });
+                });
+            } catch (e) {
+                console.log(e)
+            }
+        }
+        return (
+            <>
+                <form style={{ display: 'flex', flexDirection: 'row', width: 'fit-content' }}>
+                    <Input placeholder="Reply" type="text"
+                        value={newComment}
+                        onChange={(e) => setNewComment(e.target.value)} />
+                    <Button onClick={handleClick}>Send</Button>
+                </form>
+
+            </>
+        )
+    }
     function ProjectForum(props) {
+        // "target_uid": "cm00002",
+        // "parent_id": "u10002",
+        // "root_id": "cm00001"
         var status = props.status;
         console.log("project is in", status);
         console.log("posts ", posts);
@@ -417,16 +466,13 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                             return (
                                 <>
                                     <Comment
-                                        actions={[<form style={{ display: 'flex', flexDirection: 'row' }}>
-                                            <Input placeholder="Reply" ></Input>
-                                            <Button>Send</Button>
-                                        </form>]}
                                         author={<a>{item.root_name}</a>}
                                         avatar={<Avatar src="/static/ca.png" />}
                                         content={<p>
                                             {item.root_content}
                                         </p>}
                                     >
+                                        <ReplyComment target_uid={uid} parent_id={item.root_uid} root_id={item.root_id} />
                                         {item.reply_comment.map((item) => {
                                             return (
                                                 <>
