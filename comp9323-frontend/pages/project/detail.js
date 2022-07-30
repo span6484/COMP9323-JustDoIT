@@ -1,8 +1,9 @@
 import PageBase from '../basePage'
 import React, { useRef, onChange, useState, useEffect } from 'react'
-import { Col, Row, Button, Typography, Tooltip, Space, Collapse, Steps, Select, Statistic, Comment, Avatar, Popconfirm } from 'antd';
+import { Col, Row, Button, Typography, Tooltip, Space, Collapse, Steps, Input, Statistic, Comment, Avatar, Popconfirm } from 'antd';
 import { MailOutlined, DeleteOutlined, FormOutlined, UnderlineOutlined } from "@ant-design/icons"
 import { CopyToClipboard } from 'react-copy-to-clipboard';
+import Search from 'antd/lib/transfer/search';
 const { Title, Paragraph, Text, Link } = Typography;
 const { Step } = Steps;
 
@@ -18,9 +19,20 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     const onChange = (key) => {
         console.log(key);
     };
+
+
     var useRole;
     const [project, setProject] = useState({});
     const [posts, setPosts] = useState({});
+
+
+    const changeAddComment = (e) => {
+        setNewComment(e.target.value);
+        console.log(e.target.value, newComment);
+    };
+    const handleAddComment = (pid, uid) => {
+        console.log(pid, uid, newComment);
+    };
 
     function approveProject(pid, uid) {
         sendChangeProjectStatus(pid, uid, 1);
@@ -111,6 +123,8 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     }, []);
 
     const uid = "u00001";
+    // student u00005
+    // CA u00001
 
     //console.log(project);
     // convert datetime
@@ -130,7 +144,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
             useRole = "R";
             break;
     }
-    
+
     var joined = true;
     //joined = false;
 
@@ -353,6 +367,39 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
         return <Statistic style={{ textAlign: 'center' }} title="Project Capacity" value={cur_num} suffix={`/ ${max_num}`} />
         // }
     }
+    function AddComment() {
+        const [newComment, setNewComment] = useState("");
+        const handleClick = (event) => {
+            console.log("Add comment to proj", pid, 'by', uid);
+            try {
+                fetch('http://localhost:5000/add_comment', {
+                    method: 'POST',
+                    headers: {
+                        "content": 'application/json',
+                        'Access-Control-Allow-Origin': '*'
+                    },
+                    body: JSON.stringify({ "proj_id": pid, "uid": uid, "content": newComment })
+                }).then(res => {
+                    res.json().then((val) => {
+                        window.location.reload();
+                    });
+                });
+            } catch (e) {
+                console.log(e)
+            }
+        }
+        return (
+            <>
+                <Title level={3}> Add Comment</Title><Input.Group compact>
+                    <Input
+                        type="text"
+                        value={newComment}
+                        onChange={(e) => setNewComment(e.target.value)} />
+                    <Button onClick={handleClick}>Send</Button>
+                </Input.Group>
+            </>
+        )
+    }
 
     function ProjectForum(props) {
         var status = props.status;
@@ -370,7 +417,10 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                             return (
                                 <>
                                     <Comment
-                                        actions={[<span>Reply</span>]}
+                                        actions={[<form style={{ display: 'flex', flexDirection: 'row' }}>
+                                            <Input placeholder="Reply" ></Input>
+                                            <Button>Send</Button>
+                                        </form>]}
                                         author={<a>{item.root_name}</a>}
                                         avatar={<Avatar src="/static/ca.png" />}
                                         content={<p>
@@ -392,9 +442,12 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                                             )
                                         })}
                                     </Comment>
+
                                 </>
                             )
                         })}
+
+                        <AddComment />
                     </>
                 )
             }
