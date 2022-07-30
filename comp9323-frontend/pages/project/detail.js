@@ -20,6 +20,8 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     };
     var useRole;
     const [project, setProject] = useState({});
+    const [posts, setPosts] = useState({});
+
     function approveProject(pid, uid) {
         sendChangeProjectStatus(pid, uid, 1);
     }
@@ -37,7 +39,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                 body: JSON.stringify({ "proj_id": pid, "uid": uid, "status": status })
             }).then(res => {
                 res.json().then((val) => {
-                    console.log("res val = ",val);
+                    console.log("res val = ", val);
                     window.location.reload();
                 });
             });
@@ -45,70 +47,72 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
             console.log(e)
         }
     }
-    // fetch project info on load
-    try {
-        fetch('http://localhost:5000/view_project', {
-            method: 'POST',
-            headers: {
-                "content": 'application/json',
-                'Access-Control-Allow-Origin':'*'
-            },
-            body: JSON.stringify({ "proj_id": pid })
-        }).then(res => {
-            res.json().then((val) => {
-                //console.log(val);
-                setProject(val.result);
-                console.log(project);
+    function openProject(pid, uid, status) {
+        try {
+            fetch('http://localhost:5000/change_project_status2', {
+                method: 'POST',
+                headers: {
+                    "content": 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                body: JSON.stringify({ "proj_id": pid })
+            }).then(res => {
+                res.json().then((val) => {
+                    console.log("res val = ", val);
+                    window.location.reload();
+                });
             });
-        });
-    } catch (e) {
-        console.log(e)
+        } catch (e) {
+            console.log(e)
+        }
     }
-    // uid = USERMESSAGE.id
-    // userRole = USERMESSAGE.userRole;
-    // ========================================
+    useEffect(() => {
+        setTimeout(() => {
+            ref?.current.getTabPane(urlMsg.asPath, `Project Name`)
+        }, 0);
+        // fetch project info on load
+        try {
+            fetch('http://localhost:5000/view_project', {
+                method: 'POST',
+                headers: {
+                    "content": 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                body: JSON.stringify({ "proj_id": pid })
+            }).then(res => {
+                res.json().then((val) => {
+                    //console.log(val);
+                    setProject(val.result);
+                    console.log(project);
+                });
+            });
+        } catch (e) {
+            console.log(e)
+        };
+        // fetch posts
 
-    //======= comment out this to test
-    // mock data
-    // const val = {
-    //     "code": 200,
-    //     "result": {
-    //         "authority_email": "heyheyname@somemail.com",
-    //         "authority_id": "u00001",
-    //         "authority_name": "heyheyname",
-    //         "close_time": "Sun, 21 Aug 2022 00:00:00 GMT",
-    //         "course_description": "This course allows students to explore principles, techniques, architectures, and enabling technologies for the development of the different components and layers of complex SaaS systems. ",
-    //         "course_name": "Software as a Service Project",
-    //         "cur_num": 1,
-    //         "description": "hello world",
-    //         "files": [
-    //             {
-    //                 "file_name": "test.pdf",
-    //                 "file_url": "",
-    //                 "type": "pdf",
-    //                 "utime": "Thu, 21 Jul 2022 00:00:00 GMT"
-    //             },
-    //             {
-    //                 "file_name": "COM9323.txt",
-    //                 "file_url": "",
-    //                 "type": "txt",
-    //                 "utime": "Thu, 21 Jul 2022 00:00:00 GMT"
-    //             }
-    //         ],
-    //         "max_num": 20,
-    //         "proj_name": "COM9323",
-    //         "proposer_email": "yaxin.su@student.unsw.edu.au",
-    //         "proposer_id": "u00002",
-    //         "proposer_name": "Yaxin Su",
-    //         "start_time": "Thu, 21 Jul 2022 00:00:00 GMT",
-    //         "status": 0
-    //     }
-    // };
-    //project = val.result;
+        try {
+            console.log('fetch posts for proj', pid);
+            fetch('http://localhost:5000/view_comment', {
+                method: 'POST',
+                headers: {
+                    "content": 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                body: JSON.stringify({ "proj_id": pid })
+            }).then(res => {
+                res.json().then((val) => {
+                    setPosts(val.result);
+                    console.log('Get posts ', posts);
+                });
+            });
+        } catch (e) {
+            console.log(e)
+        };
+    }, []);
+
     const uid = "u00001";
-    // ========================================
 
-    
     console.log(project);
     // convert datetime
     // project.start_time = (new Date(project.start_time)).toLocaleDateString();
@@ -135,11 +139,6 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     // 3进行中in progress 4已结束ended 5未通过not approved 
     var status = project.status;
 
-    useEffect(() => {
-        setTimeout(() => {
-            ref?.current.getTabPane(urlMsg.asPath, `Project Name`)
-        }, 0)
-    }, [])
     // var userRole = ("CA", "S", "P","R");
     function Buttons(props) {
         const userRole = props.userRole;
@@ -176,10 +175,12 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                     }}>Disapprove Project</Button>
                 </>
             )
-        } else if (status == 2) {
+        } else if (status == 1) {
             return (
                 <>
-                    <Button type="primary">Open Project To Join</Button>
+                    <Button type="primary" onClick={() => {
+                        openProject(pid);
+                    }}>Open Project To Join</Button>
                 </>
             )
         } else if (status == 3 || status == 4) {
@@ -197,7 +198,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                 </>
             )
         } else {
-            return;
+            return null;
         }
 
     }
@@ -344,61 +345,95 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     }
     function ProjectCapacity(props) {
         const status = props.status;
-        if (status <= 1 || status >= 5) {
-            return null;
+        const cur_num = props.cur_num;
+        const max_num = props.max_num;
+        // if (status <= 1 || status >= 5) {
+        //     return null;
 
-        } else {
-            return <Statistic style={{ textAlign: 'center' }} title="Project Capacity" value={23} suffix="/ 33" />
-        }
+        // } else {
+        return <Statistic style={{ textAlign: 'center' }} title="Project Capacity" value={cur_num} suffix={`/ ${max_num}`} />
+        // }
     }
 
     function ProjectForum(props) {
-        if (props.status >= 2 && props.status < 5) {
+        var status = props.status;
+        console.log("project is in", status);
+
+        if (status >= 2 && status <= 4) {
+            var comments = posts.posts;
+            console.log("number of comments", comments.length);
+            console.log("comments are ", comments)
             return (
                 <>
                     <Title level={3}>Forum</Title>
-
-                    <Comment
-                        actions={[<span key="comment-nested-reply-to">Reply</span>]}
-                        author={<a>Example student</a>}
-                        avatar={<Avatar src="https://joeschmoe.io/api/v1/random" />}
-                        content={
-                            <p>
-                                Hi course staff, are there any other prerequisites learning modules for this project?
-                            </p>
-                        }
-                    >
-                        <Comment
-                            actions={[<span key="comment-nested-reply-to">Reply</span>]}
-                            author={<a>Example course authority</a>}
-                            avatar={<Avatar src="/static/ca.png" />}
-                            content={
-                                <p>
-                                    No, you can enroll as long as you are in the course.
-                                </p>
-                            }
-                        >
-                        </Comment>
-                    </Comment>
-                    <Comment
-                        actions={[<span key="comment-nested-reply-to">Reply</span>]}
-                        author={<a>Example student</a>}
-                        avatar={<Avatar src="https://joeschmoe.io/api/v1/random" />}
-                        content={
-                            <p>
-                                Hi course staff, are suspendisse est odio imperdiet id euismod included in this project's work?
-                            </p>
-                        }
-                    >
-                    </Comment>
+                    {comments.map((item) => {
+                        return (
+                            <>
+                                <Comment
+                                    actions={[<span key="comment-nested-reply-to">Reply</span>]}
+                                    author={<a>{item.root_name}</a>}
+                                    avatar={<Avatar src="/static/ca.png" />}
+                                    content={<p>
+                                        {item.root_content}
+                                    </p>}
+                                >
+                                    {item.reply_comment.map((item) => {
+                                        return (
+                                            <>
+                                                <Comment
+                                                    author={<a>{item.target_name}</a>}
+                                                    avatar={<Avatar src="/static/ca.png" />}
+                                                    content={<p>
+                                                        {item.content}
+                                                    </p>}
+                                                >
+                                                </Comment>
+                                            </>
+                                        )
+                                    })}
+                                </Comment>
+                            </>
+                        )
+                    })}
                 </>
             )
         }
         return null;
     }
+    function Documents(props) {
+        var files = props.files;
+        if (files != undefined) {
+            console.log("display documents", Array.from(files));
+            console.log("number of docs", files.length);
+            if (files.length > 0) {
+                return (
+                    <>
+                        <Title level={3}>Specification documents</Title>
+                        <Collapse onChange={onChange}>
+                            {files.map((item, index) => {
+                                return (
+                                    <Panel header={item.file_name} key={index}>
+                                        <iframe
+                                            src={item.file_url}
+                                            title={item.file_name}
+                                            width="100%"
+                                            height="1200"
+                                        ></iframe>
+                                    </Panel>
+                                )
+                            })}
+
+                        </Collapse>
+                    </>
+                )
+            }
+        }
+
+        return null;
+
+    }
     return (
         <PageBase cRef={ref} USERMESSAGE={USERMESSAGE}>
-
             <>
                 <br />
                 <Row>
@@ -481,7 +516,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                             <Col span={4}></Col>
                             <Col span={6} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'start' }}>
                                 <br />
-                                <ProjectCapacity status={status} />
+                                <ProjectCapacity status={status} cur_num={project.cur_num} max_num={project.max_num} />
                                 <br />
                                 <Buttons userRole={useRole} status={status} />
                                 <SubmitWorkButton userRole={useRole} status={status} />
@@ -494,22 +529,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                         <br />
                         <Row>
                             <Col span={24}>
-                                <Title level={3}>Specification documents</Title>
-                                {/* <Collapse defaultActiveKey={['0']} onChange={onChange}>
-                                    {project.files.map((item, index) => {
-                                        return (
-                                            <Panel header={item.file_name} key={index}>
-                                                <iframe
-                                                    src={item.file_url}
-                                                    title={item.file_name}
-                                                    width="100%"
-                                                    height="1200"
-                                                ></iframe>
-                                            </Panel>
-                                        )
-                                    })}
-
-                                </Collapse> */}
+                                <Documents files={project.files} />
                             </Col>
                         </Row>
                         <br />
@@ -518,7 +538,6 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
 
                             <Col span={24}>
                                 < ProjectForum status={status} />
-
                             </Col>
                         </Row>
                     </Col>
