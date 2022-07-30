@@ -3,13 +3,14 @@ import React ,{useRef,useState,useEffect} from 'react'
 import {Select,Button,Table} from "antd"
 const {Option} = Select;
 import AllProjectStyle from "./AllProject.less"
+import {getCourses} from "../MockData";
 const AllProject = ({ USERMESSAGE, urlMsg }) => {
   const ref = useRef();
   const [data,changeData] = useState([]);
   const [pageLoading,changePageLoading] = useState(false);
   const [search,changeSearch] = useState({
     projectType : null,
-    course : null
+    course : []
   });
   const [page,changePage] = useState({
       size : 10,
@@ -17,41 +18,8 @@ const AllProject = ({ USERMESSAGE, urlMsg }) => {
       total : 0
   })
   const [asPath] = useState(urlMsg.asPath);
-  const [projectList,changeProject] = useState([{
-    key : null,
-    value : "All"
-  },{
-    key : 0,
-    value : "Pending"
-  },{
-    key : 1,
-    value : "Approved"
-  },{
-    key : 2,
-    value : "Published"
-  },{
-    key : 3,
-    value : "In Progress"
-  },{
-    key : 4,
-    value : "Ended"
-  },{
-    key : 5,
-    value : "Failed"
-  }]);
-  const [courseList,changeCourseList] = useState([{
-    key : null,
-    value : "All Courses"
-  },{
-    key : "Course1",
-    value : "Course1"
-  },{
-    key : "Course2",
-    value : "Course2"
-  },{
-    key : "Course3",
-    value : "Course3"
-  }]);
+  const [projectList,changeProject] = useState([]);
+  const [courseList,changeCourseList] = useState([]);
   const columns = [
     {
       title: 'Project Name',
@@ -129,23 +97,82 @@ const AllProject = ({ USERMESSAGE, urlMsg }) => {
       const _data = ref?.current?.getTabPaneOption() || {};
       changeSearch({
         projectType : _data.projectType || null,
-        course : _data.course || null,
+        course : _data.course || [],
       })
       changePage({
         size : _data.size || 10,
         number : _data.number || 1,
         total : _data.total ||0
       })
-      initList({
-        size : _data.size || 10,
-        number : _data.number || 1,
-        total : _data.total ||0
+      let projectStatusList = [{
+        key : null,
+        value : "All"
+      }];
+      const userType = USERMESSAGE && USERMESSAGE.type;
+      if(userType !== 1 && userType !== undefined && userType !== null && userType !== ""){
+        projectStatusList = [...projectStatusList,...[{
+          key : 0,
+          value : "Pending"
+        },{
+          key : 1,
+          value : "Approved"
+        }]]
+      }
+      projectStatusList = [...projectStatusList,...[{
+        key : 2,
+        value : "Published"
       },{
-        projectType : _data.projectType || null,
-        course : _data.course || null,
-      })
+        key : 3,
+        value : "In Progress"
+      },{
+        key : 4,
+        value : "Ended"
+      }]]
+      if(userType !== 1 && userType !== undefined && userType !== null && userType !== ""){
+        projectStatusList = [...projectStatusList,...[{
+          key : 5,
+          value : "Failed"
+        }]]
+      }
+      changeProject(projectStatusList)
+      getCourseList(()=>{
+        initList({
+          size : _data.size || 10,
+          number : _data.number || 1,
+          total : _data.total ||0
+        },{
+          projectType : _data.projectType || null,
+          course : _data.course || [],
+        })
+      });
     },0)
   },[]);
+  function getCourseList(callBack){
+    getCourses({
+      uid : USERMESSAGE && USERMESSAGE.uid || null
+    }).then(res => {
+      if(res.code === 200){
+        const result = res.result;
+        if(result){
+          const {c_list} = result;
+          const list = [];
+          for(let i = 0 ; i < (c_list || []).length ; i++){
+            const item = c_list[i];
+            list.push({
+              key : item.cid,
+              value : item.name
+            })
+          }
+          changeCourseList(list);
+        }else{
+          changeCourseList([]);
+        }
+      }else{
+        changeCourseList([]);
+      }
+      callBack && callBack();
+    })
+  }
   function goDetail(){
     ref.current.setTabPane(
         `Project detail`,
@@ -222,7 +249,7 @@ const AllProject = ({ USERMESSAGE, urlMsg }) => {
   function clearSearch() {
     changeSearch({
       projectType : null,
-      course : null
+      course : []
     });
     changePage({
       ...page,
@@ -237,7 +264,7 @@ const AllProject = ({ USERMESSAGE, urlMsg }) => {
       }
     },{
       projectType : null,
-      course : null
+      course : []
     })
   }
   return (
@@ -276,6 +303,10 @@ const AllProject = ({ USERMESSAGE, urlMsg }) => {
             <h6>Courses</h6>
             <div className="operation_box">
               <Select
+                  allowClear
+                  placeholder={"Please select courses"}
+                   mode={'multiple'}
+                  maxTagCount={"responsive"}
                 value={search.course}
                 style={{ width: 300 }}
                 onChange={(value) => {
