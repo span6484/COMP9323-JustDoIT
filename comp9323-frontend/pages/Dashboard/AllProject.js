@@ -3,13 +3,14 @@ import React ,{useRef,useState,useEffect} from 'react'
 import {Select,Button,Table} from "antd"
 const {Option} = Select;
 import AllProjectStyle from "./AllProject.less"
+import {getCourses} from "../MockData";
 const AllProject = ({ USERMESSAGE, urlMsg }) => {
   const ref = useRef();
   const [data,changeData] = useState([]);
   const [pageLoading,changePageLoading] = useState(false);
   const [search,changeSearch] = useState({
     projectType : null,
-    course : null
+    course : []
   });
   const [page,changePage] = useState({
       size : 10,
@@ -17,42 +18,8 @@ const AllProject = ({ USERMESSAGE, urlMsg }) => {
       total : 0
   })
   const [asPath] = useState(urlMsg.asPath);
-  const [projectList,changeProject] = useState([{
-    key : null,
-    value : "All"
-  },{
-    key : 0,
-    value : "Pending"
-  },{
-    key : 1,
-    value : "Approved"
-  },{
-    key : 2,
-    value : "Not approved"
-  },
-    {
-    key : 3,
-    value : "Open to join"
-  },{
-    key : 4,
-    value : "In Progress"
-  },{
-    key : 5,
-    value : "Ended"
-  }]);
-  const [courseList,changeCourseList] = useState([{
-    key : null,
-    value : "All Courses"
-  },{
-    key : "c001",
-    value : "Software as a Service Project"
-  },{
-    key : "c002",
-    value : "Machine Learning and Data Mining"
-  },{
-    key : "c003",
-    value : "Information Technology Project"
-  }]);
+  const [projectList,changeProject] = useState([]);
+  const [courseList,changeCourseList] = useState([]);
   const columns = [
     {
       title: 'Project Name',
@@ -79,8 +46,8 @@ const AllProject = ({ USERMESSAGE, urlMsg }) => {
       dataIndex: 'currentStudentNumber',
       key: 'currentStudentNumber',
       width: 100,
-      render:(currentStudentNumber)=>{
-        return <div> {currentStudentNumber} / 100</div>
+      render:()=>{
+        return <div> 1 / 100</div>
       }
     },
     {
@@ -115,11 +82,11 @@ const AllProject = ({ USERMESSAGE, urlMsg }) => {
       key: 'operation',
       fixed: 'right',
       width: 100,
-      render: (operation,actionInfo) =>{
+      render: () =>{
         return <div
             className={"go-detail"}
            onClick={()=>{
-             goDetail(actionInfo.id)
+             goDetail()
            }}
         >Detail</div>
       }
@@ -130,76 +97,159 @@ const AllProject = ({ USERMESSAGE, urlMsg }) => {
       const _data = ref?.current?.getTabPaneOption() || {};
       changeSearch({
         projectType : _data.projectType || null,
-        course : _data.course || null,
+        course : _data.course || [],
       })
       changePage({
         size : _data.size || 10,
         number : _data.number || 1,
         total : _data.total ||0
       })
-      initList({
-        size : _data.size || 10,
-        number : _data.number || 1,
-        total : _data.total ||0
+      let projectStatusList = [{
+        key : null,
+        value : "All"
+      }];
+      const userType = USERMESSAGE && USERMESSAGE.type;
+      if(userType !== 1 && userType !== undefined && userType !== null && userType !== ""){
+        projectStatusList = [...projectStatusList,...[{
+          key : 0,
+          value : "Pending"
+        },{
+          key : 1,
+          value : "Approved"
+        }]]
+      }
+      projectStatusList = [...projectStatusList,...[{
+        key : 2,
+        value : "Published"
       },{
-        projectType : _data.projectType || null,
-        course : _data.course || null,
-      })
+        key : 3,
+        value : "In Progress"
+      },{
+        key : 4,
+        value : "Ended"
+      }]]
+      if(userType !== 1 && userType !== undefined && userType !== null && userType !== ""){
+        projectStatusList = [...projectStatusList,...[{
+          key : 5,
+          value : "Failed"
+        }]]
+      }
+      changeProject(projectStatusList)
+      getCourseList(()=>{
+        initList({
+          size : _data.size || 10,
+          number : _data.number || 1,
+          total : _data.total ||0
+        },{
+          projectType : _data.projectType || null,
+          course : _data.course || [],
+        })
+      });
     },0)
   },[]);
-  function goDetail(id){
+  function getCourseList(callBack){
+    getCourses({
+      uid : USERMESSAGE && USERMESSAGE.uid || null
+    }).then(res => {
+      if(res.code === 200){
+        const result = res.result;
+        if(result){
+          const {c_list} = result;
+          const list = [];
+          for(let i = 0 ; i < (c_list || []).length ; i++){
+            const item = c_list[i];
+            list.push({
+              key : item.cid,
+              value : item.name
+            })
+          }
+          changeCourseList(list);
+        }else{
+          changeCourseList([]);
+        }
+      }else{
+        changeCourseList([]);
+      }
+      callBack && callBack();
+    })
+  }
+  function goDetail(){
     ref.current.setTabPane(
         `Project detail`,
         '',
-        `/project/detail?id=${id}`
+        `/project/detail?id=123`
     )
   }
   function initList(initPage,initSearch) {
     initPage = initPage || page;
     initSearch = initSearch || search;
     const _data = [{
-      id : "p001",
-      projectName : "Natural Language Processing with Disaster Tweets",
-      course : "Machine Learning and Data Mining",
-      courseAuthority : "Jerry ",
-      currentStudentNumber : 43,
+      projectName : "English",
+      course : "aaa",
+      courseAuthority : "adad",
+      currentStudentNumber : 1,
       maxStudentNumber : 3,
-      startTime : "2022/06/11",
-      closeTime : "2022/09/11",
+      startTime : "2022-12-11",
+      closeTime : "2022-12-13",
       statues : 0,
     },{
-      id : "p002",
-      projectName : "Movie finder system",
-      course : "Software as a Service Project",
-      courseAuthority : "Aaron",
-      currentStudentNumber : 20,
+      projectName : "English",
+      course : "aaa",
+      courseAuthority : "adad",
+      currentStudentNumber : 1,
       maxStudentNumber : 3,
-      startTime : "2022/06/11",
-      closeTime : "2022/09/11",
+      startTime : "2022-12-11",
+      closeTime : "2022-12-13",
       statues : 1,
     },{
-      id : "p003",
-      projectName : "CVPR 2018 WAD Video Segmentation Challenge",
-      course : "Information Technology Project",
-      courseAuthority : "Adrian",
-      currentStudentNumber : 30,
+      projectName : "English",
+      course : "aaa",
+      courseAuthority : "adad",
+      currentStudentNumber : 1,
       maxStudentNumber : 3,
-      startTime : "2022/06/11",
-      closeTime : "2022/09/11",
+      startTime : "2022-12-11",
+      closeTime : "2022-12-13",
       statues : 2,
+    },{
+      projectName : "English",
+      course : "aaa",
+      courseAuthority : "adad",
+      currentStudentNumber : 1,
+      maxStudentNumber : 3,
+      startTime : "2022-12-11",
+      closeTime : "2022-12-13",
+      statues : 3,
+    },{
+      projectName : "English",
+      course : "aaa",
+      courseAuthority : "adad",
+      currentStudentNumber : 1,
+      maxStudentNumber : 3,
+      startTime : "2022-12-11",
+      closeTime : "2022-12-11",
+      statues : 4,
+    },{
+      projectName : "English",
+      course : "aaa",
+      courseAuthority : "adad",
+      currentStudentNumber : 1,
+      maxStudentNumber : 3,
+      startTime : "2022-12-11",
+      closeTime : "2022-12-11",
+      statues : 5,
     }]
     changeData(_data);
     changePage({
       ...initPage,
       ...{
-        total : 3
+        total : 30
       }
     });
   }
   function clearSearch() {
     changeSearch({
       projectType : null,
-      course : null
+      course : []
     });
     changePage({
       ...page,
@@ -214,7 +264,7 @@ const AllProject = ({ USERMESSAGE, urlMsg }) => {
       }
     },{
       projectType : null,
-      course : null
+      course : []
     })
   }
   return (
@@ -253,6 +303,10 @@ const AllProject = ({ USERMESSAGE, urlMsg }) => {
             <h6>Courses</h6>
             <div className="operation_box">
               <Select
+                  allowClear
+                  placeholder={"Please select courses"}
+                   mode={'multiple'}
+                  maxTagCount={"responsive"}
                 value={search.course}
                 style={{ width: 300 }}
                 onChange={(value) => {

@@ -38,7 +38,7 @@ const seletedChange = (e, fatherSubMenu, tabPaneInit) => {
 
 const IndexTabTop = ({ msg, tabPaneInit, loginOut , topRef }) => {
   const changePasswordRef = useRef();
-  const { defaultOpenKeysList, userMessage, fatherSubMenu, reward } = msg;
+  const { defaultOpenKeysList, userMessage, fatherSubMenu, reward ,role} = msg;
   const [initMsg,changeInitMsg] = useState(userMessage)
   const { loginType, name ,nameText} = initMsg
   function login(type) {
@@ -67,6 +67,20 @@ const IndexTabTop = ({ msg, tabPaneInit, loginOut , topRef }) => {
       changeInitMsg(userMsg)
     },
   }))
+  function getRole(type){
+    switch (type){
+      case 0:
+        return "Course Authority";
+      case 1:
+        return "Student";
+      case 2:
+        return "Proposer";
+      case 3:
+        return "Reviewer";
+      default:
+        return  "";
+    }
+  }
   return (
     <React.Fragment>
       <style dangerouslySetInnerHTML={{ __html: TabTopStyle }} />
@@ -116,7 +130,7 @@ const IndexTabTop = ({ msg, tabPaneInit, loginOut , topRef }) => {
             {loginType === 'loginOut'
               ? 'Login'
               : loginType === 'loginIn'
-              ? `Hi,${nameText || name}`
+              ? `Hi,${nameText || name}(${getRole(role)})`
               : ''}
           </h6>
         </div>

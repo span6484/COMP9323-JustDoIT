@@ -271,7 +271,7 @@ const Page = ({ router, children, cRef, USERMESSAGE }) => {
         const _json = fatherSubMenu(null)
         change__fatherSubMenu(_json)
         init(null, _json)
-       /* loginOut()*/
+        loginOut()
       }
     )
   }, [])
@@ -330,7 +330,8 @@ const Page = ({ router, children, cRef, USERMESSAGE }) => {
             userMessage,
             authorId,
             fatherSubMenu: __fatherSubMenu,
-            reward
+            reward,
+            role : USERMESSAGE && USERMESSAGE.type
           }}
           tabPaneInit={(href) => {
             tabPaneInit(href)

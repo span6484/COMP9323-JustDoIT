@@ -6,7 +6,7 @@ const AllMessage = ({ USERMESSAGE, urlMsg }) => {
   const [messageList,changeMessageList] = useState()
   useEffect(()=>{
 
-
+     console.log("USERMESSAGE",USERMESSAGE)
   },[]);
 
   return (
