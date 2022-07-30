@@ -1,7 +1,7 @@
 import PageBase from '../basePage'
 import React, { useRef, onChange, useState, useEffect } from 'react'
 import { Col, Row, Button, Typography, Tooltip, Space, Collapse, Steps, Select, Statistic, Comment, Avatar, Popconfirm } from 'antd';
-import { MailOutlined, DeleteOutlined, FormOutlined } from "@ant-design/icons"
+import { MailOutlined, DeleteOutlined, FormOutlined, UnderlineOutlined } from "@ant-design/icons"
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 const { Title, Paragraph, Text, Link } = Typography;
 const { Step } = Steps;
@@ -90,7 +90,6 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
             console.log(e)
         };
         // fetch posts
-
         try {
             console.log('fetch posts for proj', pid);
             fetch('http://localhost:5000/view_comment', {
@@ -113,13 +112,12 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
 
     const uid = "u00001";
 
-    console.log(project);
+    //console.log(project);
     // convert datetime
     // project.start_time = (new Date(project.start_time)).toLocaleDateString();
     // project.close_time = (new Date(project.close_time)).toLocaleDateString();
 
     // get roles based project users
-
     var useRole = "S";
     switch (uid) {
         case project.authority_id:
@@ -132,6 +130,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
             useRole = "R";
             break;
     }
+    
     var joined = true;
     //joined = false;
 
@@ -358,45 +357,48 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     function ProjectForum(props) {
         var status = props.status;
         console.log("project is in", status);
-
-        if (status >= 2 && status <= 4) {
+        console.log("posts ", posts);
+        if (status >= 2 && status <= 4 && posts != undefined) {
             var comments = posts.posts;
-            console.log("number of comments", comments.length);
-            console.log("comments are ", comments)
-            return (
-                <>
-                    <Title level={3}>Forum</Title>
-                    {comments.map((item) => {
-                        return (
-                            <>
-                                <Comment
-                                    actions={[<span key="comment-nested-reply-to">Reply</span>]}
-                                    author={<a>{item.root_name}</a>}
-                                    avatar={<Avatar src="/static/ca.png" />}
-                                    content={<p>
-                                        {item.root_content}
-                                    </p>}
-                                >
-                                    {item.reply_comment.map((item) => {
-                                        return (
-                                            <>
-                                                <Comment
-                                                    author={<a>{item.target_name}</a>}
-                                                    avatar={<Avatar src="/static/ca.png" />}
-                                                    content={<p>
-                                                        {item.content}
-                                                    </p>}
-                                                >
-                                                </Comment>
-                                            </>
-                                        )
-                                    })}
-                                </Comment>
-                            </>
-                        )
-                    })}
-                </>
-            )
+            if (comments != undefined) {
+                console.log("number of comments", comments.length);
+                console.log("comments are ", comments)
+                return (
+                    <>
+                        <Title level={3}>Forum</Title>
+                        {comments.map((item, index) => {
+                            return (
+                                <>
+                                    <Comment
+                                        actions={[<span>Reply</span>]}
+                                        author={<a>{item.root_name}</a>}
+                                        avatar={<Avatar src="/static/ca.png" />}
+                                        content={<p>
+                                            {item.root_content}
+                                        </p>}
+                                    >
+                                        {item.reply_comment.map((item) => {
+                                            return (
+                                                <>
+                                                    <Comment
+                                                        author={<a>{item.target_name}</a>}
+                                                        avatar={<Avatar src="/static/ca.png" />}
+                                                        content={<p>
+                                                            {item.content}
+                                                        </p>}
+                                                    >
+                                                    </Comment>
+                                                </>
+                                            )
+                                        })}
+                                    </Comment>
+                                </>
+                            )
+                        })}
+                    </>
+                )
+            }
+
         }
         return null;
     }
