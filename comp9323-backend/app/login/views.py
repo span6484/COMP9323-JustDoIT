@@ -27,7 +27,12 @@ def login():
     if en_pass != user.password:
         return jsonify({'code': 400, 'msg': 'Wrong password.'})
     token = generate_token(user)
-    return jsonify({'code': 200, 'msg': 'Login successfully.', 'token': token})
+    return jsonify({'code': 200, 'msg': 'Login successfully.', 'token': token,'user' : {
+         'uid' : user.uid,
+         'username' : user.username,
+         'email' : user.email,
+         'role' : user.role
+    }})
 
 
 def register():
@@ -100,7 +105,7 @@ def check_login():
 def check_role():
     data = request.get_json(force=True)
     id = data["id"]
-    user = UserModel.query.filter(UserModel.id == id, UserModel.active == 1).first()
+    user = UserModel.query.filter(UserModel.id == id).first()
     if not user:
         return jsonify({'code': 400, 'msg': 'No such user in database.'})
     return jsonify({'code': 200, 'role': user.role})

@@ -5,11 +5,14 @@ const fetchData = (url, param) => {
 };
 
 export function userRegister(param) {
-    return fetchData('http://localhost:5000/register', param);
+    return fetchData('http://127.0.0.1:5000/register', param);
+}
+export function checkRole(param) {
+    return fetchData('http://127.0.0.1:5000/check_role', param);
 }
 export function userLogin(param) {
-    return fetchData('http://localhost:5000/login', param);
+    return fetchData('http://127.0.0.1:5000/login', param);
 }
 export function getRequirement(param) {
-    return fetchData('http://localhost:5000/requirement', param);
+    return fetchData('http://127.0.0.1:5000/requirement', param);
 }

@@ -4,7 +4,7 @@ import { UserOutlined, LockOutlined ,MailOutlined} from '@ant-design/icons'
 import { Base64 } from 'js-base64'
 const md5 = require('js-md5')
 import { delCookie ,setCookie} from '../util/cookie'
-import {userRegister,userLogin} from "./MockData";
+import {userRegister,userLogin,checkRole} from "./MockData";
 import Style from "./login.less"
 import _ from "lodash"
 const UgcLogin = ({}) => {
@@ -15,7 +15,9 @@ const UgcLogin = ({}) => {
      userName : "",
      password : "",
      email : "",
-     passwordSure : ""
+     passwordSure : "",
+      detail : "",
+     role : ""
   });
   const [registerVisible, changeRegisterVisible] = useState(false)
   useEffect(() => {
@@ -52,34 +54,41 @@ const UgcLogin = ({}) => {
       return false
     }
     const _pass = Base64.encode(md5(_password));
-    message.success("login was successful");
-    window.location.href = "/";
-    const time = (new Date()).getTime() + 10*24*60*60*1000;
-    setCookie("USER_MESSAGE",JSON.stringify({
-      name : _user,
-      type : 1,
-      token : Base64.encode(`${_user}&&sadasdasdad&&${time}&&1&&${_user}`),
-    }),100);
-    localStorage.setItem(
-      'USER_ACCOUNT',
-      Base64.encode(`${_user} || ${_password}`)
-    )
-    return;
     userLogin({
-      userName : _user,
+      id_or_email : _user,
       password : _pass
     }).then(res => {
-      if(res.status === 0){
-        message.success("login was successful");
-         setCookie("USER_MESSAGE",JSON.stringify(res.data || {}),10);
+      if(res.code === 200){
+          message.success("login was successful");
+          const time = (new Date()).getTime() + 10*24*60*60*1000;
+          const {username,email,role,uid} = res.user;
+          setCookie("USER_MESSAGE",JSON.stringify({
+            name : username,
+            type : role,
+            uid,
+            token : Base64.encode(`${username}&&sadasdasdad&&${time}&&1&&${username}`),
+          }),100);
         localStorage.setItem(
           'USER_ACCOUNT',
-          Base64.encode(`${_user} || ${_password}`)
+          Base64.encode(`${_user} || ${_password} || ${username}`)
         )
+          window.location.href = "/Dashboard/CourseOverview"
       }else{
         message.error(res.msg || "login was fail")
       }
     })
+  }
+  function getRole(type){
+      switch (type){
+          case 0:
+              return "student";
+          case 1:
+              return "authority";
+          case 2:
+              return "role";
+          default:
+              return  "";
+      }
   }
   return (
     <React.Fragment>
@@ -120,8 +129,9 @@ const UgcLogin = ({}) => {
         okText="SUBMIT"
         zIndex={2}
         cancelText="CANCEL"
+        width={700}
         onOk={() => {
-           const {userName,passwordSure,password,email,id} = newUser;
+           const {userName,passwordSure,password,email,id,detail} = newUser;
           if(!id || !(id && id.trim())){
             message.warn("Please enter your id");
             return;
@@ -134,10 +144,10 @@ const UgcLogin = ({}) => {
              message.warn("Please enter your email");
              return;
            }else{
-             if(!((email &&email.trim()).match("^([\\w\\.-]+)@([a-zA-Z0-9-]+)(\\.[a-zA-Z\\.]+)$"))){
-               message.warn("Please enter a mailbox in the correct format");
-               return;
-             }
+              if(!(/^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+(.[a-zA-Z0-9_-])+/.test((email &&email.trim())))){
+                  message.warn("Please enter your email in the correct format");
+                  return
+              }
            }
           if(!password || !(password &&password.trim())){
              message.warn("Please enter your password");
@@ -152,27 +162,36 @@ const UgcLogin = ({}) => {
              return;
            }
           const _pass = Base64.encode(md5(password.trim()));
-           return;
           userRegister({
-            id : id.trim(),
-            userName : userName.trim(),
-            password : _pass,
-            email : email.trim()
+              id : id.trim(),
+              username : userName.trim(),
+              email : email.trim(),
+              password : _pass,
+              detail : !!id.trim() ? "" : detail.trim()
           }).then(res => {
-            if(res.status === 0){
+            if(res.status === 200){
               message.success("register was successful");
+              changeRegisterVisible(false);
+              changeUser(newUser.id);
               changeRegisterVisible(false);
               changeNewUser({
                 id: "",
                 userName : "",
                 password : "",
                 email : "",
-                passwordSure : ""
+                passwordSure : "",
+                detail : "",
+                role : ""
               })
             }else{
               message.error(res.msg)
             }
           })
+        }}
+        okButtonProps={{
+            disabled : !(((newUser.id && (newUser.role !== undefined && newUser.role !== null &&
+            newUser.role !== "")) || (!newUser.id && newUser.detail)) && newUser.userName &&
+                newUser.password && newUser.passwordSure && newUser.email )
         }}
         onCancel={() => {
           changeRegisterVisible(false);
@@ -181,7 +200,9 @@ const UgcLogin = ({}) => {
             userName : "",
             password : "",
             email : "",
-            passwordSure : ""
+            passwordSure : "",
+              detail : "",
+              role : ""
           })
         }}>
         <div className={"modal_box_login_component"}>
@@ -196,17 +217,49 @@ const UgcLogin = ({}) => {
                   const _value = e.target.value;
                   const _newPageMessage = _.clone(newUser);
                   _newPageMessage.id = _value;
+                    _newPageMessage.role = "";
                   changeNewUser(_newPageMessage);
                 }}
               />
+                <Button
+                    onClick={()=>{
+                        checkRole({
+                            id : newUser.id
+                        }).then(res => {
+                            const _newPageMessage = _.clone(newUser);
+                            if(res.code === 200){
+                                _newPageMessage.role = res.role;
+                            }else{
+                                _newPageMessage.role = "";
+                                message.error(res.msg);
+                            }
+                            changeNewUser(_newPageMessage)
+                        }).catch(err => {
+                            const _newPageMessage = _.clone(newUser);
+                            _newPageMessage.role = "";
+                            changeNewUser(_newPageMessage)
+                        })
+                    }}
+                    disabled={!newUser.id}
+                    style={{
+                        marginLeft : "10px"
+                    }}
+                    type={"primary"}>CHECK</Button>
             </div>
+              {
+                  newUser.role !== undefined && newUser.role !== null &&
+                  newUser.role !== "" &&
+                  <div className={"role-type"}>
+                      {getRole(newUser.role)}
+                  </div>
+              }
           </div>
           <div className="box">
             <h6>Name</h6>
             <div className="switch_box">
               <Input
                 value={newUser.userName}
-                placeholder="Please enter your username"
+                placeholder="Please enter your username,example : Jerry Jackson"
                 prefix={<UserOutlined />}
                 onChange={(e) => {
                   const _value = e.target.value;
@@ -233,6 +286,22 @@ const UgcLogin = ({}) => {
               />
             </div>
           </div>
+            {/*<div className="box">*/}
+            {/*    <h6>Detail</h6>*/}
+            {/*    <div className="switch_box">*/}
+            {/*        <Input.TextArea*/}
+
+            {/*            value={newUser.detail}*/}
+            {/*            placeholder="Please enter your detail"*/}
+            {/*            onChange={(e) => {*/}
+            {/*                const _value = e.target.value;*/}
+            {/*                const _newPageMessage = _.clone(newUser);*/}
+            {/*                _newPageMessage.detail = _value;*/}
+            {/*                changeNewUser(_newPageMessage)*/}
+            {/*            }}*/}
+            {/*        />*/}
+            {/*    </div>*/}
+            {/*</div>*/}
           <div className="box">
             <h6>Password</h6>
             <div className="switch_box">

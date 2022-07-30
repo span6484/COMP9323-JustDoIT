@@ -271,7 +271,7 @@ const Page = ({ router, children, cRef, USERMESSAGE }) => {
         const _json = fatherSubMenu(null)
         change__fatherSubMenu(_json)
         init(null, _json)
-       /* loginOut()*/
+        loginOut()
       }
     )
   }, [])
