@@ -26,13 +26,9 @@ def login():
     en_pass = encode_password(password)
     if en_pass != user.password:
         return jsonify({'code': 400, 'msg': 'Wrong password.'})
-    token = generate_token(user)
-    return jsonify({'code': 200, 'msg': 'Login successfully.', 'token': token,'user' : {
-         'uid' : user.uid,
-         'username' : user.username,
-         'email' : user.email,
-         'role' : user.role
-    }})
+    # token = generate_token(user)
+    result = {"uid": user.uid, "role": user.role, "username":user.username, "email": user.email}
+    return jsonify({'code': 200, 'msg': 'Login successfully.', 'result': result})
 
 
 def register():
