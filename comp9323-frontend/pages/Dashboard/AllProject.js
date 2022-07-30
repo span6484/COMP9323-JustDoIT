@@ -276,7 +276,7 @@ const AllProject = ({ USERMESSAGE, urlMsg }) => {
             <div className="operation_box">
               <Select
                 value={search.projectType}
-                style={{ width: 300 }}
+                style={{ width: 200 }}
                 onChange={(value) => {
                   const _search = _.clone(search)
                   _search.projectType = value;
@@ -305,7 +305,7 @@ const AllProject = ({ USERMESSAGE, urlMsg }) => {
                    mode={'multiple'}
                   maxTagCount={"responsive"}
                 value={search.course}
-                style={{ width: 300 }}
+                style={{ width: 400 }}
                 onChange={(value) => {
                   const _search = _.clone(search)
                   _search.course = value;
