@@ -22,3 +22,6 @@ export function getMessage(param) {
 export function getCourses(param) {
     return fetchData('http://127.0.0.1:5000/get_courses', param);
 }
+export function getAwards(param) {
+    return fetchData('http://127.0.0.1:5000/get_awards', param);
+}
