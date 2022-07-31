@@ -65,6 +65,80 @@ def view_project():
 
     return jsonify({'code': 200, 'result': result})
 
+
+def res_proj_detail(user, project, course):
+    result = {}
+    result["proj_id"] = project.proj_id
+    result["proj_name"] = project.proj_name
+    result["course_id"] = course.cid
+    print("project.aid",project.aid)
+    CA = UserModel.query.filter(UserModel.uid == project.aid, UserModel.active == 1).first()
+    result["CA_name"] = CA.username
+    result["CA_id"] = CA.uid
+    result["project_capacity"] = project.max_num
+    result["status"] = project.status
+    result["start_time"] = project.start_time
+    result["close_time"] = project.close_time
+    return result
+
+
+
+def get_myProject():
+    data = request.get_json(force=True)
+    result = {}
+    proj_status = data["proj_status"]       # 100: all
+    uid = data["uid"]
+    course_id = data["course_id"]
+    page_size = data["page_size"]
+    page_index = data["page_index"]
+
+    user = UserModel.query.filter(UserModel.uid == uid, UserModel.active == 1).first()
+    if not user:
+        return jsonify({'code': 400, 'msg': 'User does not exist'})
+    if user.role == 0 or 2:
+        if proj_status == 100:      # display all CA & proposer
+            projs = ProjectModel.query.filter(ProjectModel.cid == course_id, or_(ProjectModel.aid == uid, ProjectModel.pid == uid)).all()
+            proj_count = ProjectModel.query.filter(ProjectModel.cid == course_id, or_(ProjectModel.aid == uid, ProjectModel.pid == uid)).count()
+
+        else:
+            projs = ProjectModel.query.filter(ProjectModel.cid == course_id, ProjectModel.status == proj_status, or_(ProjectModel.aid == uid, ProjectModel.pid == uid)).all()
+            proj_count = ProjectModel.query.filter(ProjectModel.cid == course_id, ProjectModel.status == proj_status, or_(ProjectModel.aid == uid,ProjectModel.pid == uid)).count()
+
+    if user.role == 1:
+        print("here")
+        if proj_status == 100:  # display all students
+
+            projs = ProjectModel.query.outerjoin(SelectionModel, ProjectModel.proj_id == SelectionModel.proj_id)\
+                .filter(SelectionModel.sid == uid,ProjectModel.cid == course_id, SelectionModel.active == 1).all()
+            # print("(projs[0].aid: ",projs[0].aid)
+            proj_count = ProjectModel.query.outerjoin(SelectionModel, ProjectModel.proj_id == SelectionModel.proj_id)\
+                .filter(SelectionModel.sid == uid,ProjectModel.cid == course_id, SelectionModel.active == 1).count()
+            print(proj_count)
+        else:
+            projs = ProjectModel.query.outerjoin(SelectionModel, ProjectModel.proj_id == SelectionModel.proj_id)\
+                .filter(SelectionModel.sid == uid, SelectionModel.active == 1,ProjectModel.status == proj_status).all()
+            proj_count = len(projs)
+    if not projs:
+        return jsonify({'code': 400, 'msg': 'not related project'})
+    course = CourseModel.query.filter(CourseModel.cid == course_id, CourseModel.active == 1).first()
+    if not course :
+        return jsonify({'code': 400, 'msg': 'not related course'})
+    result["proj_count"] = proj_count
+    proj_list = []
+    for p in projs:
+        print("x")
+        proj_info = res_proj_detail(user, p, course)
+        proj_list.append(proj_info)
+
+    start = page_index * page_size
+    end = start + page_size
+    if end < result["proj_count"]:
+        result["list"] = proj_list[start:end]
+    else:
+        result["list"] = proj_list[start:]
+
+    return jsonify({'code': 200, 'result': result})
+
 # change project status: pending, approved/not, add to join"
 def change_project_status():
     data = request.get_json(force=True)
