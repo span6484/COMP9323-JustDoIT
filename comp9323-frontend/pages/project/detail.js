@@ -8,24 +8,96 @@ import { template } from 'lodash';
 const { Title, Paragraph, Text, Link } = Typography;
 const { Step } = Steps;
 
-
+// USERMESSAGE
+//     "name": "Test Name",
+//     "type": 0,
+//     "uid": "u00001",
+//     "token": "VGVzdCBOYW1lJiZzYWRhc2Rhc2RhZCYmMTY2MDExMzQyNDc3MyYmMSYmVGVzdCBOYW1l"
 
 const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     const ref = useRef();
     console.log(USERMESSAGE);
+    const uid = USERMESSAGE.uid;
+    // get roles based project users
+    var useRole = undefined;
+    switch (USERMESSAGE.type) {
+        case 0:
+            useRole = "CA";
+            break;
+        case 1:
+            useRole = "S";
+            break;
+        case 2:
+            useRole = "P";
+            break;
+        case 3:
+            useRole = "R";
+            break;
+    }
     // get project id from url 
     var pid = urlMsg.asPath.toString().replace('/project/detail?id=', '');
-    console.log(pid);
     const { Panel } = Collapse;
-    const onChange = (key) => {
-        console.log(key);
-    };
-
 
     var useRole;
     const [project, setProject] = useState({});
     const [posts, setPosts] = useState({});
+    useEffect(() => {
+        setTimeout(() => {
+            ref?.current.getTabPane(urlMsg.asPath, `Project Name`)
+        }, 0);
+        // fetch project info on load
+        try {
+            fetch('http://localhost:5000/view_project', {
+                method: 'POST',
+                headers: {
+                    "content": 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                body: JSON.stringify({ "proj_id": pid })
+            }).then(res => {
+                res.json().then((val) => {
+                    //console.log(val);
+                    setProject(val.result);
+                    console.log(project);
+                });
+            });
+        } catch (e) {
+            console.log(e)
+        };
+        // fetch posts
+        try {
+            console.log('fetch posts for proj', pid);
+            fetch('http://localhost:5000/view_comment', {
+                method: 'POST',
+                headers: {
+                    "content": 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                body: JSON.stringify({ "proj_id": pid })
+            }).then(res => {
+                res.json().then((val) => {
+                    setPosts(val.result);
+                    console.log('Get posts ', posts);
+                });
+            });
+        } catch (e) {
+            console.log(e)
+        };
+    }, []);
+    //console.log(project);
+    // convert datetime
+    // project.start_time = (new Date(project.start_time)).toLocaleDateString();
+    // project.close_time = (new Date(project.close_time)).toLocaleDateString();
 
+    var joined = true;
+    //joined = false;
+    // 0待审核Pending, 1已通过approved, 2已发布open to join 
+    // 3进行中in progress 4已结束ended 5未通过not approved 
+    var status = project.status;
+    
+    const onChange = (key) => {
+        console.log(key);
+    };
     function approveProject(pid, uid) {
         sendChangeProjectStatus(pid, uid, 1);
     }
@@ -70,81 +142,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
             console.log(e)
         }
     }
-    useEffect(() => {
-        setTimeout(() => {
-            ref?.current.getTabPane(urlMsg.asPath, `Project Name`)
-        }, 0);
-        // fetch project info on load
-        try {
-            fetch('http://localhost:5000/view_project', {
-                method: 'POST',
-                headers: {
-                    "content": 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                },
-                body: JSON.stringify({ "proj_id": pid })
-            }).then(res => {
-                res.json().then((val) => {
-                    //console.log(val);
-                    setProject(val.result);
-                    console.log(project);
-                });
-            });
-        } catch (e) {
-            console.log(e)
-        };
-        // fetch posts
-        try {
-            console.log('fetch posts for proj', pid);
-            fetch('http://localhost:5000/view_comment', {
-                method: 'POST',
-                headers: {
-                    "content": 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                },
-                body: JSON.stringify({ "proj_id": pid })
-            }).then(res => {
-                res.json().then((val) => {
-                    setPosts(val.result);
-                    console.log('Get posts ', posts);
-                });
-            });
-        } catch (e) {
-            console.log(e)
-        };
-    }, []);
 
-    const uid = "u00001";
-    // student u00005
-    // CA u00001
-
-    //console.log(project);
-    // convert datetime
-    // project.start_time = (new Date(project.start_time)).toLocaleDateString();
-    // project.close_time = (new Date(project.close_time)).toLocaleDateString();
-
-    // get roles based project users
-    var useRole = "S";
-    switch (uid) {
-        case project.authority_id:
-            useRole = "CA";
-            break;
-        case project.proposer_id:
-            useRole = "P";
-            break;
-        case project.reviewer_id:
-            useRole = "R";
-            break;
-    }
-
-    var joined = true;
-    //joined = false;
-
-    // 0待审核Pending, 1已通过approved, 2已发布open to join 
-    // 3进行中in progress 4已结束ended 5未通过not approved 
-    var status = project.status;
-
-    // var userRole = ("CA", "S", "P","R");
     function Buttons(props) {
         const userRole = props.userRole;
         if (userRole == "CA") {
