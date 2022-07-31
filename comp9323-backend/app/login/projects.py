@@ -5,6 +5,8 @@ from app.login.utils import *
 from app.models import *
 from sqlalchemy import or_, and_, not_
 from app.login.views import *
+
+
 # view project details
 def view_project():
     data = request.get_json(force=True)
@@ -62,6 +64,7 @@ def view_project():
 
     return jsonify({'code': 200, 'result': result})
 
+
 # change project status: pending, approved/not, add to join"
 def change_project_status():
     data = request.get_json(force=True)
@@ -99,6 +102,7 @@ def change_project_status():
     else:
         return jsonify({'code': 400, 'msg': 'You have no access to modify'})
 
+
 # change_project status according to start_time
 def change_project_status2():
     data = request.get_json(force=True)
@@ -132,6 +136,7 @@ def change_project_status2():
         else:
             return jsonify({'code': 200, 'msg': 'Wait the start time'})
 
+
 # [username, email, role]
 def show_usr_info(owner_uid):
     user = UserModel.query.filter(UserModel.uid == owner_uid).first()
@@ -143,6 +148,7 @@ def show_usr_info(owner_uid):
     user_lst.append(user.role)
     user_lst.append(user.uid)
     return user_lst
+
 
 # all reply comment to comment
 def show_reply_comment(root_id, proj_id):
@@ -172,7 +178,6 @@ def show_reply_comment(root_id, proj_id):
         post_dic["utime"] = post.utime
         post_lst.append(post_dic)
     return post_lst
-
 
 
 def view_comment():
@@ -212,6 +217,7 @@ def view_comment():
     result["posts_count"] = count
     result["posts"] = post_lst
     return jsonify({'code': 200, 'result': result})
+
 
 def add_comment():
     data = request.get_json(force=True)
