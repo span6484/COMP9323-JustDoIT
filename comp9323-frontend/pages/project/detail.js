@@ -19,26 +19,25 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     console.log(USERMESSAGE);
     const uid = USERMESSAGE.uid;
     // get roles based project users
-    var useRole = undefined;
+    var userRole = undefined;
     switch (USERMESSAGE.type) {
         case 0:
-            useRole = "CA";
+            userRole = "CA";
             break;
         case 1:
-            useRole = "S";
+            userRole = "S";
             break;
         case 2:
-            useRole = "P";
+            userRole = "P";
             break;
         case 3:
-            useRole = "R";
+            userRole = "R";
             break;
     }
     // get project id from url 
     var pid = urlMsg.asPath.toString().replace('/project/detail?id=', '');
     const { Panel } = Collapse;
 
-    var useRole;
     const [project, setProject] = useState({});
     const [posts, setPosts] = useState({});
     useEffect(() => {
@@ -86,15 +85,15 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     }, []);
     //console.log(project);
     // convert datetime
-    // project.start_time = (new Date(project.start_time)).toLocaleDateString();
-    // project.close_time = (new Date(project.close_time)).toLocaleDateString();
+    project.start_time = (new Date(project.start_time)).toLocaleDateString();
+    project.close_time = (new Date(project.close_time)).toLocaleDateString();
 
     var joined = true;
     //joined = false;
     // 0待审核Pending, 1已通过approved, 2已发布open to join 
     // 3进行中in progress 4已结束ended 5未通过not approved 
     var status = project.status;
-    
+
     const onChange = (key) => {
         console.log(key);
     };
@@ -219,7 +218,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                 </>
             )
         }
-        return;
+        return null;
     }
     function PButtons(props) {
         const status = props.status;
@@ -250,7 +249,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                 </>
             )
         } else {
-            return;
+            return null;
         }
     }
     function SButtons(props) {
@@ -350,12 +349,12 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
         const status = props.status;
         const cur_num = props.cur_num;
         const max_num = props.max_num;
-        // if (status <= 1 || status >= 5) {
-        //     return null;
+        if (status <= 1 || status >= 5) {
+            return null;
 
-        // } else {
-        return <Statistic style={{ textAlign: 'center' }} title="Project Capacity" value={cur_num} suffix={`/ ${max_num}`} />
-        // }
+        } else {
+            return <Statistic style={{ textAlign: 'center' }} title="Project Capacity" value={cur_num} suffix={`/ ${max_num}`} />
+        }
     }
     function AddComment() {
         const [newComment, setNewComment] = useState("");
@@ -395,11 +394,12 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
         var target_uid = props.target_uid;
         var parent_id = props.parent_id;
         var root_id = props.root_id;
-        console.log(target_uid, parent_id, root_id);
+        // console.log(target_uid, parent_id, root_id);
         const [newComment, setNewComment] = useState("");
         const handleClick = (event) => {
             console.log("Reply comment to proj", pid, 'by', uid);
-
+            console.log('target_uid, parent_id, root_id');
+            console.log(target_uid, parent_id, root_id);
             try {
                 fetch('http://localhost:5000/reply_comment', {
                     method: 'POST',
@@ -417,7 +417,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                     })
                 }).then(res => {
                     res.json().then((val) => {
-                        window.location.reload();
+                        // window.location.reload();
                     });
                 });
             } catch (e) {
@@ -475,53 +475,59 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
         console.log("project is in", status);
         console.log("posts ", posts);
 
-        if (status >= 2 && status <= 4 && posts != undefined) {
-            var comments = posts.posts;
-            if (comments != undefined) {
-                console.log("number of comments", comments.length);
-                console.log("comments are ", comments)
-                return (
-                    <>
-                        <Title level={3}>Forum</Title>
-                        {comments.map((item, index) => {
-                            return (
-                                <>
-                                    <Comment
-                                        author={<a>{item.root_name}</a>}
-                                        avatar={<Avatar src="/static/ca.png" />}
-                                        content={<p>{item.root_content}</p>
-                                        }
-                                    >
-                                        <CommentDeleteButton uid={item.root_uid} cm_id={item.root_id} />
-                                        <ReplyComment target_uid={uid} parent_id={item.root_uid} root_id={item.root_id} />
-                                        {item.reply_comment.map((item) => {
-                                            return (
-                                                <>
-                                                    <Comment
-                                                        author={<a>{item.target_name}</a>}
-                                                        avatar={<Avatar src="/static/ca.png" />}
-                                                        content={<p>
-                                                            {item.content}
-                                                        </p>}
-                                                    >
+        if (status >= 2 && status <= 4) {
+            if (posts != undefined) {
+                var comments = posts.posts;
+                if (comments != undefined) {
+                    console.log("number of comments", comments.length);
+                    console.log("comments are ", comments)
+                    return (
+                        <>
+                            <Title level={3}>Forum</Title>
+                            {comments.map((item, index) => {
+                                return (
+                                    <>
+                                        <Comment
+                                            author={<a>{item.root_name}</a>}
+                                            avatar={<Avatar src="/static/ca.png" />}
+                                            content={<p>{item.root_content}</p>
+                                            }
+                                        >
+                                            <CommentDeleteButton uid={item.root_uid} cm_id={item.root_id} />
+                                            <ReplyComment target_uid={uid} parent_id={item.root_uid} root_id={item.root_id} />
+                                            {item.reply_comment.map((item) => {
+                                                return (
+                                                    <>
+                                                        <Comment
+                                                            author={<a>{item.target_name}</a>}
+                                                            avatar={<Avatar src="/static/ca.png" />}
+                                                            content={<p>
+                                                                {item.content}
+                                                            </p>}
+                                                        >
 
-                                                    </Comment>
-                                                    <CommentDeleteButton uid={item.owner_uid} cm_id={item.cm_id} />
+                                                        </Comment>
+                                                        <CommentDeleteButton uid={item.owner_uid} cm_id={item.cm_id} />
 
-                                                </>
-                                            )
-                                        })}
-                                    </Comment>
+                                                    </>
+                                                )
+                                            })}
+                                        </Comment>
 
-                                </>
-                            )
-                        })}
+                                    </>
+                                )
+                            })}
 
-                        <AddComment />
-                    </>
-                )
+                            <AddComment />
+                        </>
+                    )
+                } else {
+                    return <><Title level={3}>Forum</Title><AddComment /></>;
+                }
+
+            } else {
+                return <><Title level={3}>Forum</Title><AddComment /></>;
             }
-
         }
         return null;
     }
@@ -643,14 +649,14 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                                 <br />
                                 <ProjectCapacity status={status} cur_num={project.cur_num} max_num={project.max_num} />
                                 <br />
-                                <Buttons userRole={useRole} status={status} />
-                                <SubmitWorkButton userRole={useRole} status={status} />
+                                <Buttons userRole={userRole} status={status} />
+                                <SubmitWorkButton userRole={userRole} status={status} />
                             </Col>
                         </Row>
                         <br />
                         <Title level={3}>Project current progress</Title>
                         <br />
-                        <ProgressBars userRole={useRole} />
+                        <ProgressBars userRole={userRole} />
                         <br />
                         <Row>
                             <Col span={24}>

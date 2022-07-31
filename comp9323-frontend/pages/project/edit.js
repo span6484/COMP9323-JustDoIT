@@ -8,25 +8,26 @@ const { Dragger } = Upload;
 import { SP } from 'next/dist/next-server/lib/utils';
 const { Title, Paragraph, Text, Link } = Typography;
 const { Step } = Steps;
+const dateFormat = 'YYYY/MM/DD';
 
 const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     const ref = useRef();
     //console.log(urlMsg, USERMESSAGE);
     const uid = USERMESSAGE.uid;
     // get roles based project users
-    var useRole = undefined;
+    var userRole = undefined;
     switch (USERMESSAGE.type) {
         case 0:
-            useRole = "CA";
+            userRole = "CA";
             break;
         case 1:
-            useRole = "S";
+            userRole = "S";
             break;
         case 2:
-            useRole = "P";
+            userRole = "P";
             break;
         case 3:
-            useRole = "R";
+            userRole = "R";
             break;
     }
     // get project id from url 
@@ -35,7 +36,6 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     const [project, setProject] = useState({});
 
     var status = project.status;
-    const dateFormat = 'YYYY/MM/DD';
 
     useEffect(() => {
         setTimeout(() => {
@@ -52,10 +52,12 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                 body: JSON.stringify({ "proj_id": pid })
             }).then(res => {
                 res.json().then((val) => {
-
-                    // val.result.start_time = (new Date(val.result.start_time)).toLocaleDateString();
-                    // val.result.close_time = (new Date(val.result.close_time)).toLocaleDateString();
+                    console.log(moment(val.result.start_time).isValid());
+                    val.result.start_time = moment(val.result.start_time).format(dateFormat);
+                    val.result.close_time = moment(val.result.close_time).format(dateFormat);
                     console.log(val.result);
+                    console.log(moment(val.result.start_time).isValid());
+                    console.log(val.result.start_time, val.result.close_time);
                     setProject(val.result);
                 });
             });
@@ -163,7 +165,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                                 <Title level={5}>
                                     <DatePicker.RangePicker
                                         disabledDate={disabledDate}
-                                        defaultValue={[moment(project.start_time, dateFormat), moment(project.close_time, dateFormat)]}
+                                        defaultValue={[moment(`${project.start_time}`, dateFormat),moment(`${project.close_time}`, dateFormat) ]}
                                         format={dateFormat}
                                     />
                                 </Title>
@@ -172,7 +174,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                         <br />
                         <Title level={3}>Project current progress</Title>
                         <br />
-                        <ProgressBars userRole={useRole} />
+                        <ProgressBars userRole={userRole} />
                         <br />
                         <br />
                         {/* //<UploadDocumnets status={status} /> */}
@@ -180,10 +182,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                         <br />
                         <br />
                         <Space direction="horizontal" size="middle" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around' }}>
-
                             <Button type='primary' style={{ width: 300 }}>Save Project</Button>
-                            <Button style={{ width: 300 }}>Back</Button>
-
                         </Space>
 
                     </Col>

@@ -1,7 +1,7 @@
 import PageBase from '../basePage';
 import projectStyle from "./project.less";
 
-import React, { useRef, onChange, useState } from 'react';
+import React, { useRef, onChange, useState, useEffect } from 'react';
 import { UploadOutlined } from '@ant-design/icons';
 import { Col, Row, Collapse, Typography, Button, Space, Input, message, Upload, Comment, Avatar, Tooltip, Tabs } from 'antd';
 const { Dragger } = Upload;
@@ -10,28 +10,83 @@ import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { MailOutlined, DeleteOutlined, FormOutlined } from "@ant-design/icons"
 const { Title, Paragraph, Text, Link } = Typography;
 
-const TextIndex = ({ USERMESSAGE }) => {
+const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     const ref = useRef();
-    const { Panel } = Collapse;
-    const fileList = [
-        {
-            uid: '-1',
-            name: 'test.pdf',
-            status: 'done',
-            url: 'https://www.orimi.com/pdf-test.pdf',
-        },
-        {
-            uid: '-2',
-            name: 'error.png',
-            status: 'error',
-        },
-    ];
-    var role = "S";
-    //role = "CA";
-    var reviewed = true;
-    reviewed = false;
-    var submitted = true;
-    //submitted = false;
+    console.log(urlMsg, USERMESSAGE);
+    const uid = USERMESSAGE.uid;
+    // get roles based project users
+    var userRole = undefined;
+    switch (USERMESSAGE.type) {
+        case 0:
+            userRole = "CA";
+            break;
+        case 1:
+            userRole = "S";
+            break;
+        case 2:
+            userRole = "P";
+            break;
+        case 3:
+            userRole = "R";
+            break;
+    }
+    // get project id from url 
+    var pid = urlMsg.asPath.toString().replace('/project/work?id=', '');
+
+    const [project, setProject] = useState({});
+    project.start_time = (new Date(project.start_time)).toLocaleDateString();
+    project.close_time = (new Date(project.close_time)).toLocaleDateString();
+    var status = project.status;
+
+    var reviewed = false;
+    var submitted = false;
+
+    useEffect(() => {
+        setTimeout(() => {
+            ref?.current.getTabPane(urlMsg.asPath, `Project Name`)
+        }, 0);
+        // fetch project info on load
+        try {
+            fetch('http://localhost:5000/view_project', {
+                method: 'POST',
+                headers: {
+                    "content": 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                body: JSON.stringify({ "proj_id": pid })
+            }).then(res => {
+                res.json().then((val) => {
+                    console.log(val.result);
+                    setProject(val.result);
+                });
+            });
+        } catch (e) {
+            console.log(e)
+        };
+        // fetch works
+        // try {
+        //     fetch('http://localhost:5000/view_project', {
+        //         method: 'POST',
+        //         headers: {
+        //             "content": 'application/json',
+        //             'Access-Control-Allow-Origin': '*'
+        //         },
+        //         body: JSON.stringify({ "proj_id": pid })
+        //     }).then(res => {
+        //         res.json().then((val) => {
+        //             console.log(moment(val.result.start_time).isValid());
+
+        //             console.log(val.result);
+        //             console.log(moment(val.result.start_time).isValid());
+        //             console.log(val.result.start_time, val.result.close_time);
+        //             setProject(val.result);
+        //         });
+        //     });
+        // } catch (e) {
+        //     console.log(e)
+        // };
+
+    }, []);
 
     function Documents(props) {
         <style dangerouslySetInnerHTML={{
@@ -82,27 +137,7 @@ const TextIndex = ({ USERMESSAGE }) => {
                                 >
                                 </Comment>
                                 <Title level={3}>Submitted documents</Title>
-                                <Collapse defaultActiveKey={['1']} onChange={onChange}>
-                                    <Panel header="Document 1" key="1">
-                                        <iframe
-                                            src={"https://www.orimi.com/pdf-test.pdf"}
-                                            title="file"
-                                            width="100%"
-                                            height="1200"
-                                        ></iframe>
-                                    </Panel>
-                                    <Panel header="Document 2" key="2">
-                                        <iframe src="https://onedrive.live.com/embed?resid=1B47937AD843C12%2184207&amp;authkey=%21AOztocS2WvBRawc&amp;em=2&amp;wdAr=1.7777777777777777" width="476px" height="288px" frameborder="0">This is an embedded <a target="_blank" href="https://office.com">Microsoft Office</a> presentation, powered by <a target="_blank" href="https://office.com/webapps">Office</a>.</iframe>
-                                    </Panel>
-                                    <Panel header="Document 3" key="3">
-                                        <iframe
-                                            src={"https://www.orimi.com/pdf-test.pdf"}
-                                            title="file"
-                                            width="100%"
-                                            height="1200"
-                                        ></iframe>
-                                    </Panel>
-                                </Collapse>
+
                             </TabPane>
                         ))}
                     </Tabs>
@@ -124,7 +159,6 @@ const TextIndex = ({ USERMESSAGE }) => {
                         <Upload
                             action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
                             listType="picture"
-                            defaultFileList={[...fileList]}
                             className="upload-list-inline"
                         >
                             <Button icon={<UploadOutlined />}>Upload</Button>
@@ -196,16 +230,16 @@ const TextIndex = ({ USERMESSAGE }) => {
                         <Row>
                             <Col span={24}>
                                 <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
-                                    <Title>Natural Language Processing with Disaster Tweets</Title>
-                                    <Title level={2}>A project for Machine Learning and Data Mining</Title>
+                                    <Title>{project.project_name}</Title>
+                                    <Title level={2}>A project for {project.course_name}</Title>
                                     <Row>
                                         <Col span={12}>
                                             <Title level={4}>Start Time</Title>
-                                            <Title level={5}>2025/01/01</Title>
+                                            <Title level={5}>{project.start_time}</Title>
                                         </Col>
                                         <Col span={12}>
                                             <Title level={4}>End time</Title>
-                                            <Title level={5}>2025/03/01</Title>
+                                            <Title level={5}>{project.close_time}</Title>
                                         </Col>
                                     </Row>
                                 </Space>
@@ -215,11 +249,11 @@ const TextIndex = ({ USERMESSAGE }) => {
                         <br />
                         <Row>
                             <Col span={24} >
-                                <Documents userRole={role} reviewed={reviewed} submitted={submitted} />
+                                <Documents userRole={userRole} reviewed={reviewed} submitted={submitted} />
                             </Col>
                         </Row>
                         <br />
-                        <Feedbacks userRole={role} reviewed={reviewed} submitted={submitted} />
+                        <Feedbacks userRole={userRole} reviewed={reviewed} submitted={submitted} />
                     </Col>
                     <Col span={2}></Col>
                 </Row>
@@ -229,5 +263,12 @@ const TextIndex = ({ USERMESSAGE }) => {
             </>    </PageBase>
     )
 }
-
+TextIndex.getInitialProps = async (status) => {
+    const asPath = status.asPath;
+    return {
+        urlMsg: {
+            asPath
+        }
+    }
+}
 export default TextIndex
