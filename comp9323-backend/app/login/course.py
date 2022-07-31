@@ -170,6 +170,10 @@ def add_proposal():
     if not requirement:
         return jsonify({'code': 400, 'msg': 'No such requirement in database.'})
 
+    course = CourseModel.query.filter(CourseModel.cid == requirement.cid, CourseModel.active == 1).first()
+    if not course:
+        return jsonify({'code': 400, 'msg': 'Course id in requirement does not exist.'})
+
     proj_name = data["proj_name"]
     description = data["description"]
     files = data["files"]
@@ -180,10 +184,8 @@ def add_proposal():
     try:
         proj_num = ProjectModel.query.count()
         proj_id = generate_id("project", proj_num+1)
+        print(proj_id)
         date_time = get_time()[0]
-        course = CourseModel.query.filter(CourseModel.cid == requirement.cid, CourseModel.active == 1).first()
-        if not course:
-            return jsonify({'code': 400, 'msg': 'Course id in requirement does not exist.'})
         proposal = ProjectModel(proj_id=proj_id, cid=requirement.cid, aid=requirement.aid, pid=uid, rid=rid,
                                 proj_name=proj_name, description=description,
                                 start_time=course.start_time, close_time=course.close_time,
@@ -201,20 +203,53 @@ def add_proposal():
         return jsonify({'code': 400, 'msg': 'Add proposal failed.', 'error_msg': str(e)})
 
 
-def get_proposals():
+def delete_proposal():
     data = request.get_json(force=True)
-    # proj_id, proj_name, proposer, status
     uid = data["uid"]
     user = UserModel.query.filter(UserModel.uid == uid, UserModel.role == 2, UserModel.active == 1).first()
     if not user:
         return jsonify({'code': 400, 'msg': 'No such proposer in database.'})
+
+    proj_id = data["proj_id"]
+    proposal = ProjectModel.query.filter(ProjectModel.proj_id == proj_id, ProjectModel.pid == uid, ProjectModel.status == 0).first()
+    if not proposal:
+        return jsonify({'code': 400, 'msg': 'No such proposal can be deleted by this user.'})
+
+    course = CourseModel.query.filter(CourseModel.cid == proposal.cid, CourseModel.active == 1).first()
+    if not course:
+        return jsonify({'code': 400, 'msg': 'Course information in this proposal is invalid.'})
+
+    try:
+        date_time = get_time()[0]
+        proposal.status = -1
+        proposal.utime = date_time
+
+        msg = add_message(proposal.aid,
+                          f"Proposer {user.username} delete a proposal from your requirement in course {course.name}.")
+        if msg:
+            db.session.commit()
+            return jsonify({'code': 200, 'msg': 'Delete proposal and send message to authority successfully.'})
+        else:
+            return jsonify({'code': 400, 'msg': 'Delete proposal and send message to authority failed.'})
+
+    except Exception as e:
+        return jsonify({'code': 400, 'msg': 'Delete proposal failed.', 'error_msg': str(e)})
+
+
+def get_proposals():
+    data = request.get_json(force=True)
+    # proj_id, proj_name, proposer, status
+    uid = data["uid"]
+    user = UserModel.query.filter(UserModel.uid == uid, UserModel.active == 1).first()
+    if not user:
+        return jsonify({'code': 400, 'msg': 'No such user in database.'})
 
     rid = data["rid"]
     requirement = RequirementModel.query.filter(RequirementModel.rid == rid, RequirementModel.active == 1).first()
     if not requirement:
         return jsonify({'code': 400, 'msg': 'No such requirement in database.'})
 
-    if user.role == 1 or user.role == 3:
+    if user.role == 0 or user.role == 3:
         proposal_list = ProjectModel.query.filter(ProjectModel.rid == rid, ProjectModel.status == 0).all()
     elif user.role == 2:
         proposal_list = ProjectModel.query.filter(ProjectModel.rid == rid, ProjectModel.pid == uid, ProjectModel.status == 0).all()
@@ -236,9 +271,39 @@ def get_proposals():
         return jsonify({'code': 400, 'msg': 'Add proposal failed.', 'error_msg': str(e)})
 
 
-# def public_course_to_reviewers():
-#     data = request.get_json(force=True)
-#     uid = data["uid"]
-#     user = UserModel.query.filter(UserModel.uid == uid, UserModel.role == 2, UserModel.active == 1).first()
-#     if not user:
-#         return jsonify({'code': 400, 'msg': 'No such proposer in database.'})
+def public_course_to_reviewers():
+    data = request.get_json(force=True)
+    uid = data["uid"]
+    user = UserModel.query.filter(UserModel.uid == uid, or_(UserModel.role == 0, UserModel.role == 3), UserModel.active == 1).first()
+    if not user:
+        return jsonify({'code': 400, 'msg': 'No such authority in database.'})
+
+    cid = data["cid"]
+    course = CourseModel.query.join(CourseUserModel, CourseModel.cid == CourseUserModel.cid).filter(
+        CourseModel.cid == cid, CourseModel.active == 1, CourseUserModel.uid == uid).first()
+    if not course:
+        return jsonify({'code': 400, 'msg': 'No such course can be accessed by this user in database.'})
+
+    if course.public == 1:
+        return jsonify({'code': 400, 'msg': 'Course has already been public.'})
+
+    try:
+        date_time = get_time()[0]
+        course.public = 1
+        course.utime = date_time
+        db.session.commit()
+
+        cas = UserModel.query.join(CourseUserModel, CourseUserModel.uid == UserModel.uid).filter(
+            CourseUserModel.cid == cid, or_(UserModel.role == 0, UserModel.role == 3), UserModel.active == 1).all()
+        reviewers = UserModel.query.filter(UserModel.role == 3, UserModel.active == 1).all()
+        if cas:
+            for ca in cas:
+                add_message(ca.uid, f"Your course {course.name} has been public to reviewers.")
+        if reviewers:
+            for r in reviewers:
+                add_message(r.uid, f"Course {course.name} has been public to reviewers, please check the proposals.")
+        return jsonify({'code': 200, 'msg': 'Public course successfully.'})
+
+    except Exception as e:
+        return jsonify({'code': 400, 'msg': 'Public course failed.', 'error_msg': str(e)})
+

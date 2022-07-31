@@ -106,7 +106,8 @@ class ProjectModel(db.Model):
 
     ctime = db.Column(db.DateTime, nullable=False)  # create time
     utime = db.Column(db.DateTime, nullable=False)  # update time
-    status = db.Column(db.Integer, nullable=False, default=0)  # 0:pending, 1:approved 2: reject 3: published 4: in progress 5: done
+    status = db.Column(db.Integer, nullable=False, default=0)
+    # 0:pending, 1:approved 2: reject 3: published 4: in progress 5: done -1: delete
 
     def save_to_db(self):
         db.session.add(self)
