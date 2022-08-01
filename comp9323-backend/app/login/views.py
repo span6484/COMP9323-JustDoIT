@@ -1,11 +1,9 @@
 from flask import jsonify, request, g
 from sqlalchemy import exists
-
 from app.login.utils import *
 from app.models import *
 
 
-# 登陆函数，登陆逻辑判断
 def login():
     data = request.get_json(force=True)
     id_or_email = data["id_or_email"]
@@ -26,68 +24,70 @@ def login():
     en_pass = encode_password(password)
     if en_pass != user.password:
         return jsonify({'code': 400, 'msg': 'Wrong password.'})
-    token = generate_token(user)
-    return jsonify({'code': 200, 'msg': 'Login successfully.', 'token': token})
+    # token = generate_token(user)
+    result = {"uid": user.uid, "role": user.role, "username":user.username, "email": user.email}
+    return jsonify({'code': 200, 'msg': 'Login successfully.', 'result': result})
 
 
 def register():
     data = request.get_json(force=True)
     id = data["id"]
     username = data["username"]
+    if not check_username(username):
+        return jsonify({'code': 400, 'msg': 'Invalid username, which can only contains A-Z, a-z, _, -, and space.'})
     email = data["email"]
+    if not check_email(email):
+        return jsonify({'code': 400, 'msg': 'Invalid email.'})
+    same_email = db.session.query(exists().where(UserModel.email == email, UserModel.active == 1)).scalar()
+    if same_email:
+        return jsonify({'code': 400, 'msg': 'This email address has been used.'})
     password = data["password"]
     detail = data["detail"]
+    if not username or not email or not password:
+        return jsonify({'code': 400, 'msg': 'Have empty content.'})
     print(data)
     if id:
         # student or authority
         print("role == 0 or 1")
-        if not username or not email or not password:
-            return jsonify({'code': 400, 'msg': 'Have empty content.'})
         user = UserModel.query.filter(UserModel.id == id, UserModel.active == 0).first()
         if not user:
             return jsonify({'code': 400, 'msg': 'User has no access to this system.'})
         try:
-            # check username and email
-            if check_username(username) and check_email(email):
-                en_pass = encode_password(password)
-                user.username = username
-                user.email = email
-                user.password = en_pass
-                date_time = get_time()[0]
-                user.ctime = date_time
-                user.utime = date_time
-                user.active = 1
-                db.session.commit()
-                return jsonify({'code': 200, 'msg': 'Register successfully.'})
-            else:
-                return jsonify({'code': 400, 'msg': 'Invalid username or email.'})
+            en_pass = encode_password(password)
+            user.username = username
+            user.email = email
+            user.password = en_pass
+            date_time = get_time()[0]
+            user.ctime = date_time
+            user.utime = date_time
+            user.active = 1
+            db.session.commit()
+            return jsonify({'code': 200, 'msg': 'Register successfully.'})
+
         except Exception as e:
             return jsonify({'code': 400, 'msg': 'Register failed.', 'error_msg': str(e)})
     else:
         # proposer
         print("role == 2")
-        if not username or not email or not password or not detail:
-            return jsonify({'code': 400, 'msg': 'Have empty content.'})
+        if not detail:
+            return jsonify({'code': 400, 'msg': 'Please introduce your organization or company.'})
         try:
             # check username and email
-            if check_username(username) and check_email(email):
-                en_pass = encode_password(password)
-                date_time = get_time()[0]
-                p_num = UserModel.query.filter(UserModel.role == 2).count()
-                u_num = UserModel.query.count()
-                uid = generate_id("user", u_num+1)
-                print("uid", uid)
-                temp = random_string(7 - len(str(p_num + 1)))
-                pid = "p" + temp + str(p_num + 1)
-                print("pid", pid)
+            en_pass = encode_password(password)
+            date_time = get_time()[0]
+            p_num = UserModel.query.filter(UserModel.role == 2).count()
+            u_num = UserModel.query.count()
+            uid = generate_id("user", u_num+1)
+            print("uid", uid)
+            temp = random_string(7 - len(str(p_num + 1)))
+            pid = "p" + temp + str(p_num + 1)
+            print("pid", pid)
 
-                user = UserModel(uid=uid, id=pid, role=2, username=username, email=email, password=en_pass,
-                                 detail=detail, ctime=date_time, utime=date_time, active=1)
-                db.session.add(user)
-                db.session.commit()
-                return jsonify({'code': 200, 'msg': 'Register successfully.'})
-            else:
-                return jsonify({'code': 400, 'msg': 'Invalid username or email.'})
+            user = UserModel(uid=uid, id=pid, role=2, username=username, email=email, password=en_pass,
+                             detail=detail, ctime=date_time, utime=date_time, active=1)
+            db.session.add(user)
+            db.session.commit()
+            return jsonify({'code': 200, 'msg': 'Register successfully.'})
         except Exception as e:
             return jsonify({'code': 400, 'msg': 'Register failed.', 'error_msg': str(e)})
 

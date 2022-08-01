@@ -94,18 +94,20 @@ class ProjectModel(db.Model):
 
     proj_id = db.Column(db.String(256), unique=True, primary_key=True)
     cid = db.Column(db.String(256), nullable=False)  # courses.cid
-    aid = db.Column(db.String(256), nullable=False)  # users.uid, role = 0 authority
+    aid = db.Column(db.String(256), nullable=False)  # users.uid, role = 0 or 3 authority
     pid = db.Column(db.String(256), nullable=False)  # users.uid, role = 2 proposer
+    rid = db.Column(db.String(256), nullable=False)  # requirement.rid
     proj_name = db.Column(db.String(120), unique=True, nullable=False)  # project name
     description = db.Column(db.TEXT, nullable=False)
     start_time = db.Column(db.DateTime, nullable=False)  # start time init = course start time, can be modified
-    close_time = db.Column(db.DateTime, nullable=False)  # update time
+    close_time = db.Column(db.DateTime, nullable=False)  # close time init = course close time, can be modified
     max_num = db.Column(db.Integer, nullable=False, default=10)  # course max_enroll students num
     cur_num = db.Column(db.Integer, nullable=False, default=0)  # current enroll students num
 
     ctime = db.Column(db.DateTime, nullable=False)  # create time
     utime = db.Column(db.DateTime, nullable=False)  # update time
-    status = db.Column(db.Integer, nullable=False, default=0)  # 0:pending, 1:approved 2: reject 3: published 4: in progress 5: done
+    status = db.Column(db.Integer, nullable=False, default=0)
+    # 0:pending, 1:approved 2: reject 3: published 4: in progress 5: done -1: delete
 
     def save_to_db(self):
         db.session.add(self)
@@ -123,7 +125,7 @@ class FileModel(db.Model):
 
     file_name = db.Column(db.String(120), nullable=False)
     file_url = db.Column(db.String(256), nullable=True)
-    type = db.Column(db.String(120), nullable=True)
+    type = db.Column(db.String(120), nullable=True)  # work or description document
 
     ctime = db.Column(db.DateTime, nullable=False)  # create time
     utime = db.Column(db.DateTime, nullable=False)  # update time

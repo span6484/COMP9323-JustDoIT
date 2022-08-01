@@ -72,7 +72,8 @@ def check_email(email):
 
 
 def check_username(username):
-    pattern = re.compile("^[A-Z][a-z]+[ ]([A-Z][a-z]+[ ])*[A-Z][a-z]+$")
+    # pattern = re.compile("^[A-Z][a-z]+[ ]([A-Z][a-z]+[ ])*[A-Z][a-z]+$")
+    pattern = re.compile("^[A-Za-z0-9_ -]+$")
     if 3 < len(username) < 200:
         if pattern.match(username) is not None:
             return 1
