@@ -213,7 +213,7 @@ def get_awards():
     if not awards:
         return jsonify({'code': 200, 'msg': 'No awarded projects.'})
     try:
-        # Course_name, Proj_name, Course_auth, Proposer, Student, Work_id
+        # Course_name, Proj_name, Course_auth, Proposer, Student, files
         result_list = []
         recent_awards = awards
         if len(awards) > 10:
@@ -225,13 +225,17 @@ def get_awards():
                 a = UserModel.query.filter(UserModel.uid == proj.aid, UserModel.active == 1).first()
                 p = UserModel.query.filter(UserModel.uid == proj.pid, UserModel.active == 1).first()
                 s = UserModel.query.filter(UserModel.uid == a_p.sid, UserModel.active == 1).first()
-                work = FileModel.query.filter(FileModel.proj_id == a_p.proj_id, FileModel.uid == a_p.sid, FileModel.active == 1).first()
-                if not course or not a or not p or not s or not work:
+                files = FileModel.query.filter(FileModel.proj_id == a_p.proj_id, FileModel.uid == a_p.sid, FileModel.active == 1).all()
+                if not course or not a or not p or not s or not files:
                     print(f"{a_p.proj_id} has invalid attribute.")
                     continue
-                temp_dict = {"proj_name": proj.proj_name, "course_name": course.name, "course_auth": a.username,
-                             "proposer": p.username, "student": s.username, "work_id": work.fid}
-                result_list.append(temp_dict)
+                f_list = []
+                for f in files:
+                    f_dict = {"fid": f.id, "file_name": f.file_name, "file_url": f.file_url}
+                    f_list.append(f_dict)
+                proj_dict = {"proj_name": proj.proj_name, "course_name": course.name, "course_auth": a.username,
+                             "proposer": p.username, "student": s.username, "files": f_list}
+                result_list.append(proj_dict)
             else:
                 print(f"Invalid proj_id {a_p.proj_id}.")
                 continue
