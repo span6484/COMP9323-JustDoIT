@@ -156,7 +156,7 @@ def get_requirement_detail():
 
 def add_proposal():
     data = request.get_json(force=True)
-    uid, rid = data["uid"], data["rid"]
+    uid, rid, proj_name, description = data["uid"], data["rid"], data["proj_name"], data["description"]
 
     user = UserModel.query.filter(UserModel.uid == uid, UserModel.role == 2, UserModel.active == 1).first()
     if not user:
@@ -170,11 +170,7 @@ def add_proposal():
     if not course:
         return jsonify({'code': 400, 'msg': 'Course id in requirement does not exist.'})
 
-    proj_name = data["proj_name"]
-    description = data["description"]
-    files = data["files"]
-    # add_files ?
-    if not proj_name or not description or not files:
+    if not proj_name or not description:
         return jsonify({'code': 400, 'msg': 'Proposal name and description cannot be empty.'})
 
     try:
