@@ -379,6 +379,10 @@ def reply_comment():
     if not content or content.isspace():
         return jsonify({'code': 400, 'msg': 'content is empty'})
     print(target_uid)
+    username = (UserModel.query.filter(UserModel.uid == user.sid, UserModel.active == 1).first()).username
+    target_usr = UserModel.query.filter(UserModel.uid == target_uid, UserModel.active == 1).first()
+    if not target_usr:
+        return jsonify({'code': 400, 'msg': 'target user not exist'})
     ## root exist
     root = CommentModel.query.filter(CommentModel.root_id == root_id, CommentModel.active == 1).order_by(CommentModel.utime).all()
     if not root:
@@ -391,7 +395,7 @@ def reply_comment():
         db.session.add(comment)
         db.session.commit()
         add_comment()
-        msg = add_message(uid, "You have one unread message")
+        msg = add_message(uid, f"{username} reply {target_usr.username} message successfully")
 
         return jsonify({'code': 200, 'msg': 'reply comment successfully'})
     except Exception as e:
@@ -440,6 +444,7 @@ def edit_project():
     description = data["description"]
     start_time = data["start_time"]
     close_time = data["close_time"]
+    max_num = data["max_num"]
     uid = data["uid"]
     status = data["status"]
     proj = ProjectModel.query.filter(ProjectModel.proj_id == proj_id).first()
@@ -487,6 +492,7 @@ def edit_project():
         if is_changed:
             date_time = get_time()[0]
             proj.utime = date_time
+        proj.max_num = max_num
         db.session.commit()
         return jsonify({'code': 200, 'msg': 'modify successfully'})
 
