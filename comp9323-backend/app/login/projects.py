@@ -11,12 +11,16 @@ from werkzeug.utils import secure_filename
 def view_project():
     data = request.get_json(force=True)
     result = {}
-    proj_id = data["proj_id"]
 
+
+    proj_id = data["proj_id"]
     proj = ProjectModel.query.filter(ProjectModel.proj_id == proj_id).first()
     if not proj:
         return jsonify({'code': 400, 'msg': 'not related project'})
-
+    uid = data["uid"]
+    user = UserModel.query.filter(UserModel.uid == uid, UserModel.active == 1).first()
+    if not user:
+        return jsonify({'code': 400, 'msg': 'User does not exist'})
     cid = proj.cid
     course = CourseModel.query.filter(CourseModel.cid == cid, CourseModel.active == 1).first()
     if not course:
@@ -490,5 +494,94 @@ def edit_project():
         return jsonify({'code': 400, 'msg': 'edit project failed.', 'error_msg': str(e)})
 
 
+def getStudentSelectionInfo(selection, proj):
+    result = dict()
+    result["sid"] = selection.sid
+    sid = selection.sid
+    user = UserModel.query.filter(UserModel.uid == sid, UserModel.active == 1).first()
+    if not user:
+        return
+    result["a_feedback"] = selection.a_feedback
+    result["p_feedback"] = selection.p_feedback
+    result["student_name"] = user.username
+    result["uid"] = user.uid
+    result["award"] = selection.award
+    result["utime"] = selection.utime
+    proj_id = proj.proj_id
+    files = FileModel.query.filter(FileModel.proj_id == proj_id, FileModel.active == 1, FileModel.uid == sid).all()
+    file_lst = list()
+    for file in files:
+        file_result = dict()
+        file_result["file_id"] = file.fid
+        file_result["file_name"] = file.file_name
+        file_result["file_url"] = file.file_url
+        file_lst.append(file_result)
+    result["file"] = file_lst
+
+
+    return result
+
+def view_works():
+    data = request.get_json(force=True)
+    result = {}
+    uid = data["uid"]
+    student_index = data["student_index"]
+    proj_id = data["proj_id"]
+    proj = ProjectModel.query.filter(ProjectModel.proj_id == proj_id).first()
+    if not proj:
+        return jsonify({'code': 400, 'msg': 'not related project'})
+    user = UserModel.query.filter(UserModel.uid == uid, UserModel.active == 1).first()
+    if not user:
+        return jsonify({'code': 400, 'msg': 'User does not exist'})
+    cid = proj.cid
+    course = CourseModel.query.filter(CourseModel.cid == cid, CourseModel.active == 1).first()
+    if not course:
+        return jsonify({'code': 400, 'msg': 'not related course'})
+
+    aid = proj.aid
+    authority = UserModel.query.filter(UserModel.uid == aid, UserModel.role == 0).first()
+    if not authority:
+        return jsonify({'code': 400, 'msg': 'no course authority'})
+
+    pid = proj.pid      # proposer_id
+    proposer = UserModel.query.filter(UserModel.uid == pid, UserModel.role == 2).first()
+    if not proposer:
+        return jsonify({'code': 400, 'msg': 'no proposer'})
+    result["proj_name"] = proj.proj_name
+    result["description"] = proj.description
+    result["start_time"] = proj.start_time
+    result["close_time"] = proj.close_time
+    result["status"] = proj.status
+    result["cur_num"] = proj.cur_num
+    result["max_num"] = proj.max_num
+    result["course_name"] = course.name
+    result["course_description"] = course.description
+    result["proposer_id"] = proposer.uid
+    result["proposer_name"] = proposer.username
+    result["proposer_email"] = proposer.email
+    result["authority_name"] = authority.username
+    result["authority_email"] = authority.email
+    result["authority_id"] = authority.uid
+    print(proj_id)
+    selections = SelectionModel.query.filter(SelectionModel.proj_id == proj_id, SelectionModel.active == 1).all()
+    selection_List = list()
+    count = 0
+    if selections:
+        for selection in selections:
+            temp = getStudentSelectionInfo(selection,proj)
+            print(temp)
+            if temp:
+                selection_List.append(temp)
+                count += 1
+    result["student_count"] = count
+    page_size = 1
+    start = student_index * page_size
+    end = start + page_size
+    if end < result["student_count"]:
+        result["student_lst"] = selection_List[start:end]
+    else:
+        result["student_lst"] = selection_List[start:]
+
+    return jsonify({'code': 200, 'result': result})
 
 
