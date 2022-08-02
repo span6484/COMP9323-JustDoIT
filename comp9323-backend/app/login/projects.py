@@ -589,7 +589,6 @@ def view_works():
 
 def give_feedback():
     data = request.get_json(force=True)
-    result = {}
     uid = data["uid"]    # give feedback
     sid = data["sid"]
     feedback = data["feedback"]
@@ -632,3 +631,43 @@ def give_feedback():
         db.session.commit()
         return jsonify({'code': 200, 'msg': 'give feedback successfully'})
     return jsonify({'code': 400, 'msg': 'give feedback fail'})
+
+
+def join_quit_project():
+    data = request.get_json(force=True)
+    sid = data["sid"]
+    proj_id = data["proj_id"]
+    join_state = data["join_state"]     # 0：quit    1： join
+    student = UserModel.query.filter(UserModel.uid == sid, UserModel.active == 1).first()
+    if not student:
+        return jsonify({'code': 400, 'msg': 'student not exist'})
+
+    selection = SelectionModel.query.filter(SelectionModel.proj_id == proj_id, SelectionModel.sid == sid,
+                                            SelectionModel.active == 1).first()
+
+    proj = ProjectModel.query.filter(ProjectModel.proj_id == proj_id).first()
+    if not proj:
+        return jsonify({'code': 400, 'msg': 'not related project'})
+    select_num = SelectionModel.query.count()
+    sel_id = generate_id("selection", select_num)
+    date_time = get_time()[0]
+    if join_state == 1:
+        if not selection and proj.cur_num < proj.max_num:
+            add_selection = SelectionModel(sel_id = sel_id, proj_id = proj_id, sid = sid, a_feedback = None, p_feedback = None, ctime = date_time, utime = date_time, active = 1)
+            proj.cur_num += 1
+            db.session.add(add_selection)
+            db.session.commit()
+            return jsonify({'code': 200, 'msg': 'join successfully'})
+    if join_state == 0:
+        if selection :
+            selection.active = 0
+            selection.utime = date_time
+            proj.cur_num -= 1
+            db.session.commit()
+            return jsonify({'code': 200, 'msg': 'quit successfully'})
+    return jsonify({'code': 400, 'msg': 'operate fail'})
+
+
+
+
+
