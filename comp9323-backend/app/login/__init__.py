@@ -17,10 +17,16 @@ def init_route(app: Flask):
     app.add_url_rule('/edit_project', view_func=projects.edit_project, methods=['POST'])
     app.add_url_rule('/change_project_status', view_func=projects.change_project_status, methods=['POST'])
     app.add_url_rule('/change_project_status2', view_func=projects.change_project_status2, methods=['POST'])
+    app.add_url_rule('/get_myProject', view_func=projects.get_myProject, methods=['POST'])
     app.add_url_rule('/view_comment', view_func=projects.view_comment, methods=['POST'])
     app.add_url_rule('/add_comment', view_func=projects.add_comment, methods=['POST'])
     app.add_url_rule('/reply_comment', view_func=projects.reply_comment, methods=['POST'])
     app.add_url_rule('/delete_comment', view_func=projects.delete_comment, methods=['POST'])
+    app.add_url_rule('/view_works', view_func=projects.view_works, methods=['POST'])
+    app.add_url_rule('/give_feedback', view_func=projects.give_feedback, methods=['POST'])
+    app.add_url_rule('/join_quit_project', view_func=projects.join_quit_project, methods=['POST'])
+
+
     # course
     app.add_url_rule('/get_courses', view_func=course.get_courses, methods=['POST'])
     app.add_url_rule('/get_course_detail', view_func=course.get_course_detail, methods=['POST'])
@@ -28,6 +34,11 @@ def init_route(app: Flask):
     app.add_url_rule('/get_requirements', view_func=course.get_requirements, methods=['POST'])
     app.add_url_rule('/get_requirement_detail', view_func=course.get_requirement_detail, methods=['POST'])
     app.add_url_rule('/add_proposal', view_func=course.add_proposal, methods=['POST'])
+    app.add_url_rule('/delete_proposal', view_func=course.delete_proposal, methods=['POST'])
+    app.add_url_rule('/get_proposals', view_func=course.get_proposals, methods=['POST'])
+    app.add_url_rule('/public_course_to_reviewers', view_func=course.public_course_to_reviewers, methods=['POST'])
+    app.add_url_rule('/get_projects_in_course', view_func=course.get_projects_in_course, methods=['POST'])
+
 
 
 

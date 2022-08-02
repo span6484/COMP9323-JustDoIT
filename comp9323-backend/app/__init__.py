@@ -1,6 +1,7 @@
 from flask import Flask
-from . import login, index, models
 from flask_cors import CORS
+from . import login, index, models, upload
+
 # 创建flask app
 app = Flask(__name__)
 CORS(app, resources=r'/*', supports_credentials=True)
@@ -12,3 +13,5 @@ models.init_db(app)
 index.init_route(app)
 # 注册登陆的路由
 login.init_route(app)
+#
+upload.init_route(app)

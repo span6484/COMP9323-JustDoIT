@@ -52,7 +52,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                     "content": 'application/json',
                     'Access-Control-Allow-Origin': '*'
                 },
-                body: JSON.stringify({ "proj_id": pid })
+                body: JSON.stringify({ "proj_id": pid, "uid": uid, })
             }).then(res => {
                 res.json().then((val) => {
                     //console.log(val);
