@@ -539,14 +539,15 @@ def view_works():
         return jsonify({'code': 400, 'msg': 'not related course'})
 
     aid = proj.aid
-    authority = UserModel.query.filter(UserModel.uid == aid, UserModel.role == 0).first()
+    authority = UserModel.query.filter(UserModel.uid == aid, UserModel.role == 0, UserModel.active == 1).first()
     if not authority:
         return jsonify({'code': 400, 'msg': 'no course authority'})
-
     pid = proj.pid      # proposer_id
-    proposer = UserModel.query.filter(UserModel.uid == pid, UserModel.role == 2).first()
+    proposer = UserModel.query.filter(UserModel.uid == pid, UserModel.role == 2, UserModel.active == 1).first()
     if not proposer:
         return jsonify({'code': 400, 'msg': 'no proposer'})
+    if user != authority and user != proposer:
+        return jsonify({'code': 400, 'msg': 'this user has no access'})
     result["proj_name"] = proj.proj_name
     result["description"] = proj.description
     result["start_time"] = proj.start_time
@@ -585,3 +586,49 @@ def view_works():
     return jsonify({'code': 200, 'result': result})
 
 
+
+def give_feedback():
+    data = request.get_json(force=True)
+    result = {}
+    uid = data["uid"]    # give feedback
+    sid = data["sid"]
+    feedback = data["feedback"]
+    proj_id = data["proj_id"]
+    proj = ProjectModel.query.filter(ProjectModel.proj_id == proj_id).first()
+    if not proj:
+        return jsonify({'code': 400, 'msg': 'not related project'})
+    user = UserModel.query.filter(UserModel.uid == uid, UserModel.active == 1).first()
+    if not user:
+        return jsonify({'code': 400, 'msg': 'User does not exist'})
+    cid = proj.cid
+    course = CourseModel.query.filter(CourseModel.cid == cid, CourseModel.active == 1).first()
+    if not course:
+        return jsonify({'code': 400, 'msg': 'not related course'})
+
+    aid = proj.aid
+    authority = UserModel.query.filter(UserModel.uid == aid, UserModel.role == 0, UserModel.active == 1).first()
+    if not authority:
+        return jsonify({'code': 400, 'msg': 'no course authority'})
+    pid = proj.pid      # proposer_id
+    proposer = UserModel.query.filter(UserModel.uid == pid, UserModel.role == 2, UserModel.active == 1).first()
+    if not proposer:
+        return jsonify({'code': 400, 'msg': 'no proposer'})
+    if user != authority and user != proposer:
+        return jsonify({'code': 400, 'msg': 'this user has no access'})
+    student =  UserModel.query.filter(UserModel.uid == sid, UserModel.active == 1).first()
+    if not student:
+        return jsonify({'code': 400, 'msg': 'no student'})
+
+    selection = SelectionModel.query.filter(SelectionModel.proj_id == proj_id,SelectionModel.sid ==sid, SelectionModel.active == 1).first()
+    if not selection:
+        return jsonify({'code': 400, 'msg': 'no selections'})
+    if feedback:
+        date_time = get_time()[0]
+        if user == authority:
+            selection.a_feedback = feedback
+        if user == proposer:
+            selection.p_feedback = feedback
+        selection.utime = date_time
+        db.session.commit()
+        return jsonify({'code': 200, 'msg': 'give feedback successfully'})
+    return jsonify({'code': 400, 'msg': 'give feedback fail'})
