@@ -31,3 +31,7 @@ export function setMessageRead(param) {
 export function deleteMessage(param) {
     return fetchData('http://127.0.0.1:5000/delete_message', param);
 }
+
+export function getMyProject(param) {
+    return fetchData('http://127.0.0.1:5000/get_myProject', param);
+}

@@ -1,16 +1,17 @@
 import PageBase from '../basePage'
 import React ,{useRef,useState,useEffect} from 'react'
-import {Select,Button,Table} from "antd"
+import {Select,Button,Table,message} from "antd"
 const {Option} = Select;
+import {setDay} from "../../util/common";
 import AllProjectStyle from "./AllProject.less"
-import {getCourses} from "../MockData";
+import {getCourses, getMyProject} from "../MockData";
 const AllProject = ({ USERMESSAGE, urlMsg }) => {
   const ref = useRef();
   const [data,changeData] = useState([]);
   const [pageLoading,changePageLoading] = useState(false);
   const [search,changeSearch] = useState({
     projectType : null,
-    course : []
+    course : null
   });
   const [page,changePage] = useState({
       size : 10,
@@ -24,8 +25,8 @@ const AllProject = ({ USERMESSAGE, urlMsg }) => {
     {
       title: 'Project Name',
       width: 100,
-      dataIndex: 'projectName',
-      key: 'projectName',
+      dataIndex: 'proj_name',
+      key: 'proj_name',
       fixed: 'left',
     },
     {
@@ -37,23 +38,23 @@ const AllProject = ({ USERMESSAGE, urlMsg }) => {
     },
     {
       title: 'Course Authority',
-      dataIndex: 'courseAuthority',
-      key: 'courseAuthority',
+      dataIndex: 'CA_name',
+      key: 'CA_name',
       width: 100,
     },
     {
       title: 'Project Capacity',
-      dataIndex: 'currentStudentNumber',
-      key: 'currentStudentNumber',
+      dataIndex: 'project_capacity',
+      key: 'project_capacity',
       width: 100,
-      render:()=>{
-        return <div> 1 / 100</div>
+      render:(project_capacity)=>{
+        return <div> {project_capacity} / 100</div>
       }
     },
     {
       title: 'Statues',
-      dataIndex: 'statues',
-      key: 'statues',
+      dataIndex: 'status',
+      key: 'status',
       width: 100,
       render:(statues)=>{
         const filterList = projectList && projectList.filter((item) =>{
@@ -67,26 +68,32 @@ const AllProject = ({ USERMESSAGE, urlMsg }) => {
     },
     {
       title: 'Start Time',
-      dataIndex: 'startTime',
-      key: 'startTime',
+      dataIndex: 'start_time',
+      key: 'start_time',
       width: 120,
+      render:(start_time)=>{
+        return <div>{setDay(start_time)}</div>
+      }
     },
     {
       title: 'Close Time',
-      dataIndex: 'closeTime',
-      key: 'closeTime',
+      dataIndex: 'close_time',
+      key: 'close_time',
       width: 120,
+      render:(close_time)=>{
+        return <div>{setDay(close_time)}</div>
+      }
     },
     {
       title: 'Action',
       key: 'operation',
       fixed: 'right',
       width: 100,
-      render: () =>{
+      render: (operation,actionInfo) =>{
         return <div
             className={"go-detail"}
            onClick={()=>{
-             goDetail()
+             goDetail(actionInfo.proj_id)
            }}
         >Detail</div>
       }
@@ -97,7 +104,7 @@ const AllProject = ({ USERMESSAGE, urlMsg }) => {
       const _data = ref?.current?.getTabPaneOption() || {};
       changeSearch({
         projectType : _data.projectType || null,
-        course : _data.course || [],
+        course : _data.course || null,
       })
       changePage({
         size : _data.size || 10,
@@ -139,7 +146,7 @@ const AllProject = ({ USERMESSAGE, urlMsg }) => {
           total : _data.total ||0
         },{
           projectType : _data.projectType || null,
-          course : _data.course || [],
+          course : _data.course || null,
         })
       });
     },0)
@@ -170,83 +177,51 @@ const AllProject = ({ USERMESSAGE, urlMsg }) => {
       callBack && callBack();
     })
   }
-  function goDetail(){
+  function goDetail(id){
     ref.current.setTabPane(
         `Project detail`,
         '',
-        `/project/detail?id=123`
+        `/project/detail?id=${id}`
     )
   }
   function initList(initPage,initSearch) {
     initPage = initPage || page;
     initSearch = initSearch || search;
-    const _data = [{
-      projectName : "English",
-      course : "aaa",
-      courseAuthority : "adad",
-      currentStudentNumber : 1,
-      maxStudentNumber : 3,
-      startTime : "2022-12-11",
-      closeTime : "2022-12-13",
-      statues : 0,
-    },{
-      projectName : "English",
-      course : "aaa",
-      courseAuthority : "adad",
-      currentStudentNumber : 1,
-      maxStudentNumber : 3,
-      startTime : "2022-12-11",
-      closeTime : "2022-12-13",
-      statues : 1,
-    },{
-      projectName : "English",
-      course : "aaa",
-      courseAuthority : "adad",
-      currentStudentNumber : 1,
-      maxStudentNumber : 3,
-      startTime : "2022-12-11",
-      closeTime : "2022-12-13",
-      statues : 2,
-    },{
-      projectName : "English",
-      course : "aaa",
-      courseAuthority : "adad",
-      currentStudentNumber : 1,
-      maxStudentNumber : 3,
-      startTime : "2022-12-11",
-      closeTime : "2022-12-13",
-      statues : 3,
-    },{
-      projectName : "English",
-      course : "aaa",
-      courseAuthority : "adad",
-      currentStudentNumber : 1,
-      maxStudentNumber : 3,
-      startTime : "2022-12-11",
-      closeTime : "2022-12-11",
-      statues : 4,
-    },{
-      projectName : "English",
-      course : "aaa",
-      courseAuthority : "adad",
-      currentStudentNumber : 1,
-      maxStudentNumber : 3,
-      startTime : "2022-12-11",
-      closeTime : "2022-12-11",
-      statues : 5,
-    }]
-    changeData(_data);
-    changePage({
-      ...initPage,
-      ...{
-        total : 30
-      }
-    });
+    getMyProject({
+      proj_status :initSearch.projectType === null || initSearch.projectType === undefined ?
+          100 : initSearch.projectType,
+      uid : USERMESSAGE && USERMESSAGE.uid,
+      course_id : initSearch.course || "c001",
+      page_size : initPage.size,
+      page_index : initPage.number - 1 < 0 ? 0 : (initPage.number - 1)
+    }).then(res => {
+       let count = 0 ;
+       if(res.code === 200 && res.result){
+         changeData(res.result.list || []);
+         count = res.result.proj_count;
+       }else{
+         message.warning(res.msg);
+         changeData([]);
+       }
+        changePage({
+          ...initPage,
+          ...{
+            total : count
+          }
+        });
+        changeSearch({
+          ...initSearch
+        });
+        ref?.current.setNewTabPane(asPath, {
+          ...initSearch,
+          ...initPage
+        })
+    })
   }
   function clearSearch() {
     changeSearch({
       projectType : null,
-      course : []
+      course : null
     });
     changePage({
       ...page,
@@ -261,7 +236,7 @@ const AllProject = ({ USERMESSAGE, urlMsg }) => {
       }
     },{
       projectType : null,
-      course : []
+      course : null
     })
   }
   return (
@@ -281,9 +256,7 @@ const AllProject = ({ USERMESSAGE, urlMsg }) => {
                   const _search = _.clone(search)
                   _search.projectType = value;
                   changeSearch(_search);
-                  ref?.current.setNewTabPane(asPath, {
-                    ..._search
-                  })
+                  initList(null,_search);
                 }}>
                 {projectList &&
                 projectList.map((item, index) => {
@@ -302,7 +275,7 @@ const AllProject = ({ USERMESSAGE, urlMsg }) => {
               <Select
                   allowClear
                   placeholder={"Please select courses"}
-                   mode={'multiple'}
+                   // mode={'multiple'}
                   maxTagCount={"responsive"}
                 value={search.course}
                 style={{ width: 400 }}
@@ -310,9 +283,7 @@ const AllProject = ({ USERMESSAGE, urlMsg }) => {
                   const _search = _.clone(search)
                   _search.course = value;
                   changeSearch(_search);
-                  ref?.current.setNewTabPane(asPath, {
-                    ..._search
-                  })
+                  initList(null,_search);
                 }}>
                 {courseList &&
                 courseList.map((item, index) => {
@@ -332,7 +303,11 @@ const AllProject = ({ USERMESSAGE, urlMsg }) => {
               CLEAR
             </Button>
             &nbsp;&nbsp;
-            <Button type="primary">
+            <Button
+                onClick={()=>{
+                  initList(null,null);
+                }}
+                type="primary">
               SUBMIT
             </Button>
             &nbsp;&nbsp;
