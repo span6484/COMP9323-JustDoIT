@@ -379,7 +379,7 @@ def reply_comment():
     if not content or content.isspace():
         return jsonify({'code': 400, 'msg': 'content is empty'})
     print(target_uid)
-    username = (UserModel.query.filter(UserModel.uid == user.sid, UserModel.active == 1).first()).username
+    username = (UserModel.query.filter(UserModel.uid == uid, UserModel.active == 1).first()).username
     target_usr = UserModel.query.filter(UserModel.uid == target_uid, UserModel.active == 1).first()
     if not target_usr:
         return jsonify({'code': 400, 'msg': 'target user not exist'})
