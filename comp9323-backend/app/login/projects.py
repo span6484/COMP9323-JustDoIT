@@ -484,7 +484,7 @@ def edit_project():
             is_changed = True
         if close_time:
             end_time_lst = time_list(close_time)
-            proj.start_time = dt(end_time_lst[0],end_time_lst[1], end_time_lst[2])
+            proj.close_time = dt(end_time_lst[0],end_time_lst[1], end_time_lst[2])
             is_changed = True
         if status:
             proj.status = status
