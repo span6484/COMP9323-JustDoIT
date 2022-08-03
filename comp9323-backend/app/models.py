@@ -143,8 +143,8 @@ class SelectionModel(db.Model):
     sel_id = db.Column(db.String(256), primary_key=True)
     proj_id = db.Column(db.String(256), nullable=False)  # project.proj_id
     sid = db.Column(db.String(256), nullable=False)  # users.uid, role = '1' student
-    a_feedback = db.Column(db.TEXT, nullable=False)  # authority's feedback
-    p_feedback = db.Column(db.TEXT, nullable=False)  # proposer's feedback
+    a_feedback = db.Column(db.TEXT, nullable=True)  # authority's feedback
+    p_feedback = db.Column(db.TEXT, nullable=True)  # proposer's feedback
     award = db.Column(db.Integer, nullable=False, default=0)  # default: 0  award: 1
 
     ctime = db.Column(db.DateTime, nullable=False)  # create time
