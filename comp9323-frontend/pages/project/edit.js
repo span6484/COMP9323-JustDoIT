@@ -35,6 +35,48 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
 
     const [project, setProject] = useState({});
 
+    const changeProject = (e, content) => {
+        const obj = Object.assign(project, {
+            [content]: e.target.value,
+        });
+        setProject(obj);
+    };
+    function saveProject(pid, uid, status) {
+        try {
+            fetch('http://localhost:5000/edit_project', {
+                method: 'POST',
+                headers: {
+                    "content": 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                // "proj_id": "1",
+                // "uid": "u00001",
+                // "proj_name": "test edit proj",
+                // "description": "test test test test test test",
+                // "start_time": "2022-01-01",
+                // "close_time": "2022-12-31",
+                // "status": 0,
+                // "max_num":25
+                body: JSON.stringify({
+                    "proj_id": pid,
+                    "uid": uid,
+                    "proj_name": "test edit proj",
+                    "description": "test test test test test test",
+                    "start_time": "2022-01-01",
+                    "close_time": "2022-12-31",
+                    "status": status,
+                    "max_num": 25
+                })
+            }).then(res => {
+                res.json().then((val) => {
+                    console.log("res val = ", val);
+                    // window.location.reload();
+                });
+            });
+        } catch (e) {
+            console.log(e)
+        }
+    }
     var status = project.status;
 
     useEffect(() => {
@@ -49,12 +91,14 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                     "content": 'application/json',
                     'Access-Control-Allow-Origin': '*'
                 },
-                body: JSON.stringify({ "proj_id": pid })
+                body: JSON.stringify({ "proj_id": pid, "uid": uid, })
             }).then(res => {
                 res.json().then((val) => {
                     console.log(moment(val.result.start_time).isValid());
-                    val.result.start_time = moment(val.result.start_time).format(dateFormat);
-                    val.result.close_time = moment(val.result.close_time).format(dateFormat);
+                    // val.result.start_time = moment(val.result.start_time).format(dateFormat);
+                    // val.result.close_time = moment(val.result.close_time).format(dateFormat);
+                    val.result.start_time = moment(val.result.start_time).format(dateFormat).toString();
+                    val.result.close_time = moment(val.result.close_time).format(dateFormat).toString();
                     console.log(val.result);
                     console.log(moment(val.result.start_time).isValid());
                     console.log(val.result.start_time, val.result.close_time);
@@ -161,14 +205,28 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                         <br />
                         <Row>
                             <Col span={20}>
-                                <Title level={4}>Start Time - End Time</Title>
-                                <Title level={5}>
-                                    <DatePicker.RangePicker
-                                        disabledDate={disabledDate}
-                                        defaultValue={[moment(`${project.start_time}`, dateFormat),moment(`${project.close_time}`, dateFormat) ]}
-                                        format={dateFormat}
-                                    />
-                                </Title>
+                                <Title level={4}>Change Start Time and End Time</Title>
+
+                                <Space direction="vertical" size="middle" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
+                                    <Space direction="vertical" size="middle" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                                        <Title level={5}>
+                                            Current: Start Time - End Time
+                                        </Title>
+                                        <Title level={5}>
+                                            {project.start_time} - {project.close_time}
+                                        </Title>
+                                    </Space>
+                                    <Space direction="vertical" size="middle" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                                        <Title level={5}>
+                                            New: Start Time - End Time
+                                        </Title>
+                                        <DatePicker.RangePicker
+                                            disabledDate={disabledDate}
+                                            format={dateFormat}
+                                        />
+                                    </Space>
+                                </Space>
+
                             </Col>
                         </Row>
                         <br />
@@ -182,7 +240,9 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                         <br />
                         <br />
                         <Space direction="horizontal" size="middle" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around' }}>
-                            <Button type='primary' style={{ width: 300 }}>Save Project</Button>
+                            <Button type='primary' style={{ width: 300 }} onClick={() => {
+                                saveProject();
+                            }}>Save Project</Button>
                         </Space>
 
                     </Col>

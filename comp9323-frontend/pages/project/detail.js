@@ -101,7 +101,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
         sendChangeProjectStatus(pid, uid, 1);
     }
     function disapproveProject(pid, uid) {
-        sendChangeProjectStatus(pid, uid, 2);
+        sendChangeProjectStatus(pid, uid, 5);
     }
     function sendChangeProjectStatus(pid, uid, status) {
         try {
@@ -122,25 +122,25 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
             console.log(e)
         }
     }
-    function openProject(pid, uid, status) {
-        try {
-            fetch('http://localhost:5000/change_project_status2', {
-                method: 'POST',
-                headers: {
-                    "content": 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                },
-                body: JSON.stringify({ "proj_id": pid })
-            }).then(res => {
-                res.json().then((val) => {
-                    console.log("res val = ", val);
-                    window.location.reload();
-                });
-            });
-        } catch (e) {
-            console.log(e)
-        }
-    }
+    // function openProject(pid, uid, status) {
+    //     try {
+    //         fetch('http://localhost:5000/change_project_status2', {
+    //             method: 'POST',
+    //             headers: {
+    //                 "content": 'application/json',
+    //                 'Access-Control-Allow-Origin': '*'
+    //             },
+    //             body: JSON.stringify({ "proj_id": pid })
+    //         }).then(res => {
+    //             res.json().then((val) => {
+    //                 console.log("res val = ", val);
+    //                 window.location.reload();
+    //             });
+    //         });
+    //     } catch (e) {
+    //         console.log(e)
+    //     }
+    // }
 
     function Buttons(props) {
         const userRole = props.userRole;
@@ -181,7 +181,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
             return (
                 <>
                     <Button type="primary" onClick={() => {
-                        openProject(pid);
+                        sendChangeProjectStatus(pid, uid, 2);
                     }}>Open Project To Join</Button>
                 </>
             )
@@ -407,6 +407,12 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                         "content": 'application/json',
                         'Access-Control-Allow-Origin': '*'
                     },
+                    // "proj_id": "1",
+                    // "uid":  "u10002",
+                    // "content": "hi student_1",
+                    // "target_uid": "u10001",
+                    // "parent_id": "u10001",
+                    // "root_id": "cm00007"
                     body: JSON.stringify({
                         "proj_id": pid,
                         "uid": uid,
@@ -475,7 +481,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
         console.log("project is in", status);
         console.log("posts ", posts);
 
-        if (status >= 2 && status <= 4) {
+        if (status >= 2 && status <= 4 || true) {
             if (posts != undefined) {
                 var comments = posts.posts;
                 if (comments != undefined) {
@@ -494,7 +500,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                                             }
                                         >
                                             <CommentDeleteButton uid={item.root_uid} cm_id={item.root_id} />
-                                            <ReplyComment target_uid={uid} parent_id={item.root_uid} root_id={item.root_id} />
+                                            <ReplyComment target_uid={item.root_uid} parent_id={item.root_uid} root_id={item.root_id} />
                                             {item.reply_comment.map((item) => {
                                                 return (
                                                     <>
