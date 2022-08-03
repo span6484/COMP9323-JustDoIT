@@ -100,10 +100,13 @@ def check_login():
 def check_role():
     data = request.get_json(force=True)
     id = data["id"]
-    user = UserModel.query.filter(UserModel.id == id, UserModel.active == 1).first()
+    user = UserModel.query.filter(UserModel.id == id).first()
     if not user:
         return jsonify({'code': 400, 'msg': 'No such user in database.'})
-    return jsonify({'code': 200, 'role': user.role})
+    if user.active == 1:
+        return jsonify({'code': 200, 'role': user.role})
+    elif user.active == 0:
+        return jsonify({'code': 400, 'msg': 'This user has already registered.'})
 
 
 def add_message(uid, content):
