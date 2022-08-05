@@ -19,7 +19,7 @@ def get_courses():
         cu_list = CourseUserModel.query.filter(CourseUserModel.uid == uid, CourseUserModel.active == 1).all()
         course_list = []
         for c in cu_list:
-            course_list.append(CourseModel.query.filter(CourseModel.cid == c.cid, CourseUserModel.active == 1).first())
+            course_list.append(CourseModel.query.filter(CourseModel.cid == c.cid, CourseModel.active == 1).first())
         if user.role == 0:
             print("CA")
         elif user.role == 1:
@@ -57,7 +57,8 @@ def get_course_detail():
             CourseUserModel.cid == cid, or_(UserModel.role == 0, UserModel.role == 3), UserModel.active == 1).all()
         if temp_list:
             for ca in temp_list:
-                ca_list.append(ca.username)
+                ca_dict = {"ca_name": ca.username, "email": ca.email}
+                ca_list.append(ca_dict)
         result = {"course_name": course.name, "description": course.description, "start_time": course.start_time,
                   "close_time": course.close_time, "course_cas": ca_list}
         return jsonify({'code': 200, 'result': result})
@@ -126,7 +127,7 @@ def get_requirements():
                 edit = 1
             else:
                 edit = 0
-            r_dict = {"rid": r.rid, "content": r.content, "course_authority": ca.username, "edit": edit}
+            r_dict = {"rid": r.rid, "content": r.content, "course_authority": ca.username, "email": ca.email, "edit": edit}
             result_list.append(r_dict)
         result = {"count": len(result_list), "result_list": result_list}
         return jsonify({'code': 200, 'result': result})
@@ -147,7 +148,8 @@ def get_requirement_detail():
         course = CourseModel.query.filter(CourseModel.cid == requirement.cid, CourseModel.active == 1).first()
         auth = UserModel.query.filter(UserModel.uid == requirement.aid, UserModel.active == 1).first()
         submit_ddl = course.start_time - datetime.timedelta(days=14)
-        result = {"content": requirement.content, "submit_ddl": submit_ddl, "course_authority": auth.username}
+        result = {"content": requirement.content, "submit_ddl": submit_ddl,
+                  "course_authority": auth.username, "email": auth.email}
         return jsonify({'code': 200, 'result': result})
 
     except Exception as e:
@@ -259,7 +261,8 @@ def get_proposals():
         result_list = []
         for p in proposal_list:
             proposer = UserModel.query.filter(UserModel.uid == p.pid, UserModel.active == 1).first()
-            p_dict = {"proj_id": p.proj_id, "proj_name": p.proj_name, "proposer": proposer.username, "status": p.status}
+            p_dict = {"proj_id": p.proj_id, "proj_name": p.proj_name,
+                      "proposer": proposer.username, "email": proposer.email, "status": p.status}
             result_list.append(p_dict)
         result = {"count": len(result_list), "result_list": result_list}
         return jsonify({'code': 200, 'result': result})
@@ -325,14 +328,15 @@ def get_projects_in_course():
 
     try:
         result_list = []
-        # Proj_name、course_authority, proposer、status、cur_num、max_num, start_time、close_time
         for proj in proj_list:
             ca = UserModel.query.filter(UserModel.uid == proj.aid, UserModel.active == 1).first()
             proposer = UserModel.query.filter(UserModel.uid == proj.pid, UserModel.active == 1).first()
             if not ca or not proposer:
                 print("Wrong information of ca or proposer in this project")
                 continue
-            proj_dict = {"proj_name": proj.proj_name, "course_authority": ca.username, "proposer": proposer.username,
+            proj_dict = {"proj_name": proj.proj_name, "proj_id": proj.proj_id, "description": proj.description,
+                         "course_authority": ca.username, "ca_email": ca.email,
+                         "proposer": proposer.username, "proposer_email": proposer.email,
                          "status": proj.status, "cur_num": proj.cur_num, "max_num": proj.max_num,
                          "start_time": proj.start_time, "close_time": proj.close_time}
             result_list.append(proj_dict)
