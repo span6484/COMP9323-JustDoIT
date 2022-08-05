@@ -19,6 +19,12 @@ export const fatherSubMenu = (type) => {
               }
             },
             {
+              schema: /^(\/Dashboard\/NewRequirement\?id=)([0-9a-zA-Z]+)+/,
+              title: (name) => {
+                return `${name}`
+              }
+            },
+            {
               schema: /^(\/Dashboard\/RequirementDetail\?id=)([0-9a-zA-Z]+)+/,
               title: (name) => {
                 return `${name}`

@@ -47,24 +47,34 @@ def get_course_detail():
     data = request.get_json(force=True)
     print(data)
     cid = data["cid"]
+    uid = data["uid"]
+    user = UserModel.query.filter(UserModel.uid == uid, UserModel.active == 1).first()
+    if not user:
+        return jsonify({'code': 400, 'msg': 'No such user in database.'})
     course = CourseModel.query.filter(CourseModel.cid == cid, CourseModel.active == 1).first()
     if not course:
         return jsonify({'code': 400, 'msg': 'No such course in database.'})
 
-    try:
-        ca_list = []
-        temp_list = UserModel.query.join(CourseUserModel, CourseUserModel.uid == UserModel.uid).filter(
-            CourseUserModel.cid == cid, or_(UserModel.role == 0, UserModel.role == 3), UserModel.active == 1).all()
-        if temp_list:
-            for ca in temp_list:
-                ca_dict = {"ca_name": ca.username, "email": ca.email}
-                ca_list.append(ca_dict)
-        result = {"course_name": course.name, "description": course.description, "start_time": course.start_time,
-                  "close_time": course.close_time, "course_cas": ca_list}
-        return jsonify({'code': 200, 'result': result})
+    ca_list = []
+    r_list = []
+    temp_list = UserModel.query.join(CourseUserModel, CourseUserModel.uid == UserModel.uid).filter(
+        CourseUserModel.cid == cid, or_(UserModel.role == 0, UserModel.role == 3), UserModel.active == 1).all()
 
-    except Exception as e:
-        return jsonify({'code': 400, 'msg': 'Get course detail failed.', 'error_msg': str(e)})
+    if temp_list:
+        for ca in temp_list:
+            ca_dict = {"ca_name": ca.username, "email": ca.email}
+            ca_list.append(ca_dict)
+    if user.role == 0 or user.role == 3:
+        reviewers = UserModel.query.filter(UserModel.role == 3, UserModel.active == 1).all()
+        if reviewers:
+            for r in reviewers:
+                r_dict = {"re_name": r.username, "re_email": r.email}
+                r_list.append(r_dict)
+
+    result = {"course_name": course.name, "description": course.description, "start_time": course.start_time,
+              "close_time": course.close_time, "course_cas": ca_list,"is_public": course.public}
+    return jsonify({'code': 200, 'result': result})
+
 
 
 def add_requirement():
@@ -110,8 +120,12 @@ def get_requirements():
     course = CourseModel.query.filter(CourseModel.cid == cid, CourseModel.active == 1).first()
     if not course:
         return jsonify({'code': 400, 'msg': 'No such course in database.'})
+    if user.role == 2:
+        cu = CourseUserModel.query.filter(CourseUserModel.cid == cid,
+                                          CourseUserModel.active == 1).first()
+    else:
 
-    cu = CourseUserModel.query.filter(CourseUserModel.cid == cid, CourseUserModel.uid == uid, CourseUserModel.active == 1).first()
+        cu = CourseUserModel.query.filter(CourseUserModel.cid == cid, CourseUserModel.uid == uid, CourseUserModel.active == 1).first()
     if not cu and not (user.role == 3 and course.public == 1):
         return jsonify({'code': 400, 'msg': 'User has no access to check requirements in this course.'})
 

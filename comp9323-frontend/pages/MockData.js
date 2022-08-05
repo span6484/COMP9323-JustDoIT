@@ -39,7 +39,7 @@ export function getCourseDetail(param) {
     return fetchData('http://127.0.0.1:5000/get_course_detail', param);
 }
 export function publicToReviewers(param) {
-    return fetchData('http://127.0.0.1:5000/public_to_reviewers', param);
+    return fetchData('http://127.0.0.1:5000/public_course_to_reviewers', param);
 }
 export function getProjectsInCourse(param) {
     return fetchData('http://127.0.0.1:5000/get_projects_in_course', param);

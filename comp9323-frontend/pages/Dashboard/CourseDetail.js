@@ -22,9 +22,6 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
   const [project,changeProject] = useState([])
   // 初始化
   useEffect(() => {
-    setTimeout(() => {
-      ref?.current.getTabPane(urlMsg.asPath, `Course Detail`)
-    }, 0);
     handleGetCourseDetail(); // 获取course详情
     if(USERMESSAGE && USERMESSAGE.role === 1){
       handleGetProjectsInCourse();
@@ -60,17 +57,22 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
 
   // 获取course详情
   const handleGetCourseDetail = () => {
-    let reqBody = { cid: getQueryString("id") || "" };
+    let reqBody = {
+      uid: USERMESSAGE && USERMESSAGE.uid,
+      cid: getQueryString("id") || ""
+    };
     getCourseDetail(reqBody).then(res => {
       if(res.code === 200){
         changeCourseDetail(res.result || {});
         const _list = [];
         for(let i = 0 ; i < (res.result?.course_cas || []).length ; i++){
           _list.push({
-             name : res.result?.course_cas[i]
+             name : res.result?.course_cas[i].ca_name,
+             email : res.result?.course_cas[i].email
           })
         }
         changeCourseAuthorityList(_list);
+        ref?.current.getTabPane(urlMsg.asPath, res.result?.course_name || `Course Detail`)
       }
 
     });
@@ -115,30 +117,34 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
       cancelText: "NO",
       onOk() {
         let reqBody = {
-          uid: "",
-          cid: "",
+          uid: USERMESSAGE && USERMESSAGE.uid,
+          cid: getQueryString("id") || "",
         };
         publicToReviewers(reqBody).then(res => {
-          message.success("Successfully Made Public");
+          if(res.code === 200){
+            message.success("Successfully Made Public");
+          }else{
+            message.error("Failed")
+          }
         });
       }
     });
   };
   // Add Requirement
-  const handleAddRequirement = () => {
-    ref.current.setTabPane(`New Requirement`, '', `/Dashboard/NewRequirement?id=123`);
+  const handleAddRequirement = (id) => {
+    ref.current.setTabPane(`New Requirement`, '', `/Dashboard/NewRequirement?id=${getQueryString("id") || ""}`);
   };
   // To Requirement Detail
   const toRequirementDetail = (rid) => {
     ref.current.setTabPane(`Requirement Detail`, '', `/Dashboard/RequirementDetail?id=${rid}`)
   };
   // Click project name, To project detail
-  const handleClickProjectName = () => {
-    ref.current.setTabPane(`Project Name`, '', `/project/detail?id=12444432`);
+  const handleClickProjectName = (id) => {
+    ref.current.setTabPane(`Project Name`, '', `/project/detail?id=${id}`);
   };
   // Click project name, To project detail
   const handleClickRequirementName = (rid) => {
-    window.location.href = `http://localhost:8088/Dashboard/RequirementDetail?id=${rid}`;
+    ref.current.setTabPane(`Requirement Detail`, '', `/Dashboard/RequirementDetail?id=${rid}`);
   };
   return (
     <PageBase cRef={ref} USERMESSAGE={USERMESSAGE}>
@@ -158,16 +164,22 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
                   </Paragraph>
                   <Paragraph>
                     <strong>Duration:</strong>&nbsp;
-                    <span>{ courseDetail.start_time } - { courseDetail.close_time }</span>
+                    <span> From { setDay(courseDetail.start_time ) } to { setDay(courseDetail.close_time) }</span>
                   </Paragraph>
                 </Space>
               </Col>
               <Col span={4} />
               {
-                user.role == 0 &&
+                user.role === 0 &&
                 <Col span={6} className={"action-button-box"}>
-                  <Button onClick={handleAddRequirement}>Add Requirement</Button>
-                  <Button onClick={handlePublicToReviewers}>Public to Reviewers</Button>
+                  <Button onClick={()=>{
+                    handleAddRequirement()
+                  }}>Add Requirement</Button>
+                  {
+                    !courseDetail.is_public ?
+                        <Button onClick={handlePublicToReviewers}>Public to Reviewers</Button>:
+                        <div className={"action-button-box-button"} />
+                  }
                   <div className={"action-button-box-button"} />
                   <div className={"action-button-box-button"} />
                   <div className={"action-button-box-button"} />
@@ -209,7 +221,7 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
 
             {/* Requirement List */}
             <Row>
-              { (user.role == 0 || 2) &&
+              { (user.role === 0 || user.role ===2) &&
                 <Col span={24}>
                   <div className={"requirementListBox"}>
                     {
@@ -258,13 +270,15 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
                 </Col>
               }
 
-              { user.role == 1 &&
+              { user.role === 1 &&
                 <Col span={24}>
                   <div className={"requirementListBox"}>
                     {
                       projectList.map((item, index) => {
                         return <div className={"requirement_box"} key={"requirementList_" + index}>
-                          <p onClick={handleClickProjectName}>{ item.proj_name }</p>
+                          <p onClick={()=>{
+                            handleClickProjectName(item.proj_id)
+                          }}>{ item.proj_name }</p>
                           <div className={"description"}>
                             <strong>Status:</strong>&nbsp;
                             <span>{getProjectStatus(item.status)}</span>
@@ -275,7 +289,7 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
                           </div>
                           <div className={"description"}>
                             <strong>Duration:</strong>&nbsp;
-                            <span>{ setDay(item.start_time) } - { setDay(item.close_time) }</span>
+                            <span>From { setDay(item.start_time) } to { setDay(item.close_time) }</span>
                           </div>
                           <div className={"description"}>
                             <strong>Proposer:</strong>&nbsp;
@@ -293,8 +307,8 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
                             <strong>Course_authority:</strong>&nbsp;
                             <span>{item.course_authority}</span>
                             <Tooltip placement="top" title={<div className={"email-tool-tip-component"}>
-                              {item.course_authority_email}
-                              <CopyToClipboard text={item.course_authority_email} onCopy={() => { message.success('copy email success'); }}>
+                              {item.ca_email}
+                              <CopyToClipboard text={item.ca_email} onCopy={() => { message.success('copy email success'); }}>
                                 <span className={"email-tool-tip-component-copy"}>COPY</span>
                               </CopyToClipboard>
                             </div>}>
