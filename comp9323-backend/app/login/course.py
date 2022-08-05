@@ -15,22 +15,17 @@ def get_courses():
         return jsonify({'code': 400, 'msg': 'No such user in database.'})
 
     try:
-        # proposer 不用查这个表
-        cu_list = CourseUserModel.query.filter(CourseUserModel.uid == uid, CourseUserModel.active == 1).all()
-        course_list = []
-        for c in cu_list:
-            course_list.append(CourseModel.query.filter(CourseModel.cid == c.cid, CourseModel.active == 1).first())
-        if user.role == 0:
-            print("CA")
-        elif user.role == 1:
-            print("Student")
+        if user.role == 0 or user.role == 0:
+            course_list = CourseModel.query.join(CourseUserModel, CourseModel.cid == CourseUserModel.cid).filter(
+                        CourseUserModel.uid == uid, CourseModel.active == 1).all()
         elif user.role == 2:
-            print("Proposer")
             course_list = CourseModel.query.filter(CourseModel.active == 1).all()
         elif user.role == 3:
-            print("Reviewer")
-            review_list = CourseModel.query.filter(CourseModel.public == 1, CourseModel.active == 1).all()
-            course_list.extend(review_list)
+            course_list = CourseModel.query.join(CourseUserModel, CourseModel.cid == CourseUserModel.cid).filter(
+                        or_(CourseModel.public == 1, CourseUserModel.uid == uid), CourseModel.active == 1).all()
+        else:
+            return jsonify({'code': 400, 'msg': 'Invalid role.'})
+
         print(course_list)
         result_list = []
         for c in course_list:
