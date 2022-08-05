@@ -67,7 +67,7 @@ def get_course_detail():
                 r_list.append(r_dict)
 
     result = {"course_name": course.name, "description": course.description, "start_time": course.start_time,
-              "close_time": course.close_time, "course_cas": ca_list,"is_public": course.public}
+              "close_time": course.close_time, "course_cas": ca_list,"is_public": course.public,"course_res": r_list}
     return jsonify({'code': 200, 'result': result})
 
 
