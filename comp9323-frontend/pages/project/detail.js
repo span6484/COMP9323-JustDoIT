@@ -70,7 +70,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     //console.log(project);
 
     var joined = true;
-    //joined = false;
+    joined = false;
     // 0待审核Pending, 1已通过approved, 2已发布open to join 
     // 3进行中in progress 4已结束ended 5未通过not approved 
     var status = project.status;

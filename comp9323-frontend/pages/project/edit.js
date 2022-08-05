@@ -54,7 +54,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
             });
         }
         setProject(obj);
-        console.log(project.start_time, project.close_time);
+        // console.log(project.start_time, project.close_time);
     };
     function saveProject() {
         try {
@@ -175,7 +175,8 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     };
     function UploadDocumnets(props) {
         const status = props.status;
-        if (status <= 1) {
+        
+        if (status == 0) {
             return (
                 <>
                     <Title level={3}>Upload documents</Title>
@@ -186,10 +187,9 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                     <Upload
                         action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
                         listType="picture"
-                        defaultFileList={[...fileList]}
                         className="upload-list-inline"
                     >
-                        <Button icon={<UploadOutlined />}>Upload</Button>
+                        <Button  icon={<UploadOutlined />}>Upload</Button>
                     </Upload>
                 </>
             );
@@ -257,7 +257,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                         <ProgressBars userRole={userRole} />
                         <br />
                         <br />
-                        {/* //<UploadDocumnets status={status} /> */}
+                        <UploadDocumnets status={status} />
                         <br />
                         <br />
                         <br />
