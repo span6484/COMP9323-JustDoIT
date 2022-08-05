@@ -38,17 +38,17 @@ const AllProject = ({ USERMESSAGE, urlMsg }) => {
     },
     {
       title: 'Course Authority',
-      dataIndex: 'CA_name',
-      key: 'CA_name',
+      dataIndex: 'ca_name',
+      key: 'ca_name',
       width: 100,
     },
     {
       title: 'Project Capacity',
-      dataIndex: 'project_capacity',
-      key: 'project_capacity',
+      dataIndex: 'cur_num',
+      key: 'cur_num',
       width: 100,
-      render:(project_capacity)=>{
-        return <div> {project_capacity} / 100</div>
+      render:(cur_num,actionInfo)=>{
+        return <div> {cur_num} / {actionInfo.max_num}</div>
       }
     },
     {
@@ -189,9 +189,9 @@ const AllProject = ({ USERMESSAGE, urlMsg }) => {
     initSearch = initSearch || search;
     getMyProject({
       proj_status :initSearch.projectType === null || initSearch.projectType === undefined ?
-          100 : initSearch.projectType,
+          "" : initSearch.projectType,
       uid : USERMESSAGE && USERMESSAGE.uid,
-      course_id : initSearch.course || "c001",
+      course_id : initSearch.course || "",
       page_size : initPage.size,
       page_index : initPage.number - 1 < 0 ? 0 : (initPage.number - 1)
     }).then(res => {
