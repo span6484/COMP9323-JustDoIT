@@ -81,7 +81,6 @@ const IndexTabTop = ({ msg, tabPaneInit, loginOut , topRef ,USERMESSAGE}) => {
         return  "";
     }
   }
-  console.log("userProfile",msg)
   return (
     <React.Fragment>
       <style dangerouslySetInnerHTML={{ __html: TabTopStyle }} />

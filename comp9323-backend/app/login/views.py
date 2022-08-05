@@ -103,10 +103,11 @@ def check_role():
     user = UserModel.query.filter(UserModel.id == id).first()
     if not user:
         return jsonify({'code': 400, 'msg': 'No such user in database.'})
-    if user.active == 1:
-        return jsonify({'code': 200, 'role': user.role})
-    elif user.active == 0:
-        return jsonify({'code': 400, 'msg': 'This user has already registered.'})
+    return jsonify({'code': 200, 'role': user.role})
+    # if user.active == 1:
+    #     return jsonify({'code': 200, 'role': user.role})
+    # elif user.active == 0:
+    #     return jsonify({'code': 200, 'role': user.role})
 
 
 def change_password():

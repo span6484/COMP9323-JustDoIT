@@ -88,6 +88,8 @@ const UgcLogin = ({}) => {
               return "Student";
           case 2:
               return "Proposer";
+          case 3:
+              return "Reviewer";
           default:
               return  "";
       }
@@ -159,7 +161,7 @@ const UgcLogin = ({}) => {
              message.warn("Please enter your email");
              return;
            }else{
-              if(!(/^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+(.[a-zA-Z0-9_-])+/.test((email &&email.trim())))){
+              if(!(/^([a-zA-Z0-9_.-])+@([a-zA-Z0-9_-])+(.[a-zA-Z0-9_-])+/.test((email &&email.trim())))){
                   message.warn("Please enter your email in the correct format");
                   return
               }
