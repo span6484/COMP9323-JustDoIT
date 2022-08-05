@@ -66,6 +66,7 @@ const UgcLogin = ({}) => {
           setCookie("USER_MESSAGE",JSON.stringify({
             name : username,
             type : role,
+            role : role,
             uid,
             token : Base64.encode(`${username}&&sadasdasdad&&${time}&&1&&${username}`),
           }),100);

@@ -4,13 +4,23 @@
   margin: 0;
   li {
     list-style: none;
-    padding: 0;
+    padding :0 10px;
     margin: 0;
     text-align: center;
     font-size: 14px;
     line-height: 30px;
     border-bottom: 1px solid #f0f0f0;
     cursor: pointer;
+    &.oveflowhidden{
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+      padding :0 10px;
+    }
+    &.aHref{
+      color:#1d39c4;
+      text-decoration: underline;
+    }
   }
   li:hover {
     background: #efe9e9;
