@@ -5,7 +5,8 @@ import { Base64 } from 'js-base64'
 const md5 = require('js-md5')
 import { EyeInvisibleOutlined, EyeTwoTone } from '@ant-design/icons'
 import changePassWordStyle from "./ChangePassword.less"
-const ChangePasswordComponent = ({ changePasswordRef,authorId ,userName}) => {
+import {changePasswordService} from "../pages/MockData"
+const ChangePasswordComponent = ({ changePasswordRef,authorId ,userName,USERMESSAGE}) => {
   const [visibleModal,changeVisible] = useState(false)
   const [password, changePassword] = useState('')
   const [passwordCheck, changePasswordCheck] = useState('')
@@ -39,25 +40,35 @@ const ChangePasswordComponent = ({ changePasswordRef,authorId ,userName}) => {
         title={'CHANGE PASSWORD'}
         okText="SUBMIT"
         cancelText="CANCEL"
+        zIndex={1036}
         onOk={() => {
-          if(!password || !(password &&password.trim())){
+          const _password = password.trim();
+          if(!_password || !(_password &&_password.trim())){
             message.warn('Please enter your new password')
             return false
           }
-          if(password.length < 6){
+          if(_password.trim().length < 6){
             message.warn("Password length is less than six digits");
             return;
           }
-          if (password !== passwordCheck) {
+          if (_password !== passwordCheck) {
             message.warn('Entered passwords differ!')
             return false
           }
-          const pass = Base64.encode(md5(password.trim()))
-          const json = {
-            id : authorMsg.id,
-            password: pass,
-            editType : "2"
-          }
+          const pass = Base64.encode(md5(_password.trim()))
+          changePasswordService({
+            uid : USERMESSAGE && USERMESSAGE.uid,
+            password: pass
+          }).then(res =>{
+             if(res.code === 200){
+               message.success("Change password successed");
+                 changeVisible(false)
+                 changePassword( '')
+                 changePasswordCheck( '')
+             }else{
+               message.error("Change password failed")
+             }
+          })
         }}
         onCancel={() => {
           changeVisible(false)

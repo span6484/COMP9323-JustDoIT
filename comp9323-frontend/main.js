@@ -22,7 +22,7 @@ app.prepare().then(()=>{
     server.use(bodyParser.json());
     server.use(express.json());
     server.use(express.urlencoded({
-        extends: true
+        extended: true
     }));
     server.use(cookieParser());
     server.use('/static', express.static(path.join(__dirname, 'static')))

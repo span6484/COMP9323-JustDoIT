@@ -13,6 +13,7 @@ import {
   delCookie,
   getToken,
 } from '../util/common'
+import {getUserProfile} from "./MockData"
 const Page = ({ router, children, cRef, USERMESSAGE }) => {
   useImperativeHandle(cRef, () => ({
     setTabPane: (title, key, href, type) => {
@@ -59,6 +60,7 @@ const Page = ({ router, children, cRef, USERMESSAGE }) => {
   const [__fatherSubMenu, change__fatherSubMenu] = useState(fatherSubMenu(null))
   const [pageLoad, changePageLoad] = useState(false)
   const [authorId,changeAuthorId] = useState("")
+  const [userProfile,changeUserProfile] = useState({})
   if (body !== children) {
     changeBody(children)
   }
@@ -263,6 +265,15 @@ const Page = ({ router, children, cRef, USERMESSAGE }) => {
           loginType: 'loginIn',
           token
         })
+        getUserProfile({
+          uid :  USERMESSAGE && USERMESSAGE.uid
+        }).then(res => {
+          if(res.code === 200){
+             changeUserProfile(res.result)
+          }else{
+            changeUserProfile({})
+          }
+        })
         const _json = fatherSubMenu(type)
         change__fatherSubMenu(_json)
         init(null, _json)
@@ -331,8 +342,10 @@ const Page = ({ router, children, cRef, USERMESSAGE }) => {
             authorId,
             fatherSubMenu: __fatherSubMenu,
             reward,
-            role : USERMESSAGE && USERMESSAGE.type
+            role : USERMESSAGE && USERMESSAGE.type,
+            userProfile
           }}
+          USERMESSAGE={USERMESSAGE}
           tabPaneInit={(href) => {
             tabPaneInit(href)
           }}

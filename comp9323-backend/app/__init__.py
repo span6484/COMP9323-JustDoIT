@@ -1,7 +1,6 @@
 from flask import Flask
-from flask_cors import CORS
 from . import login, index, models, upload
-
+from flask_cors import CORS
 # 创建flask app
 app = Flask(__name__)
 CORS(app, resources=r'/*', supports_credentials=True)

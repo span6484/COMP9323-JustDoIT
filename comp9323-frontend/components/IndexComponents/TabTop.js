@@ -1,5 +1,5 @@
 import React, { useImperativeHandle, useRef, useState } from 'react'
-import { Menu, message, Modal, Popover } from 'antd'
+import { Menu, message, Modal, Popover,Tooltip } from 'antd'
 import IconFont from '../IconFont'
 import { ExclamationCircleOutlined } from '@ant-design/icons'
 import ChangePasswordComponent from  "../ChangePassword"
@@ -36,7 +36,7 @@ const seletedChange = (e, fatherSubMenu, tabPaneInit) => {
   }
 }
 
-const IndexTabTop = ({ msg, tabPaneInit, loginOut , topRef }) => {
+const IndexTabTop = ({ msg, tabPaneInit, loginOut , topRef ,USERMESSAGE}) => {
   const changePasswordRef = useRef();
   const { defaultOpenKeysList, userMessage, fatherSubMenu, reward ,role} = msg;
   const [initMsg,changeInitMsg] = useState(userMessage)
@@ -58,7 +58,7 @@ const IndexTabTop = ({ msg, tabPaneInit, loginOut , topRef }) => {
   }
   function setWidth() {
     if (typeof window !== 'undefined') {
-      return window.innerWidth * 0.15
+      return window.innerWidth * 0.2
     }
     return 0
   }
@@ -110,11 +110,30 @@ const IndexTabTop = ({ msg, tabPaneInit, loginOut , topRef }) => {
                 padding:0,
                 border:"none"
               }}>
-
+                {!!msg?.userProfile?.id &&
+                    <li>
+                      ID:{msg?.userProfile?.id}
+                    </li>}
+                {!!msg?.userProfile?.username &&
+                    <li>
+                  {msg?.userProfile?.username}
+                </li>}
+                {!!msg?.userProfile?.email &&
+                    <li>
+                      {msg?.userProfile?.email}
+                    </li>}
+                {!!msg?.userProfile?.detail &&
+                    <Tooltip title={msg?.userProfile?.detail} >
+                      <li className={"oveflowhidden"}>
+                        {msg?.userProfile?.detail}
+                      </li>
+                    </Tooltip>
+                    }
                 <li
                   onClick={()=>{
                     changePasswordRef.current?.showMessage()
                   }}
+                  className={"aHref"}
                   style={{
                   border: 'none'
                 }}>
@@ -156,7 +175,9 @@ const IndexTabTop = ({ msg, tabPaneInit, loginOut , topRef }) => {
           <h6>LogOut</h6>
         </div>
       </div>
-      <ChangePasswordComponent authorId={msg.authorId} userName={name}
+      <ChangePasswordComponent
+          USERMESSAGE={USERMESSAGE}
+          authorId={msg.authorId} userName={name}
                                changePasswordRef={changePasswordRef}/>
       <style>
         {`
