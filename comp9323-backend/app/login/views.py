@@ -103,7 +103,46 @@ def check_role():
     user = UserModel.query.filter(UserModel.id == id).first()
     if not user:
         return jsonify({'code': 400, 'msg': 'No such user in database.'})
-    return jsonify({'code': 200, 'role': user.role})
+    if user.active == 1:
+        return jsonify({'code': 200, 'role': user.role})
+    elif user.active == 0:
+        return jsonify({'code': 400, 'msg': 'This user has already registered.'})
+
+
+def change_password():
+    data = request.get_json(force=True)
+    uid, password = data["uid"], data["password"]
+    user = UserModel.query.filter(UserModel.uid == uid, UserModel.active == 1).first()
+    if not user:
+        return jsonify({'code': 400, 'msg': 'No such user in database.'})
+    if not password:
+        return jsonify({'code': 400, 'msg': 'Empty password.'})
+
+    try:
+        date_time = get_time()[0]
+        enpass = encode_password(password)
+        user.password = enpass
+        user.utime = date_time
+        db.session.commit()
+        return jsonify({'code': 200, 'msg': 'Change password successfully.'})
+
+    except Exception as e:
+        return jsonify({'code': 400, 'msg': 'Change password failed.', 'error_msg': str(e)})
+
+
+def get_user_profile():
+    data = request.get_json(force=True)
+    uid = data["uid"]
+    user = UserModel.query.filter(UserModel.uid == uid, UserModel.active == 1).first()
+    if not user:
+        return jsonify({'code': 400, 'msg': 'No such user in database.'})
+
+    try:
+        result = {"id": user.id, "username": user.username, "email": user.email, "role": user.role, "detail": user.detail}
+        return jsonify({'code': 200, 'result': result})
+
+    except Exception as e:
+        return jsonify({'code': 400, 'msg': 'Get user profile failed.', 'error_msg': str(e)})
 
 
 def add_message(uid, content):
@@ -244,3 +283,5 @@ def get_awards():
 
     except Exception as e:
         return jsonify({'code': 400, 'msg': 'Get awards failed.', 'error_msg': str(e)})
+
+
