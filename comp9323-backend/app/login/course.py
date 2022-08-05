@@ -15,7 +15,7 @@ def get_courses():
         return jsonify({'code': 400, 'msg': 'No such user in database.'})
 
     try:
-        if user.role == 0 or user.role == 0:
+        if user.role == 0 or user.role == 1:
             course_list = CourseModel.query.join(CourseUserModel, CourseModel.cid == CourseUserModel.cid).filter(
                         CourseUserModel.uid == uid, CourseModel.active == 1).all()
         elif user.role == 2:
