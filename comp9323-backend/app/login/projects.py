@@ -103,28 +103,28 @@ def get_myProject():
             return jsonify({'code': 400, 'msg': 'Course does not exist.'})
 
         if user.role == 0:
-            if proj_status:
+            if proj_status or proj_status == 0:
                 projs = ProjectModel.query.filter(ProjectModel.cid == course_id, ProjectModel.status == proj_status,
                                                   ProjectModel.aid == uid).all()
             else:
                 projs = ProjectModel.query.filter(ProjectModel.cid == course_id, ProjectModel.aid == uid,
                                                   ProjectModel.status != -1).all()
         elif user.role == 1:
-            if proj_status:
+            if proj_status or proj_status == 0:
                 projs = ProjectModel.query.join(SelectionModel, ProjectModel.proj_id == SelectionModel.proj_id).filter(
                     ProjectModel.cid == course_id, SelectionModel.sid == uid, ProjectModel.status == proj_status).all()
             else:
                 projs = ProjectModel.query.join(SelectionModel, ProjectModel.proj_id == SelectionModel.proj_id).filter(
                     ProjectModel.cid == course_id, SelectionModel.sid == uid, ProjectModel.status != -1).all()
         elif user.role == 2:
-            if proj_status:
+            if proj_status or proj_status == 0:
                 projs = ProjectModel.query.filter(ProjectModel.cid == course_id, ProjectModel.status == proj_status,
                                                   ProjectModel.pid == uid).all()
             else:
                 projs = ProjectModel.query.filter(ProjectModel.cid == course_id, ProjectModel.status != -1,
                                                   ProjectModel.pid == uid).all()
         elif user.role == 3:
-            if proj_status:
+            if proj_status or proj_status == 0:
                 projs = ProjectModel.query.filter(ProjectModel.cid == course_id, ProjectModel.status == proj_status,
                                                   or_(ProjectModel.aid == uid, course.public == 1)).all()
             else:
@@ -136,24 +136,24 @@ def get_myProject():
     else:
         # show all projects related to user
         if user.role == 0:
-            if proj_status:
+            if proj_status or proj_status == 0:
                 projs = ProjectModel.query.filter(ProjectModel.status == proj_status, ProjectModel.aid == uid).all()
             else:
                 projs = ProjectModel.query.filter(ProjectModel.aid == uid, ProjectModel.status != -1).all()
         elif user.role == 1:
-            if proj_status:
+            if proj_status or proj_status == 0:
                 projs = ProjectModel.query.join(SelectionModel, ProjectModel.proj_id == SelectionModel.proj_id).filter(
                     SelectionModel.sid == uid, ProjectModel.status == proj_status).all()
             else:
                 projs = ProjectModel.query.join(SelectionModel, ProjectModel.proj_id == SelectionModel.proj_id).filter(
                     SelectionModel.sid == uid, ProjectModel.status != -1).all()
         elif user.role == 2:
-            if proj_status:
+            if proj_status or proj_status == 0:
                 projs = ProjectModel.query.filter(ProjectModel.status == proj_status, ProjectModel.pid == uid).all()
             else:
                 projs = ProjectModel.query.filter(ProjectModel.status != -1, ProjectModel.pid == uid).all()
         elif user.role == 3:
-            if proj_status:
+            if proj_status or proj_status == 0:
                 projs = ProjectModel.query.join(CourseModel, ProjectModel.cid == CourseUserModel.cid).filter(
                     ProjectModel.status == proj_status, or_(ProjectModel.aid == uid, CourseModel.public == 1)).all()
             else:
@@ -167,9 +167,12 @@ def get_myProject():
     if not projs:
         return jsonify({'code': 200, 'msg': "Empty projects list."})
     for p in projs:
-        ca = UserModel.query.filter(UserModel.uid == p.aid).first()
-        proposer = UserModel.query.filter(UserModel.uid == p.pid).first()
-        proj_info = {"proj_id": p.proj_id, "proj_name": p.proj_name, "ca_name": ca.username, "ca_email": ca.email,
+        ca = UserModel.query.filter(UserModel.uid == p.aid, UserModel.active == 1).first()
+        proposer = UserModel.query.filter(UserModel.uid == p.pid, UserModel.active == 1).first()
+        course = CourseModel.query.filter(CourseModel.cid == p.cid, CourseModel.active == 1).first()
+        if not ca or not proposer or not course:
+            return jsonify({'code': 400, 'msg': 'Invalid info in project.'})
+        proj_info = {"course_name": course.name, "proj_id": p.proj_id, "proj_name": p.proj_name, "ca_name": ca.username, "ca_email": ca.email,
                      "propser_name": proposer.username, "propser_email": proposer.email, "cur_num": p.cur_num, "max_num": p.max_num,
                      "status": p.status, "start_time": p.start_time, "close_time": p.close_time}
         proj_list.append(proj_info)
