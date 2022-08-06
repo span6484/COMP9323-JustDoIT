@@ -185,9 +185,10 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
 
                     <br />
                     <Upload
-                        action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
+                        action="http://localhost:5000/upload_file"
                         listType="picture"
                         className="upload-list-inline"
+                        accept=".pdf"
                     >
                         <Button  icon={<UploadOutlined />}>Upload</Button>
                     </Upload>

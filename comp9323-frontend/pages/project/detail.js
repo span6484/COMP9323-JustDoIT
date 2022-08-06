@@ -9,12 +9,6 @@ import { template } from 'lodash';
 const { Title, Paragraph, Text, Link } = Typography;
 const { Step } = Steps;
 
-// USERMESSAGE
-//     "name": "Test Name",
-//     "type": 0,
-//     "uid": "u00001",
-//     "token": "VGVzdCBOYW1lJiZzYWRhc2Rhc2RhZCYmMTY2MDExMzQyNDc3MyYmMSYmVGVzdCBOYW1l"
-
 const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     const ref = useRef();
     //console.log(USERMESSAGE);
@@ -36,7 +30,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
             break;
     }
     // get project id from url 
-    var pid = urlMsg.asPath.toString().replace('/project/detail?id=', '');
+    const pid = urlMsg.asPath.toString().replace('/project/detail?id=', '');
     const { Panel } = Collapse;
     const [pagestate, setPageState] = useState(0);
     const [project, setProject] = useState({});
@@ -71,8 +65,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
 
     var joined = true;
     joined = false;
-    // 0待审核Pending, 1已通过approved, 2已发布open to join 
-    // 3进行中in progress 4已结束ended 5未通过not approved 
+    // 0待审核Pending, 1已通过approved, 2已发布open to join 3进行中in progress 4已结束ended 5未通过not approved 
     var status = project.status;
 
     const onChange = (key) => {
@@ -128,25 +121,25 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
             console.log(e)
         }
     }
-    // function openProject(pid, uid, status) {
-    //     try {
-    //         fetch('http://localhost:5000/change_project_status2', {
-    //             method: 'POST',
-    //             headers: {
-    //                 "content": 'application/json',
-    //                 'Access-Control-Allow-Origin': '*'
-    //             },
-    //             body: JSON.stringify({ "proj_id": pid })
-    //         }).then(res => {
-    //             res.json().then((val) => {
-    //                 console.log("res val = ", val);
-    //                 setPageState(pagestate + 1);
-    //             });
-    //         });
-    //     } catch (e) {
-    //         console.log(e)
-    //     }
-    // }
+    function sendJoinQuitProject(pid, uid, join_state) {
+        try {
+            fetch('http://localhost:5000/join_quit_project', {
+                method: 'POST',
+                headers: {
+                    "content": 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                body: JSON.stringify({ "proj_id": pid, "sid": uid, "join_state": join_state })
+            }).then(res => {
+                res.json().then((val) => {
+                    console.log("join_quit_project res ", val);
+                    setPageState(pagestate + 1);
+                });
+            });
+        } catch (e) {
+            console.log(e)
+        }
+    }
 
     function Buttons(props) {
         const userRole = props.userRole;
@@ -268,8 +261,11 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                             title={"Quit this project now?"}
                             okText="Yes"
                             cancelText="No"
+                            onConfirm={() => {
+                                sendJoinQuitProject(pid, uid, 0)
+                            }}
                         >
-                            <Button type="primary">Quit Project</Button>
+                            <Button type="primary" >Quit Project</Button>
                         </Popconfirm>
 
 
@@ -284,6 +280,9 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                             title={"Join this project now?"}
                             okText="Yes"
                             cancelText="No"
+                            onConfirm={() => {
+                                sendJoinQuitProject(pid, uid, 1)
+                            }}
                         >
                             <Button type="primary">Join Project</Button>
                         </Popconfirm>
@@ -496,10 +495,15 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                                         <Comment key={'comment' + item.root_id}
                                             author={<a>{item.root_name}</a>}
                                             avatar={<Avatar src="/static/ca.png" />}
-                                            content={<p>{item.root_content}</p>
+                                            content={
+                                                <>
+                                                    <Space direction="horizontal" size="middle" >
+                                                        <p>{item.root_content}</p>
+                                                        <CommentDeleteButton key={'commentDel' + item.root_id} uid={item.root_uid} cm_id={item.root_id} />
+                                                    </Space>
+                                                </>
                                             }
                                         >
-                                            <CommentDeleteButton key={'commentDel' + item.root_id} uid={item.root_uid} cm_id={item.root_id} />
                                             <ReplyComment key={'commentReply' + item.root_id} target_uid={item.root_uid} parent_id={item.root_uid} root_id={item.root_id} />
                                             {item.reply_comment.map((item) => {
                                                 return (
