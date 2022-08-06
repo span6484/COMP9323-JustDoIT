@@ -38,7 +38,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
 				rid: getQueryString("id") || "",
 				proj_name: fieldsValue.projectName,
 				description: fieldsValue.projectDescription,
-				files: [],
+				file: pdfList && pdfList[0],
 			};
 			addProposal(reqBody).then(res => {
 				if(res.code === 200){
@@ -53,7 +53,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
 	};
 	// Back
 	const handleBack = () => {};
-
+    const [pdfList ,changePdfList] = useState([])
 	return (
 		<PageBase cRef={ref} USERMESSAGE={USERMESSAGE}>
 			<style dangerouslySetInnerHTML={{ __html: NewProposalStyle }} />
@@ -83,6 +83,8 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
 						<Title level={4}>Upload Documents</Title>
 						<br />
 						<Upload
+							maxCount={1}
+							disabled={pdfList && pdfList.length > 0}
 							beforeUpload={(file)=>{
 								let fileType = file.name.split('.');
 								const fileDate = fileType.slice(-1);
@@ -96,11 +98,21 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
 									return
 								}
 								return isLt200M;
+							}}
+							onChange={({file,fileList})=>{
+								console.log(fileList)
+								if(fileList && fileList.length > 0){
+									const _file = fileList[0];
+									const pdf_url = _file?.response?.result?.pdf_url || "";
+									changePdfList([pdf_url])
+								}else{
+									changePdfList([])
+								}
 
 							}}
 							action="http://127.0.0.1:5000/upload_file"
 							className="upload-list-inline">
-							<Button icon={<UploadOutlined />}>Upload</Button>
+							<Button icon={<UploadOutlined />}>Upload (Max: 1)</Button>
 						</Upload>
 						<br />
 						<br />
