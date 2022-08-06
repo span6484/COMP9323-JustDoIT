@@ -56,3 +56,12 @@ export function changePasswordService(param) {
 export function addRequirement(param) {
     return fetchData('http://127.0.0.1:5000/add_requirement', param);
 }
+export function getRequirementDetail(param) {
+    return fetchData('http://127.0.0.1:5000/get_requirement_detail', param);
+}
+export function getProposals(param) {
+    return fetchData('http://127.0.0.1:5000/get_proposals', param);
+}
+export function addProposal(param) {
+    return fetchData('http://127.0.0.1:5000/add_proposal', param);
+}
