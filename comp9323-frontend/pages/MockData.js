@@ -77,3 +77,15 @@ export function uploadPdf(param) {
 export function deleteProposal(param) {
     return fetchData('http://127.0.0.1:5000/delete_proposal', param);
 }
+export function joinQuitProject(param) {
+    return fetchData('http://127.0.0.1:5000/join_quit_project', param);
+}
+export function viewProject(param) {
+    return fetchData('http://127.0.0.1:5000/view_project', param);
+}
+export function editProject(param) {
+    return fetchData('http://127.0.0.1:5000/edit_project', param);
+}
+export function changeProjectStatus(param) {
+    return fetchData('http://127.0.0.1:5000/change_project_status', param);
+}

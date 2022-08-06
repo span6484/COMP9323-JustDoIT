@@ -84,23 +84,18 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
 						<br />
 						<Upload
 							maxCount={1}
-							disabled={pdfList && pdfList.length > 0}
+							// disabled={pdfList && pdfList.length > 0}
 							beforeUpload={(file)=>{
 								let fileType = file.name.split('.');
 								const fileDate = fileType.slice(-1);
 								const isLt200M = file.size / 1024 / 1024 < 0.5;
 								if (!isLt200M) {
 									message.error('File size cannot be greater than 500kb');
-									this.setState({
-										file
-									})
-									this.onRemove(file);
 									return
 								}
 								return isLt200M;
 							}}
 							onChange={({file,fileList})=>{
-								console.log(fileList)
 								if(fileList && fileList.length > 0){
 									const _file = fileList[0];
 									const pdf_url = _file?.response?.result?.pdf_url || "";

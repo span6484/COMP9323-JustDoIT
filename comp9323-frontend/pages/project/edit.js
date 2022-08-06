@@ -9,14 +9,14 @@ import { SP } from 'next/dist/next-server/lib/utils';
 const { Title, Paragraph, Text, Link } = Typography;
 const { Step } = Steps;
 const dateFormat = 'YYYY/MM/DD';
-
+import {editProject, viewProject} from "../MockData"
 const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     const ref = useRef();
     //console.log(urlMsg, USERMESSAGE);
-    const uid = USERMESSAGE.uid;
+    const uid = USERMESSAGE && USERMESSAGE.uid;
     // get roles based project users
     var userRole = undefined;
-    switch (USERMESSAGE.type) {
+    switch (USERMESSAGE && USERMESSAGE.type) {
         case 0:
             userRole = "CA";
             break;
@@ -58,28 +58,23 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     };
     function saveProject() {
         try {
-            fetch('http://localhost:5000/edit_project', {
-                method: 'POST',
-                headers: {
-                    "content": 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                },
-                body: JSON.stringify({
-                    "proj_id": pid,
-                    "uid": uid,
-                    "proj_name": project.proj_name,
-                    "description": project.description,
-                    "start_time": start_time,
-                    "close_time": close_time,
-                    "status": status,
-                    "max_num": project.max_num
-                })
+            editProject({
+                "proj_id": pid,
+                "uid": uid,
+                "proj_name": project.proj_name,
+                "description": project.description,
+                "start_time": start_time,
+                "close_time": close_time,
+                "status": status,
+                "max_num": project.max_num,
+                "file" : pdfList && pdfList[0] || null
             }).then(res => {
-                res.json().then((val) => {
-                    console.log("res val = ", val);
-                    // window.location.reload();
-                });
-            });
+                if(res.code === 200){
+                    message.success("Edit project successfully")
+                }else{
+                    message.error("Edit project failed")
+                }
+            })
         } catch (e) {
             console.log(e)
         }
@@ -99,28 +94,50 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
             status = 4;
             break;
     }
-
+    function getProjectStatus(statues){
+        const filterList = statusProject && statusProject.filter((item) =>{
+            return item.key === statues
+        })
+        if(!filterList || filterList.length === 0){
+            return null;
+        }
+        return filterList[0].value
+    }
+    const [statusProject,changeStatusProject] = useState([])
     useEffect(() => {
-        setTimeout(() => {
-            ref?.current.getTabPane(urlMsg.asPath, `Project Name`)
-        }, 0);
+        let projectStatusList = [];
+        const userType = USERMESSAGE && USERMESSAGE.type;
+        if(userType !== 1 && userType !== undefined && userType !== null && userType !== ""){
+            projectStatusList = [...projectStatusList,...[{
+                key : 0,
+                value : "Pending"
+            },{
+                key : 1,
+                value : "Approved"
+            },{
+                key : 2,
+                value : "Not approved"
+            }]]
+        }
+        projectStatusList = [...projectStatusList,...[{
+            key : 3,
+            value : "Open to join"
+        },{
+            key : 4,
+            value : "In Progress"
+        },{
+            key : 5,
+            value : "Ended"
+        }]]
+        changeStatusProject(projectStatusList)
         // fetch project info on load
         try {
-            fetch('http://localhost:5000/view_project', {
-                method: 'POST',
-                headers: {
-                    "content": 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                },
-                body: JSON.stringify({ "proj_id": pid, "uid": uid, })
-            }).then(res => {
-                res.json().then((val) => {
-                    // console.log(moment(val.result.start_time).isValid());
+            viewProject({ "proj_id": pid, "uid": uid, }).then(val =>{
+                if(val.code === 200){
                     setStart_time(moment(val.result.start_time).format('YYYY-MM-DD').toString());
                     setClose_time(moment(val.result.close_time).format('YYYY-MM-DD').toString());
-                    console.log(val.result);
 
-                    var newfileList = [];
+                    var newfileList = [],pdf_url_list =[];
                     Object.entries(val.result.files).forEach(file => {
                         const [key, value] = file;
                         console.log(value.file_name);
@@ -131,84 +148,26 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                             'status': 'done'
                         }
                         newfileList.push(newfile);
+                        pdf_url_list.push(value.file_url);
                     });
                     setFileList(newfileList);
+                    changePdfList(pdf_url_list)
                     setProject(val.result);
-                });
-            });
+                    ref?.current.getTabPane(urlMsg.asPath, val.result?.proj_name)
+                }
+            })
         } catch (e) {
             console.log(e)
-        };
+        }
     }, []);
     useEffect(() => {
         RangeDatePicker();
     }, [project]);
-    function ProgressBars(props) {
-        const userRole = props.userRole;
-
-        if (status < 5) {
-            if (userRole != "S") {
-
-                return (
-                    <>
-                        <Steps current={status}>
-                            <Step title="Pending" description="Project being reviewed" />
-                            <Step title="Approved" description="Approved by course authority" />
-                            <Step title="Open to join" description="Open to student to join" />
-                            <Step title="In Progress" description="Project in progress" />
-                            <Step title="Ended" description="Student works are submitted" />
-                        </Steps>
-                    </>
-                );
-            } else {
-                return (
-                    <>
-                        <Steps current={status - 2}>
-                            <Step title="Open to join" description="Open to student to join" />
-                            <Step title="In Progress" description="Project in progress" />
-                            <Step title="Ended" description="Student works are submitted" />
-                        </Steps>
-                    </>
-                );
-            }
-        }
-        return (
-            <>
-                <Steps current={1}>
-                    <Step title="Pending" description="Project being reviewed" />
-                    <Step title="Not Approved" description="Not approved by course authority" />
-                </Steps>
-            </>
-        );
-    }
     const disabledDate = (current) => {
         // Can not select days before today and today
         return current && current < moment().endOf('day');
     };
-    function UploadDocumnets(props) {
-        const status = props.status;
-
-        if (status == 0) {
-            return (
-                <>
-                    <Title level={3}>Upload documents</Title>
-                    <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
-                    </Space>
-
-                    <br />
-                    <Upload
-                        action="http://localhost:5000/upload_file"
-                        className="upload-list-inline"
-                        accept=".pdf"
-                        defaultFileList={fileList}
-                    >
-                        <Button icon={<UploadOutlined />}>Upload</Button>
-                    </Upload>
-                </>
-            );
-        }
-        return null;
-    }
+    const [pdfList ,changePdfList] = useState([])
     function RangeDatePicker() {
         return (
             <DatePicker.RangePicker
@@ -261,23 +220,51 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                         <RangeDatePicker />
                         <br />
                         <br />
+                        <br />
                         <Title level={4}>Change project capacity</Title>
                         <Input
                             style={{ width: 200 }}
                             type={'number'}
                             defaultValue={project.max_num}
                             key={project.max_num}
+                            min={0}
                             onChange={(e) => {
                                 changeProject(e, 'max_num');
                             }}
                         />
                         <br />
                         <br />
-                        <Title level={3}>Project current progress</Title>
                         <br />
-                        <br />
-                        <ProgressBars userRole={userRole} />
-                        <br />
+                        <Title level={4}>Upload documents</Title>
+                        <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
+                        </Space>
+                        <Upload
+                            maxCount={1}
+                            beforeUpload={(file)=>{
+                                let fileType = file.name.split('.');
+                                const fileDate = fileType.slice(-1);
+                                const isLt200M = file.size / 1024 / 1024 < 0.5;
+                                if (!isLt200M) {
+                                    message.error('File size cannot be greater than 500kb');
+                                    return
+                                }
+                                return isLt200M;
+                            }}
+                            onChange={({file,fileList})=>{
+                                if(fileList && fileList.length > 0){
+                                    const _file = fileList[0];
+                                    const pdf_url = _file?.response?.result?.pdf_url || "";
+                                    changePdfList([pdf_url])
+                                }else{
+                                    changePdfList([])
+                                }
+                                setFileList(fileList)
+                            }}
+                            fileList={fileList}
+                            action="http://127.0.0.1:5000/upload_file"
+                            className="upload-list-inline">
+                            <Button icon={<UploadOutlined />}>Upload (Max: 1)</Button>
+                        </Upload>
                         <br />
                         <br />
                         <Space direction="horizontal" size="middle" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around' }}>
@@ -285,14 +272,6 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                                 saveProject();
                             }}>Save Project</Button>
                         </Space>
-                        <br />
-                        <br />
-                        <UploadDocumnets status={status} />
-                        <br />
-                        <br />
-                        <br />
-                        <br />
-                        <br />
                         <br />
                     </Col>
                     <Col span={2}></Col>
