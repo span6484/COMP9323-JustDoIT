@@ -53,3 +53,6 @@ export function getUserProfile(param) {
 export function changePasswordService(param) {
     return fetchData('http://127.0.0.1:5000/change_password', param);
 }
+export function addRequirement(param) {
+    return fetchData('http://127.0.0.1:5000/add_requirement', param);
+}
