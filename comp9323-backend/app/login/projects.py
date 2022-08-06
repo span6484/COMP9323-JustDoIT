@@ -53,7 +53,15 @@ def view_project():
     result["authority_name"] = authority.username
     result["authority_email"] = authority.email
     result["authority_id"] = authority.uid
-    ##list file
+    is_join, is_edit = 0, 0
+    selection = SelectionModel.query.filter(SelectionModel.sid == uid, SelectionModel.proj_id == proj_id, SelectionModel.active == 1).first()
+    if proj.aid == uid or proj.pid == uid:
+        is_edit = 1
+    elif user.role == 1 and selection:
+        is_join = 1
+    result["is_join"] = is_join
+    result["is_edit"] = is_edit
+    # list file
     if files:
         file_lst = list()
         file = dict()
