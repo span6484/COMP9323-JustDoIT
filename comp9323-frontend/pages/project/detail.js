@@ -9,7 +9,7 @@ const { Title, Paragraph, Text, Link } = Typography;
 const { Step } = Steps;
 import _ from "lodash"
 import "./detail.less"
-import {joinQuitProject} from "../MockData"
+import {changeProjectStatus, joinQuitProject} from "../MockData"
 const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     const ref = useRef();
     //console.log(USERMESSAGE);
@@ -110,23 +110,22 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
         sendChangeProjectStatus(pid, uid, 1);
     }
     function disapproveProject(pid, uid) {
-        sendChangeProjectStatus(pid, uid, 4);
+        sendChangeProjectStatus(pid, uid, 2);
     }
     function sendChangeProjectStatus(pid, uid, status) {
         try {
-            fetch('http://localhost:5000/change_project_status', {
-                method: 'POST',
-                headers: {
-                    "content": 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                },
-                body: JSON.stringify({ "proj_id": pid, "uid": uid, "status": status })
+            changeProjectStatus({
+                "proj_id": pid,
+                "uid": uid,
+                "status": status
             }).then(res => {
-                res.json().then((val) => {
-                    // console.log("res val = ", val);
+                if(res.code === 200){
+                    message.success("Change status successfully");
                     setPageState(pagestate + 1);
-                });
-            });
+                }else{
+                    message.error("Change status failed")
+                }
+            })
         } catch (e) {
             console.log(e)
         }
@@ -187,6 +186,14 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
             } else if (status == 1) {
                 return (
                     <>
+                        <Button type="primary" onClick={() => {
+                            ref.current.setTabPane(
+                                `Project Edit`,
+                                '',
+                                `/project/edit?id=${pid}`
+                            )
+                        }}>Edit Project</Button>
+                        <br />
                         <Button type="primary" onClick={() => {
                             sendChangeProjectStatus(pid, uid, 3);
                         }}>Open Project To Join</Button>
