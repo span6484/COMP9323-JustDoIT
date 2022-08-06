@@ -40,6 +40,8 @@ def init_route(app: Flask):
     app.add_url_rule('/get_proposals', view_func=course.get_proposals, methods=['POST'])
     app.add_url_rule('/public_course_to_reviewers', view_func=course.public_course_to_reviewers, methods=['POST'])
     app.add_url_rule('/get_projects_in_course', view_func=course.get_projects_in_course, methods=['POST'])
+    app.add_url_rule('/edit_requirement', view_func=course.edit_requirement, methods=['POST'])
+    app.add_url_rule('/delete_requirement', view_func=course.delete_requirement, methods=['POST'])
 
 
 
