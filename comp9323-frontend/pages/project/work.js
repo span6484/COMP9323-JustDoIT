@@ -56,9 +56,8 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     }
     function getProjectWorks() {
         // fetch project info
-        console.log(JSON.stringify({ "proj_id": pid, "uid": uid, "student_index": 0 }));
         try {
-            viewWorks({ "proj_id": pid, "uid": uid, "student_index": 0 })
+            viewWorks({ "proj_id": pid, "uid": uid, "page_index": 0 , "page_size" : 200 })
                 .then(val =>{
                 if(val.code === 200){
                     val.result.start_time = moment(val.result.start_time).format('YYYY-MM-DD');
@@ -66,16 +65,28 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                     var studentList = [];
                     Object.entries(val.result.student_lst).forEach(studentObj => {
                         const [key, student] = studentObj;
-                        console.log(student);
-                        // const newfile = {
-                        //     'uid': key,
-                        //     'name': value.file_name,
-                        //     'url': value.file_url,
-                        //     'status': 'done'
-                        // }
                         studentList.push(student);
                     });
                     setStudentList(studentList);
+                    const _uid = USERMESSAGE && USERMESSAGE.uid;
+                    const index = studentList && studentList.findIndex((item) => {
+                        return item.sid === _uid && item.file && item.file.length > 0
+                    })
+                    const list = [];
+                    if(index >= 0){
+                        const _file = studentList[index];
+                        Object.entries(_file.file).forEach(file => {
+                            const [key, value] = file;
+                            const newfile = {
+                                'uid': key,
+                                'name': value.file_name,
+                                'url': value.file_url,
+                                'status': 'done'
+                            }
+                            list.push(newfile);
+                        });
+                    }
+                    changeFileList(list);
                 }
             })
         } catch (e) {
@@ -137,8 +148,39 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
         return null;
 
     }
-    const [pdfList ,changePdfList] = useState([])
-    function ProjectWorks(props) {
+    const [pdfList ,changePdfList] = useState([]);
+    const [fileList,changeFileList] = useState([])
+    function userIsSubmit(){
+        console.log("studentList",studentList,USERMESSAGE && USERMESSAGE.uid);
+        const _uid = USERMESSAGE && USERMESSAGE.uid;
+        const index = studentList && studentList.findIndex((item) => {
+            return item.sid === _uid && item.file && item.file.length > 0
+        })
+        return index >= 0
+    }
+    function getUserFileList(){
+        const _uid = USERMESSAGE && USERMESSAGE.uid;
+        const index = studentList && studentList.findIndex((item) => {
+            return item.sid === _uid && item.file && item.file.length > 0
+        })
+        const list = []
+        if(index >= 0){
+            const _file = studentList[index];
+            Object.entries(_file.file).forEach(file => {
+                const [key, value] = file;
+                const newfile = {
+                    'uid': key,
+                    'name': value.file_name,
+                    'url': value.file_url,
+                    'status': 'done'
+                }
+                list.push(newfile);
+            });
+        }
+        return list
+
+    }
+    function ProjectWorks() {
         if (userRole != "S") {
             return (
                 <>
@@ -185,6 +227,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                     <Title level={4}>Upload documents here:</Title>
                     <Upload
                         maxCount={1}
+                        disabled={!!userIsSubmit()}
                         beforeUpload={(file)=>{
                             let fileType = file.name.split('.');
                             const fileDate = fileType.slice(-1);
@@ -199,45 +242,91 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                             if(fileList && fileList.length > 0){
                                 const _file = fileList[0];
                                 const pdf_url = _file?.response?.result?.pdf_url || "";
-                                changePdfList([pdf_url])
+                                changePdfList([pdf_url]);
+
                             }else{
                                 changePdfList([])
                             }
+                            changeFileList(fileList)
                         }}
+                        fileList={fileList}
                         action="http://127.0.0.1:5000/upload_file"
                         className="upload-list-inline">
-                        <Button icon={<UploadOutlined />}>Upload (Max: 1)</Button>
+                        <Button   disabled={!!userIsSubmit()}
+                                  icon={<UploadOutlined />}>Upload (Max: 1)</Button>
                     </Upload>
                     <br />
-                    <br />
-                    <br />
-                    <Space direction="horizontal" size="middle" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around' }}>
-                        <Button
-                            onClick={()=>{
-                                if(!pdfList ||pdfList.length === 0){
-                                    message.warning("Please submit your work");
-                                    return;
-                                }
-                                studentSubmit({
-                                    uid : USERMESSAGE && USERMESSAGE.uid,
-                                    proj_id : pid,
-                                    file : pdfList && pdfList[0]
-                                }).then(res => {
-                                    if(res.code === 200){
-                                        message.success("Submit successfully");
-                                    }else{
-                                        message.error("Submit failed");
+                    {
+                      !userIsSubmit() &&
+                        <Space direction="horizontal" size="middle" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around' }}>
+                            <Button
+                                onClick={()=>{
+                                    if(!pdfList ||pdfList.length === 0){
+                                        message.warning("Please submit your work");
+                                        return;
                                     }
-                                })
-                            }}
-                            type='primary' style={{ width: 300, marginTop: 20 }}>Submit</Button>
-                    </Space>
+                                    studentSubmit({
+                                        uid : USERMESSAGE && USERMESSAGE.uid,
+                                        proj_id : pid,
+                                        file : pdfList && pdfList[0]
+                                    }).then(res => {
+                                        if(res.code === 200){
+                                            message.success("Submit successfully");
+                                            setPageState(pagestate + 1);
+                                        }else{
+                                            message.error("Submit failed");
+                                        }
+                                    })
+                                }}
+                                type='primary' style={{ width: 300, marginTop: 20 }}>Submit</Button>
+                        </Space>
+                    }
+                    {
+                        !!userIsSubmit() &&
+                        getFeedBackForUser()
+
+                    }
                 </div>
             )
 
 
         }
         return null;
+    }
+    function getFeedBackForUser(){
+        const _uid = USERMESSAGE && USERMESSAGE.uid;
+        const index = studentList && studentList.findIndex((item) => {
+            return item.sid === _uid && item.file && item.file.length > 0
+        })
+        if(index >= 0){
+           const _lst =  studentList[index];
+           const {a_feedback,p_feedback} = _lst;
+           let a_list = [];
+           if(a_feedback){
+               a_list.push(<>
+                           <Title level={5}>Course Authority Feedback</Title>
+                           <Paragraph>
+                               {a_feedback}
+                           </Paragraph>
+                           <br />
+                       </>)
+
+           }
+            if(p_feedback){
+                a_list.push(<>
+                    <Title level={5}>Proposer Feedback</Title>
+                    <Paragraph>
+                        {p_feedback}
+                    </Paragraph>
+                    <br />
+                </>)
+
+            }
+            return a_list.map((item) => {
+                return item
+            })
+        }
+        return null
     }
     function Feedbacks(props) {
         const [feedback, setFeedback] = useState('');
@@ -246,47 +335,51 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
         if (student.file.length == 0) {
             return null;
         }
+        const _list = [];
         if (student.a_feedback) {
-            return (
+            _list.push (
                 <>
-                    <Title level={5}>Project work feedback</Title>
+                    <Title level={5}>Course Authority Feedback</Title>
                     <Paragraph>
                         {student.a_feedback}
                     </Paragraph>
-                    <br />
+                    <br/>
                 </>
             )
-        } else {
-            if (userRole != "CA") {
-                return (
-                    <>
-                        <Title level={5}>Project work feedback</Title>
-                        <Paragraph>
-                            No feedbacks yet
-                        </Paragraph>
-                    </>
-                )
-            } else {
-                return (
-                    <>
-                        <Title level={5}>Enter feedback</Title>
-                        <Input
-                            key={project.proj_name}
-                            placeholder="Enter your project work feedback here"
-                            onChange={(e) => {
-                                setFeedback(e.target.value);
-                            }}
-                        />
-                        <br />
-                        <Button type='primary' onClick={() => {
-                            console.log(pid, uid, student.sid, feedback);
-                            sendFeedback(pid, uid, student.sid, feedback);
-                        }}
-                            style={{ width: 300, marginTop: 20 }}>Submit Feedback</Button>
-                    </>
-                )
-            }
         }
+        if (student.p_feedback) {
+            _list.push (
+                <>
+                    <Title level={5}>Proposer Feedback</Title>
+                    <Paragraph>
+                        {student.p_feedback}
+                    </Paragraph>
+                    <br/>
+                </>
+            )
+        }
+        if ((userRole === "CA" && !student.a_feedback) ||
+            (userRole === "P" && !student.p_feedback)) {
+            _list.push (
+                <>
+                    <Title level={5}>Enter feedback</Title>
+                    <Input
+                        key={project.proj_name}
+                        placeholder="Enter your project work feedback here"
+                        onChange={(e) => {
+                            setFeedback(e.target.value);
+                        }}
+                    />
+                    <br/>
+                    <Button type='primary' onClick={() => {
+                        console.log(pid, uid, student.sid, feedback);
+                        sendFeedback(pid, uid, student.sid, feedback);
+                    }}
+                            style={{width: 300, marginTop: 20}}>Submit Feedback</Button>
+                </>
+            )
+        }
+        return _list.map(item => item)
     }
 
     return (
@@ -301,14 +394,6 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                                     <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
                                         <Title>{project.proj_name}</Title>
                                         <Title level={5}>Course: {project.course_name}</Title>
-                                        <Row>
-                                            <Col span={24}>
-                                                <Title level={5}>
-                                                    Project Description:
-                                                </Title>
-                                                <Paragraph>{project.description}</Paragraph>
-                                            </Col>
-                                        </Row>
                                         <Row>
                                             <Col span={24}>
                                                 <Title level={5}>Duration:</Title>
