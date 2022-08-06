@@ -505,9 +505,9 @@ def edit_project():
     if not course:
         return jsonify({'code': 400, 'msg': 'not related course'})
 
-    user = ProjectModel.query.filter(or_(ProjectModel.aid == uid, ProjectModel.pid == uid)).first()
-    if not user:
-        return jsonify({'code': 400, 'msg': 'no related user exist, Only CA or proposer has access'})
+    # user = ProjectModel.query.filter(or_(ProjectModel.aid == uid, ProjectModel.pid == uid)).first()
+    # if not user:
+    #     return jsonify({'code': 400, 'msg': 'no related user exist, Only CA or proposer has access'})
 
     try:
         date_time = get_time()[0]
@@ -727,3 +727,31 @@ def join_quit_project():
             db.session.commit()
             return jsonify({'code': 200, 'msg': 'quit successfully'})
     return jsonify({'code': 400, 'msg': 'operate fail'})
+
+
+def student_submit():
+    data = request.get_json(force=True)
+    uid, proj_id, file_url = data["uid"], data["proj_id"], data["file"]
+    user = UserModel.query.filter(UserModel.uid == uid, UserModel.role == 1, UserModel.active == 1).first()
+    if not user:
+        return jsonify({'code': 400, 'msg': 'Student does not exist.'})
+    proj = ProjectModel.query.filter(ProjectModel.proj_id == proj_id, ProjectModel.status == 4).first()
+    if not proj:
+        return jsonify({'code': 400, 'msg': 'Project cannot upload files by students.'})
+    selection = SelectionModel.query.filter(SelectionModel.sid == uid, SelectionModel.proj_id == proj_id, SelectionModel.active == 1).first()
+    if not selection:
+        return jsonify({'code': 400, 'msg': 'Student did not select this project.'})
+
+    try:
+        date_time = get_time()[0]
+        file_name = file_url.split('.com/')[1]
+        file_num = FileModel.query.count()
+        fid = generate_id("file", file_num + 1)
+        new_file = FileModel(fid=fid, proj_id=proj_id, uid=uid, file_name=file_name, file_url=file_url,
+                             type="work", ctime=date_time, utime=date_time)
+        db.session.add(new_file)
+        db.session.commit()
+        return jsonify({'code': 200, 'msg': 'Submit work successfully.'})
+
+    except Exception as e:
+        return jsonify({'code': 400, 'msg': 'Submit work failed.', 'error_msg': str(e)})
