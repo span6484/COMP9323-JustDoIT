@@ -197,76 +197,52 @@ def get_myProject():
 
 
 # change project status: pending, approved/not, add to join"
+# pending: 0   approved: 1   not approved: 2
 def change_project_status():
     data = request.get_json(force=True)
-    proj_id = data["proj_id"]
-    uid = data["uid"]
-    status = data["status"]  # pending: 0   approved: 1   not approved:2
-    proj = ProjectModel.query.filter(ProjectModel.proj_id == proj_id).first()
-    if not proj:
-        return jsonify({'code': 400, 'msg': 'not related project'})
-    user = UserModel.query.filter(UserModel.uid == uid, UserModel.active == 1).first()
-    if not user:
-        return jsonify({'code': 400, 'msg': 'not related user'})
+    uid, proj_id, status = data["uid"], data["proj_id"], data["status"]
 
-    course_id = proj.cid
-    course = CourseModel.query.filter(CourseModel.cid == course_id, CourseModel.active == 1).first()
+    user = UserModel.query.filter(UserModel.uid == uid, UserModel.active == 1, or_(UserModel.role == 0, UserModel.role == 3)).first()
+    if not user:
+        return jsonify({'code': 400, 'msg': 'User has no access to edit status.'})
+
+    project = ProjectModel.query.filter(ProjectModel.proj_id == proj_id, ProjectModel.status != -1).first()
+    if not project:
+        return jsonify({'code': 400, 'msg': 'No such project can be changed.'})
+
+    course = CourseModel.query.filter(CourseModel.cid == project.cid, CourseModel.active == 1).first()
     if not course:
         return jsonify({'code': 400, 'msg': 'not related course'})
 
-    role = user.role
-    # reviewer
-    if role == 3:
-        if course.public == 0:
-            return jsonify({'code': 400, 'msg': 'This reviewer has not access to edit because the course is private'})
+    can_modify = 0
+    cur_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    start_time = project.start_time.strftime('%Y-%m-%d %H:%M:%S')
+    close_time = project.close_time.strftime('%Y-%m-%d %H:%M:%S')
+    print(cur_time, start_time, close_time)
+    if project.aid == uid:
+        if (project.status == 0 and (status == 1 or status == 2)) or (project.status == 1 and status == 3):
+            can_modify = 1
+        elif status == 4 and project.status == 3 and start_time < cur_time < close_time:
+            can_modify = 1
+        elif status == 5 and (project.status == 4 or project.status == 3) and cur_time > close_time:
+            can_modify = 1
+    elif course.public == 1 and user.role == 3 and project.aid != uid:
+        if project.status == 0 and (status == 1 or status == 2):
+            can_modify = 1
+    else:
+        return jsonify({'code': 400, 'msg': 'This Project cannot be changed by this user.'})
 
-    if role == 0:
-        if proj.aid != uid:
-            return jsonify({'code': 400, 'msg': 'This CA has not access to modify'})
-    if role == 0 or role == 3:
-        if status < 0 or status > 3:
-            return jsonify({'code': 400,
-                            'msg': 'You only could modify status from 0 to 3, 0 : pending, 1: approved, 2: reject 3: join'})
-        else:
-            proj.status = status
+    try:
+        if can_modify == 1:
+            project.status = status
+            date_time = get_time()[0]
+            project.utime = date_time
             db.session.commit()
             return jsonify({'code': 200, 'msg': 'modify status successfully'})
-    else:
-        return jsonify({'code': 400, 'msg': 'You have no access to modify'})
-
-
-# change_project status according to start_time
-def change_project_status2():
-    data = request.get_json(force=True)
-    proj_id = data["proj_id"]
-    proj = ProjectModel.query.filter(ProjectModel.proj_id == proj_id).first()
-    if not proj:
-        return jsonify({'code': 400, 'msg': 'not related project'})
-    course_id = proj.cid
-    course = CourseModel.query.filter(CourseModel.cid == course_id, CourseModel.active == 1).first()
-    if not course:
-        return jsonify({'code': 400, 'msg': 'not related course'})
-
-    if proj.status < 3:
-        return jsonify({'code': 400, 'msg': 'this project is still not open to join'})
-    else:
-        now = dt.now()
-        current_time = now.strftime("%Y-%m-%d %H:%M:%S")
-        start_time = proj.start_time
-        close_time = proj.close_time
-        print("current time: ", current_time)
-        print("start time: ", start_time)
-        print("close time: ", close_time)
-        if now > close_time:
-            proj.status = 5  # close
-            db.session.commit()
-            return jsonify({'code': 200, 'msg': 'modify status to 5 (Close) successfully'})
-        if now > start_time:
-            proj.status = 4  # in progress
-            db.session.commit()
-            return jsonify({'code': 200, 'msg': 'modify status to 4 (In Progress) successfully'})
         else:
-            return jsonify({'code': 200, 'msg': 'Wait the start time'})
+            return jsonify({'code': 400, 'msg': 'modify status failed'})
+    except Exception as e:
+        return jsonify({'code': 400, 'msg': 'modify status failed.', 'error_msg': str(e)})
 
 
 # [username, email, role]
