@@ -8,13 +8,14 @@ import moment from 'moment';
 const { Title, Paragraph, Text, Link } = Typography;
 const { Step } = Steps;
 import _ from "lodash"
+import "./detail.less"
 const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     const ref = useRef();
     //console.log(USERMESSAGE);
-    const uid = USERMESSAGE.uid;
+    const uid = USERMESSAGE && USERMESSAGE.uid;
     // get roles based project users
     var userRole = undefined;
-    switch (USERMESSAGE.type) {
+    switch (USERMESSAGE && USERMESSAGE.type) {
         case 0:
             userRole = "CA";
             break;
@@ -697,26 +698,27 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                         <Row>
                             <Col span={14}>
                                 <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
-                                    <Title>{project.project_name}</Title>
-                                    <Title level={2}>A project for {project.course_name}</Title>
+                                    <Title>{project.proj_name}</Title>
+                                    <Title level={5}>Course: {project.course_name}</Title>
                                     <Row>
-                                        <Col span={12}>
-                                            <Title level={4}>Start Time</Title>
-                                            <Paragraph>{project.start_time}</Paragraph>
-                                        </Col>
-                                        <Col span={12}>
-                                            <Title level={4}>End time</Title>
-                                            <Paragraph>{project.close_time}</Paragraph>
+                                        <Col span={24}>
+                                            <Title level={5}>
+                                                Project Description:
+                                            </Title>
+                                            <Paragraph>{project.description}</Paragraph>
                                         </Col>
                                     </Row>
-                                    <Title level={4}>Project Description</Title>
-                                    <Paragraph>
-                                        {project.description}
-                                    </Paragraph>
                                     <Row>
-                                        <Col span={12}>
-                                            <Title level={4}>Course Authority:</Title>
+                                        <Col span={24}>
+                                            <Title level={5}>Duration:</Title>
+                                            <Paragraph>From {project.start_time} to {project.close_time}</Paragraph>
+                                        </Col>
+                                    </Row>
+                                    <Row>
+                                        <Col span={24} style={{display : "flex",alignItems : "center"}}>
+                                            <Title level={5}>Course Authority:</Title>
                                             <Comment
+                                                style={{marginLeft : "10px"}}
                                                 className="comment-box-item"
                                                 author={<div>
                                                     {project.authority_name}
@@ -740,9 +742,10 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                                             >
                                             </Comment>
                                         </Col>
-                                        <Col span={12}>
-                                            <Title level={4}>Project Proposer:</Title>
+                                        <Col span={24} style={{display : "flex",alignItems : "center"}}>
+                                            <Title level={5}>Project Proposer:</Title>
                                             <Comment
+                                                style={{marginLeft : "10px"}}
                                                 className="comment-box-item"
                                                 author={<div>
                                                     {project.proposer_name}
@@ -779,7 +782,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                             </Col>
                         </Row>
                         <br />
-                        <Title level={3}>Project current progress</Title>
+                        <Title level={4}>Project current progress</Title>
                         <ProgressBars userRole={userRole} />
                         <br />
                         <br />
