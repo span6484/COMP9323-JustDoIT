@@ -91,6 +91,10 @@ def add_requirement():
     if not cu:
         return jsonify({'code': 400, 'msg': 'User is not in this course.'})
 
+    # submit_ddl = course.start_time - datetime.timedelta(days=14)
+    # if get_time()[0] > submit_ddl:
+    #     return jsonify({'code': 400, 'msg': 'Exceeded the deadline.'})
+
     try:
         r_num = RequirementModel.query.count()
         rid = generate_id("requirement", r_num+1)
@@ -147,18 +151,26 @@ def get_requirements():
 
 def get_requirement_detail():
     data = request.get_json(force=True)
+    uid, rid = data["uid"], data["rid"]
 
-    rid = data["rid"]
+    user = UserModel.query.filter(UserModel.uid == uid, UserModel.active == 1).first()
+    if not user:
+        return jsonify({'code': 400, 'msg': 'No such active user in database.'})
+
     requirement = RequirementModel.query.filter(RequirementModel.rid == rid, RequirementModel.active == 1).first()
     if not requirement:
         return jsonify({'code': 400, 'msg': 'No such requirement in database.'})
+
+    is_operation = 0
+    if requirement.aid == uid:
+        is_operation = 1
 
     try:
         course = CourseModel.query.filter(CourseModel.cid == requirement.cid, CourseModel.active == 1).first()
         auth = UserModel.query.filter(UserModel.uid == requirement.aid, UserModel.active == 1).first()
         submit_ddl = course.start_time - datetime.timedelta(days=14)
         result = {"content": requirement.content, "submit_ddl": submit_ddl,
-                  "course_authority": auth.username, "email": auth.email}
+                  "course_authority": auth.username, "email": auth.email, "is_operation": is_operation}
         return jsonify({'code': 200, 'result': result})
 
     except Exception as e:
@@ -180,6 +192,10 @@ def add_proposal():
     course = CourseModel.query.filter(CourseModel.cid == requirement.cid, CourseModel.active == 1).first()
     if not course:
         return jsonify({'code': 400, 'msg': 'Course id in requirement does not exist.'})
+
+    # submit_ddl = course.start_time - datetime.timedelta(days=14)
+    # if get_time()[0] > submit_ddl:
+    #     return jsonify({'code': 400, 'msg': 'Exceeded the deadline.'})
 
     if not proj_name or not description:
         return jsonify({'code': 400, 'msg': 'Proposal name and description cannot be empty.'})
@@ -221,6 +237,10 @@ def delete_proposal():
     if not course:
         return jsonify({'code': 400, 'msg': 'Course information in this proposal is invalid.'})
 
+    # submit_ddl = course.start_time - datetime.timedelta(days=14)
+    # if get_time()[0] > submit_ddl:
+    #     return jsonify({'code': 400, 'msg': 'Exceeded the deadline.'})
+
     try:
         date_time = get_time()[0]
         proposal.status = -1
@@ -254,13 +274,10 @@ def get_proposals():
     if not course:
         return jsonify({'code': 400, 'msg': 'Course info in this requirement is invalid.'})
 
-    if not (user.role == 3 and course.public == 1) and requirement.aid != uid:
-        return jsonify({'code': 400, 'msg': 'User has no access to check proposals in this requirement.'})
-
-    if user.role == 0 or user.role == 3:
+    if user.role == 0 or (user.role == 3 and course.public == 1):
         proposal_list = ProjectModel.query.filter(ProjectModel.rid == rid, ProjectModel.status == 0).all()
     elif user.role == 2:
-        proposal_list = ProjectModel.query.filter(ProjectModel.rid == rid, ProjectModel.pid == uid, ProjectModel.status == 0).all()
+        proposal_list = ProjectModel.query.filter(ProjectModel.rid == rid, ProjectModel.pid == uid, ProjectModel.status != -1).all()
     else:
         return jsonify({'code': 400, 'msg': 'User has no access to see proposals.'})
     if not proposal_list:
@@ -355,3 +372,83 @@ def get_projects_in_course():
     except Exception as e:
         return jsonify({'code': 400, 'msg': 'Get projects in course failed.', 'error_msg': str(e)})
 
+
+def edit_requirement():
+    data = request.get_json(force=True)
+    uid, rid, content = data["uid"], data["rid"], data["content"]
+
+    if not content:
+        return jsonify({'code': 400, 'msg': 'Empty content.'})
+
+    user = UserModel.query.filter(UserModel.uid == uid, or_(UserModel.role == 0, UserModel.role == 3),
+                                  UserModel.active == 1).first()
+    if not user:
+        return jsonify({'code': 400, 'msg': 'No such active user has access to edit requirements.'})
+
+    requirement = RequirementModel.query.filter(RequirementModel.rid == rid, RequirementModel.active == 1).first()
+    if not requirement:
+        return jsonify({'code': 400, 'msg': 'No such requirement in database.'})
+
+    if requirement.aid != uid:
+        return jsonify({'code': 400, 'msg': 'User cannot edit this requirement.'})
+
+    proposals = ProjectModel.query.filter(ProjectModel.rid == rid, ProjectModel.status != -1).all()
+    if proposals:
+        return jsonify({'code': 400, 'msg': 'User cannot edit this requirement, since there are proposals.'})
+
+    course = CourseModel.query.filter(CourseModel.cid == requirement.cid, CourseModel.active == 1).first()
+    if not course:
+        return jsonify({'code': 400, 'msg': 'Wrong course info in this requirement.'})
+
+    # submit_ddl = course.start_time - datetime.timedelta(days=14)
+    # if get_time()[0] > submit_ddl:
+    #     return jsonify({'code': 400, 'msg': 'Exceeded the deadline.'})
+
+    try:
+        date_time = get_time()[0]
+        requirement.content = content
+        requirement.utime = date_time
+        db.session.commit()
+        return jsonify({'code': 200, 'msg': 'edit requirement successfully.'})
+
+    except Exception as e:
+        return jsonify({'code': 400, 'msg': 'edit requirement failed.', 'error_msg': str(e)})
+
+
+def delete_requirement():
+    data = request.get_json(force=True)
+    uid, rid = data["uid"], data["rid"]
+
+    user = UserModel.query.filter(UserModel.uid == uid, or_(UserModel.role == 0, UserModel.role == 3),
+                                  UserModel.active == 1).first()
+    if not user:
+        return jsonify({'code': 400, 'msg': 'No such active user has access to delete requirements.'})
+
+    requirement = RequirementModel.query.filter(RequirementModel.rid == rid, RequirementModel.active == 1).first()
+    if not requirement:
+        return jsonify({'code': 400, 'msg': 'No such requirement in database.'})
+
+    if requirement.aid != uid:
+        return jsonify({'code': 400, 'msg': 'User cannot delete this requirement.'})
+
+    proposals = ProjectModel.query.filter(ProjectModel.rid == rid, ProjectModel.status != -1).all()
+    if proposals:
+        return jsonify({'code': 400, 'msg': 'User cannot delete this requirement, since there are proposals.'})
+
+    course = CourseModel.query.filter(CourseModel.cid == requirement.cid, CourseModel.active == 1).first()
+    if not course:
+        return jsonify({'code': 400, 'msg': 'Wrong course info in this requirement.'})
+
+    # submit_ddl = course.start_time - datetime.timedelta(days=14)
+    # if get_time()[0] > submit_ddl:
+    #     return jsonify({'code': 400, 'msg': 'Exceeded the deadline.'})
+
+    try:
+        date_time = get_time()[0]
+        requirement.active = 0
+        requirement.utime = date_time
+        db.session.commit()
+        return jsonify({'code': 200, 'msg': 'Delete requirement successfully.'})
+
+    except Exception as e:
+        return jsonify({'code': 400, 'msg': 'Delete requirement failed.', 'error_msg': str(e)})
