@@ -71,7 +71,6 @@ def get_course_detail():
     return jsonify({'code': 200, 'result': result})
 
 
-
 def add_requirement():
     data = request.get_json(force=True)
     uid, cid, content = data["uid"], data["cid"], data["content"]
@@ -286,8 +285,10 @@ def get_proposals():
     try:
         result_list = []
         for p in proposal_list:
+            is_delete = 0
             proposer = UserModel.query.filter(UserModel.uid == p.pid, UserModel.active == 1).first()
-            p_dict = {"proj_id": p.proj_id, "proj_name": p.proj_name,
+            if p.pid == uid:    is_delete = 1
+            p_dict = {"proj_id": p.proj_id, "proj_name": p.proj_name, "is_delete": is_delete,
                       "proposer": proposer.username, "email": proposer.email, "status": p.status}
             result_list.append(p_dict)
         result = {"count": len(result_list), "result_list": result_list}
