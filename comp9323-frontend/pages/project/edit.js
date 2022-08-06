@@ -34,36 +34,53 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     var pid = urlMsg.asPath.toString().replace('/project/edit?id=', '');
 
     const [project, setProject] = useState({});
+    const [start_time, setStart_time] = useState('');
+    const [close_time, setClose_time] = useState('');
 
     const changeProject = (e, content) => {
-        const obj = Object.assign(project, {
-            [content]: e.target.value,
-        });
+        var obj;
+        if (content == "time") {
+            console.log(moment(e[0]).format(dateFormat), moment(e[1]).format(dateFormat));
+            obj = Object.assign(project, {
+                ['start_time']: moment(e[0]).format('YYYY-MM-DD'),
+                ['close_time']: moment(e[1]).format('YYYY-MM-DD'),
+            });
+            setStart_time(moment(e[0]).format('YYYY-MM-DD'));
+            setClose_time(moment(e[1]).format('YYYY-MM-DD'));
+            //console.log(obj);
+        } else {
+            obj = Object.assign(project, {
+                [content]: e.target.value,
+            });
+        }
         setProject(obj);
+        // console.log(project.start_time, project.close_time);
     };
-    function saveProject(pid, uid, status) {
+    function saveProject() {
         try {
+            console.log(JSON.stringify({
+                "proj_id": pid,
+                "uid": uid,
+                "proj_name": project.proj_name,
+                "description": project.description,
+                "start_time": project.start_time,
+                "close_time": project.close_time,
+                "status": status,
+                "max_num": 25
+            }));
             fetch('http://localhost:5000/edit_project', {
                 method: 'POST',
                 headers: {
                     "content": 'application/json',
                     'Access-Control-Allow-Origin': '*'
                 },
-                // "proj_id": "1",
-                // "uid": "u00001",
-                // "proj_name": "test edit proj",
-                // "description": "test test test test test test",
-                // "start_time": "2022-01-01",
-                // "close_time": "2022-12-31",
-                // "status": 0,
-                // "max_num":25
                 body: JSON.stringify({
                     "proj_id": pid,
                     "uid": uid,
-                    "proj_name": "test edit proj",
-                    "description": "test test test test test test",
-                    "start_time": "2022-01-01",
-                    "close_time": "2022-12-31",
+                    "proj_name": project.proj_name,
+                    "description": project.description,
+                    "start_time": start_time,
+                    "close_time": close_time,
                     "status": status,
                     "max_num": 25
                 })
@@ -94,14 +111,16 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                 body: JSON.stringify({ "proj_id": pid, "uid": uid, })
             }).then(res => {
                 res.json().then((val) => {
-                    console.log(moment(val.result.start_time).isValid());
+                    // console.log(moment(val.result.start_time).isValid());
                     // val.result.start_time = moment(val.result.start_time).format(dateFormat);
                     // val.result.close_time = moment(val.result.close_time).format(dateFormat);
                     val.result.start_time = moment(val.result.start_time).format(dateFormat).toString();
                     val.result.close_time = moment(val.result.close_time).format(dateFormat).toString();
-                    console.log(val.result);
-                    console.log(moment(val.result.start_time).isValid());
-                    console.log(val.result.start_time, val.result.close_time);
+                    setStart_time(moment(val.result.start_time).format('YYYY-MM-DD').toString());
+                    setClose_time(moment(val.result.close_time).format('YYYY-MM-DD').toString());
+                    // console.log(val.result);
+                    // console.log(moment(val.result.start_time).isValid());
+                    // console.log(val.result.start_time, val.result.close_time);
                     setProject(val.result);
                 });
             });
@@ -109,7 +128,9 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
             console.log(e)
         };
     }, []);
-
+    useEffect(() => {
+        RangeDatePicker();
+    }, [project]);
     function ProgressBars(props) {
         const userRole = props.userRole;
 
@@ -154,7 +175,8 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     };
     function UploadDocumnets(props) {
         const status = props.status;
-        if (status <= 1) {
+        
+        if (status == 0) {
             return (
                 <>
                     <Title level={3}>Upload documents</Title>
@@ -163,18 +185,30 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
 
                     <br />
                     <Upload
-                        action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
+                        action="http://localhost:5000/upload_file"
                         listType="picture"
-                        defaultFileList={[...fileList]}
                         className="upload-list-inline"
+                        accept=".pdf"
                     >
-                        <Button icon={<UploadOutlined />}>Upload</Button>
+                        <Button  icon={<UploadOutlined />}>Upload</Button>
                     </Upload>
                 </>
             );
         }
         return null;
     }
+    function RangeDatePicker() {
+        return (
+            <DatePicker.RangePicker
+                disabledDate={disabledDate}
+                format={dateFormat}
+                key='time'
+                value={[moment(start_time, dateFormat), moment(close_time, dateFormat)]}
+                onCalendarChange={val => changeProject(val, 'time')}
+            />
+        )
+    }
+
     return (
         <PageBase cRef={ref} USERMESSAGE={USERMESSAGE}>
             <style dangerouslySetInnerHTML={{
@@ -190,43 +224,32 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                             <Title>Edit Project</Title>
                             <br />
                             <Title level={4}>Change project name</Title>
+
                             <Input
-                                value={project.proj_name}
-                                placeholder="Enter new project name here" />
+                                defaultValue={project.proj_name}
+                                key={project.proj_name}
+                                placeholder="Enter new project name here"
+                                onChange={(e) => {
+                                    changeProject(e, 'proj_name');
+                                }}
+                            />
                             <br />
                             <Title level={4}>Change project description</Title>
                             <Input.TextArea
                                 maxLength={1200}
                                 autoSize={{ minRows: 4, maxRows: 8 }}
-                                value={project.description}
-                                placeholder="Enter new project description here" />
-
+                                placeholder="Enter new project description here"
+                                defaultValue={project.description}
+                                key={project.description}
+                                onChange={(e) => {
+                                    changeProject(e, 'description');
+                                }} />
                         </Space>
                         <br />
                         <Row>
                             <Col span={20}>
-                                <Title level={4}>Change Start Time and End Time</Title>
-
-                                <Space direction="vertical" size="middle" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
-                                    <Space direction="vertical" size="middle" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                                        <Title level={5}>
-                                            Current: Start Time - End Time
-                                        </Title>
-                                        <Title level={5}>
-                                            {project.start_time} - {project.close_time}
-                                        </Title>
-                                    </Space>
-                                    <Space direction="vertical" size="middle" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                                        <Title level={5}>
-                                            New: Start Time - End Time
-                                        </Title>
-                                        <DatePicker.RangePicker
-                                            disabledDate={disabledDate}
-                                            format={dateFormat}
-                                        />
-                                    </Space>
-                                </Space>
-
+                                <Title level={4}>Change start time and end time</Title>
+                                <RangeDatePicker />
                             </Col>
                         </Row>
                         <br />
@@ -235,7 +258,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                         <ProgressBars userRole={userRole} />
                         <br />
                         <br />
-                        {/* //<UploadDocumnets status={status} /> */}
+                        <UploadDocumnets status={status} />
                         <br />
                         <br />
                         <br />

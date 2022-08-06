@@ -1,6 +1,6 @@
 import PageBase from '../basePage';
 import projectStyle from "./project.less";
-
+import moment from 'moment';
 import React, { useRef, onChange, useState, useEffect } from 'react';
 import { UploadOutlined } from '@ant-design/icons';
 import { Col, Row, Collapse, Typography, Button, Space, Input, message, Upload, Comment, Avatar, Tooltip, Tabs } from 'antd';
@@ -12,7 +12,8 @@ const { Title, Paragraph, Text, Link } = Typography;
 
 const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     const ref = useRef();
-    console.log(urlMsg, USERMESSAGE);
+    const { Panel } = Collapse;
+    // console.log(USERMESSAGE, urlMsg);
     const uid = USERMESSAGE.uid;
     // get roles based project users
     var userRole = undefined;
@@ -32,61 +33,45 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     }
     // get project id from url 
     var pid = urlMsg.asPath.toString().replace('/project/work?id=', '');
-
+    const [pagestate, setPageState] = useState(0);
     const [project, setProject] = useState({});
-    project.start_time = (new Date(project.start_time)).toLocaleDateString();
-    project.close_time = (new Date(project.close_time)).toLocaleDateString();
-    var status = project.status;
-
-    var reviewed = false;
-    var submitted = false;
-
     useEffect(() => {
         setTimeout(() => {
             ref?.current.getTabPane(urlMsg.asPath, `Project Name`)
         }, 0);
         // fetch project info on load
+        getProjectWorks();
+    }, [pagestate]);
+
+    function getProjectWorks() {
+        // fetch project info
+        // console.log(JSON.stringify({ "proj_id": pid, "uid": uid, "student_index": 0 }));
         try {
-            fetch('http://localhost:5000/view_project', {
+            fetch('http://localhost:5000/view_works', {
                 method: 'POST',
                 headers: {
                     "content": 'application/json',
                     'Access-Control-Allow-Origin': '*'
                 },
-                body: JSON.stringify({ "proj_id": pid })
+                body: JSON.stringify({ "proj_id": pid, "uid": uid, "student_index": 0 })
             }).then(res => {
                 res.json().then((val) => {
-                    console.log(val.result);
+                    console.log('works:', val.result);
+                    // convert datetime
+                    val.result.start_time = moment(val.result.start_time).format('YYYY-MM-DD');
+                    val.result.close_time = moment(val.result.close_time).format('YYYY-MM-DD');
                     setProject(val.result);
+                    // console.log('project val:', val.result);
                 });
             });
         } catch (e) {
             console.log(e)
         };
-        // fetch works
-        // try {
-        //     fetch('http://localhost:5000/view_project', {
-        //         method: 'POST',
-        //         headers: {
-        //             "content": 'application/json',
-        //             'Access-Control-Allow-Origin': '*'
-        //         },
-        //         body: JSON.stringify({ "proj_id": pid })
-        //     }).then(res => {
-        //         res.json().then((val) => {
-        //             console.log(moment(val.result.start_time).isValid());
+    }
 
-        //             console.log(val.result);
-        //             console.log(moment(val.result.start_time).isValid());
-        //             console.log(val.result.start_time, val.result.close_time);
-        //             setProject(val.result);
-        //         });
-        //     });
-        // } catch (e) {
-        //     console.log(e)
-        // };
+    var reviewed = false;
+    var submitted = false;
 
-    }, []);
 
     function Documents(props) {
         <style dangerouslySetInnerHTML={{
@@ -230,7 +215,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                         <Row>
                             <Col span={24}>
                                 <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
-                                    <Title>{project.project_name}</Title>
+                                    <Title level={1}>{project.proj_name}</Title>
                                     <Title level={2}>A project for {project.course_name}</Title>
                                     <Row>
                                         <Col span={12}>
@@ -242,6 +227,63 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                                             <Title level={5}>{project.close_time}</Title>
                                         </Col>
                                     </Row>
+                                    <Paragraph>
+                                        {project.description}
+                                    </Paragraph>
+                                    <Space direction="vertical" size="middle" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around' }}>
+                                        <div>
+                                            <Title level={4}>Course Authority:</Title>
+                                            <Comment
+                                                className="comment-box-item"
+                                                author={<div>
+                                                    {project.authority_name}
+                                                    <Tooltip placement="top" title={<div className={"email-tool-tip-component"}>
+                                                        {project.authority_email}
+                                                        <CopyToClipboard
+                                                            text={project.authority_email}
+                                                            onCopy={() => {
+                                                                message.success('copy email success');
+                                                            }}
+                                                        >
+                                                            <span className={"email-tool-tip-component-copy"}>COPY</span>
+                                                        </CopyToClipboard>
+                                                    </div>}>
+                                                        <MailOutlined className={"mail-box"} />
+                                                    </Tooltip>
+                                                </div>
+                                                }
+                                                avatar={<Avatar src="/static/ca.png" />}
+                                                content={null}
+                                            >
+                                            </Comment>
+                                        </div>
+                                        <div>
+                                            <Title level={4}>Project Proposer:</Title>
+                                            <Comment
+                                                className="comment-box-item"
+                                                author={<div>
+                                                    {project.proposer_name}
+                                                    <Tooltip placement="top" title={<div className={"email-tool-tip-component"}>
+                                                        {project.proposer_email}
+                                                        <CopyToClipboard
+                                                            text={project.proposer_email}
+                                                            onCopy={() => {
+                                                                message.success('copy email success');
+                                                            }}
+                                                        >
+                                                            <span className={"email-tool-tip-component-copy"}>COPY</span>
+                                                        </CopyToClipboard>
+                                                    </div>}>
+                                                        <MailOutlined className={"mail-box"} />
+                                                    </Tooltip>
+                                                </div>
+                                                }
+                                                avatar={<Avatar src="/static/ca.png" />}
+                                                content={null}
+                                            >
+                                            </Comment>
+                                        </div>
+                                    </Space>
                                 </Space>
                             </Col>
                         </Row>
@@ -249,7 +291,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                         <br />
                         <Row>
                             <Col span={24} >
-                                <Documents userRole={userRole} reviewed={reviewed} submitted={submitted} />
+                                <Documents />
                             </Col>
                         </Row>
                         <br />
