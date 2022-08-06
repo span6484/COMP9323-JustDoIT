@@ -1,139 +1,141 @@
 import PageBase from '../basePage';
 import NewProposalStyle from "./NewProposal.less";
-import React, { useRef, onChange, useState, useEffect } from 'react';
-import { UploadOutlined,MailOutlined } from '@ant-design/icons';
-import { Col, Row, Button, Typography, Input, Space, Select, message, Upload, Comment, Avatar, Tooltip } from 'antd';
+import React, { useRef, useState, useEffect } from 'react';
+import { UploadOutlined, MailOutlined } from '@ant-design/icons';
+import { Form, Col, Row, Button, Typography, Input, Space, message, Upload, Comment, Avatar, Tooltip } from 'antd';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
-const { Dragger } = Upload;
-import { SP } from 'next/dist/next-server/lib/utils';
-const { Title, Paragraph, Text, Link } = Typography;
+const { Title } = Typography;
+import {addProposal, uploadPdf} from "../MockData";
+import {getQueryString} from "../../util/common";
 
 const TextIndex = ({ USERMESSAGE, urlMsg }) => {
-    const ref = useRef();
-    const { Option } = Select;
+	const ref = useRef();
+	const [form] = Form.useForm();
 
+	// State
+	const [userInfo, changeUserInfo] = useState(USERMESSAGE); // Current User Info
 
-    const fileList = [
-        // {
-        //     uid: '-1',
-        //     name: 'test.pdf',
-        //     status: 'done',
-        //     url: 'https://www.orimi.com/pdf-test.pdf',
-        // },
-        // {
-        //     uid: '-2',
-        //     name: 'error.png',
-        //     status: 'error',
-        // },
-    ];
-useEffect(() => {
-    setTimeout(() => {
-        ref?.current.getTabPane(urlMsg.asPath, `New Proposal`)
-        }, 0)
-    }, []);
-    return (
-        <PageBase cRef={ref} USERMESSAGE={USERMESSAGE}>
-            <style dangerouslySetInnerHTML={{
-                __html: NewProposalStyle
-            }} />
-            <>
-                <br />
-                <Row>
-                    <Col span={2}></Col>
-                    <Col span={20}>
+	// 初始化
+	useEffect(() => {
+		setTimeout(() => {
+			ref?.current.getTabPane(urlMsg.asPath, `New Proposal`)
+		}, 0)
+	}, []);
 
-                        <Space direction="vertical" size="middle" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'start' }}>
-                            <Title>Add Project Proposal</Title>
-                            {/* <br />
-                            <Title level={2}>Example project name</Title>
-                            <br />
-                            <Paragraph>
-                                More than 1.2 billion invoices are exchanged in Australia every year, with around 90 percent of invoice processing still partly or fully manual. Over the past 2 years, the Government has invested nearly $20M to facilitate e-invoicing adoption across Australia. In New South Wales state government, agencies will have to use e-invoicing for goods and services valued at up to AUD 1 million from 2022. It is expected that this will be extended to all transactions in the longer term. The use of e-invoicing requires each company participating in an e-invoice exchange to have a specialised software infrastructure to satisfy existing regulations. Most provided solutions are in the form of a complete package that offers several functionalities for participating in the e-invoicing exchange. However, such solutions may not be suitable in all contexts and are often expensive or tied to the use of other products. For example, Xero offers e-invoicing facilities as part of their cloud solution, but a company would need to migrate all their accounting system to Xero first before they can use them. Therefore, there is a need to offer custom-made solutions for niche areas that will address the requirements of small players like SMEs.
-                            </Paragraph>
-                            <br /> */}
+	// Save Proposal
+	const handleSaveProposal = () => {
+		form.validateFields().then((fieldsValue) => {
+			if(!fieldsValue.projectName ){
+				message.warning("Please enter project name");
+				return;
+			}
+			if(!fieldsValue.projectDescription){
+				message.warning("Please enter project description");
+				return;
+			}
+			let reqBody = {
+				uid :USERMESSAGE && USERMESSAGE.uid,
+				rid: getQueryString("id") || "",
+				proj_name: fieldsValue.projectName,
+				description: fieldsValue.projectDescription,
+				file: pdfList && pdfList[0],
+			};
+			addProposal(reqBody).then(res => {
+				if(res.code === 200){
+					message.success("Add proposal successfully")
+				}else{
+					message.error("Add proposal failed")
+				}
+			});
+		}).catch(err => {
+			console.log(err);
+		});
+	};
+	// Back
+	const handleBack = () => {};
+    const [pdfList ,changePdfList] = useState([])
+	return (
+		<PageBase cRef={ref} USERMESSAGE={USERMESSAGE}>
+			<style dangerouslySetInnerHTML={{ __html: NewProposalStyle }} />
+			<Form form={form}>
+				<br />
+				<Row>
+					<Col span={2}></Col>
+					<Col span={20}>
+						<Space direction="vertical" size="middle" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'start' }}>
+							<Title>Add Project Proposal</Title>
+							<Title level={4}>Project Name</Title>
+							<Form.Item name="projectName">
+								<Input placeholder="Enter new project name here" />
+							</Form.Item>
+							<br />
+							<Title level={4}>Project Description</Title>
+							<Form.Item name="projectDescription">
+								<Input.TextArea
+									autoSize={{
+										minRows: 3,
+										maxRows: 5,
+									}}
+									placeholder="Enter new project description here" />
+							</Form.Item>
+							<br />
+						</Space>
+						<Title level={4}>Upload Documents</Title>
+						<br />
+						<Upload
+							maxCount={1}
+							disabled={pdfList && pdfList.length > 0}
+							beforeUpload={(file)=>{
+								let fileType = file.name.split('.');
+								const fileDate = fileType.slice(-1);
+								const isLt200M = file.size / 1024 / 1024 < 0.5;
+								if (!isLt200M) {
+									message.error('File size cannot be greater than 500kb');
+									this.setState({
+										file
+									})
+									this.onRemove(file);
+									return
+								}
+								return isLt200M;
+							}}
+							onChange={({file,fileList})=>{
+								console.log(fileList)
+								if(fileList && fileList.length > 0){
+									const _file = fileList[0];
+									const pdf_url = _file?.response?.result?.pdf_url || "";
+									changePdfList([pdf_url])
+								}else{
+									changePdfList([])
+								}
 
-                            <Title level={4}>Project Name</Title>
-                            <Input placeholder="Enter new project name here" />
-                            <br />
-                            <Title level={4}>Project Proposer</Title>
-                            <div className={"comment-box"}>
-                                <Comment
-                                    className="comment-box-item"
-                                    author={<div>
-                                    Proposer Name&nbsp;&nbsp;&nbsp;
-                                    <Tooltip placement="top" title={<div className={"email-tool-tip-component"}>
-                                        email12131@qq.com
-                                        <CopyToClipboard
-                                        text={"email12131@qq.com"}
-                                        onCopy={() => {
-                                            message.success('copy email success');
-                                        }}
-                                        >
-                                        <span className={"email-tool-tip-component-copy"}>COPY</span>
-                                        </CopyToClipboard>
-                                    </div>}>
-                                        <MailOutlined className={"mail-box"} />
-                                    </Tooltip>
-                                    </div>
-                                    }
-                                    avatar={<Avatar src="/static/ca.png" alt="Han Solo" />}
-                                    content={null}
-                                />
-                            </div>
-                            <br />
-                            <Title level={4}>Project Description</Title>
-                            <Input placeholder="Enter new project description here" />
-                            <br />
-                        </Space>
-
-                        {/* <Title level={4}>Change project progress</Title>
-                        <Select defaultValue="Open to join" style={{ width: 400 }}>
-                            <Option value="0">Pending</Option>
-                            <Option value="1">Approved</Option>
-                            <Option value="2">Open to join</Option>
-                            <Option value="3">In Progress</Option>
-                            <Option value="4">Ended</Option>
-                        </Select> */}
-                        <Title level={4}>Upload Documents</Title>
-                        <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
-                        </Space>
-
-                        <br />
-                        <Upload
-                            action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
-                            listType="picture"
-                            defaultFileList={[...fileList]}
-                            className="upload-list-inline"
-                        >
-                            <Button icon={<UploadOutlined />}>Upload</Button>
-                        </Upload>
-                        <br />
-                        <br />
-                        <br />
-                        <Space direction="horizontal" size="middle" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around' }}>
-
-                            <Button type='primary' style={{ width: 300 }}>Save Proposal</Button>
-                            <Button style={{ width: 300 }}>Back</Button>
-
-                        </Space>
-
-                    </Col>
-                    <Col span={2}></Col>
-                </Row>
-
-
-
-            </>    </PageBase>
-    )
+							}}
+							action="http://127.0.0.1:5000/upload_file"
+							className="upload-list-inline">
+							<Button icon={<UploadOutlined />}>Upload (Max: 1)</Button>
+						</Upload>
+						<br />
+						<br />
+						<br />
+						<Space direction="horizontal" size="middle" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around' }}>
+							<Button type='primary' style={{ width: 300 }} onClick={handleSaveProposal}>Save Proposal</Button>
+							{/*<Button style={{ width: 300 }} onClick={handleBack}>Back</Button>*/}
+						</Space>
+					</Col>
+					<Col span={2}></Col>
+				</Row>
+			</Form>    
+		</PageBase>
+	)
 }
 
 TextIndex.getInitialProps = async (status) => {
-    const asPath = status.asPath;
-    return {
-      urlMsg: {
-        asPath
-      }
-    }
-  }
+	const asPath = status.asPath;
+	return {
+		urlMsg: {
+			asPath
+		}
+	}
+};
 
 export default TextIndex
