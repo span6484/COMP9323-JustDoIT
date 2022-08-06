@@ -3,7 +3,7 @@ import projectStyle from "./project.less";
 import moment from 'moment';
 import React, { useRef, useEffect, useState } from 'react';
 import { UploadOutlined } from '@ant-design/icons';
-import { Col, Row, Button, Typography, Input, Space, Select, message, Upload, Comment, Avatar, DatePicker, Steps } from 'antd';
+import { Col, Row, Button, Typography, Input, Space, InputNumber, message, Upload, Comment, Avatar, DatePicker, Steps } from 'antd';
 const { Dragger } = Upload;
 import { SP } from 'next/dist/next-server/lib/utils';
 const { Title, Paragraph, Text, Link } = Typography;
@@ -36,7 +36,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     const [project, setProject] = useState({});
     const [start_time, setStart_time] = useState('');
     const [close_time, setClose_time] = useState('');
-
+    const [fileList, setFileList] = useState([]);
     const changeProject = (e, content) => {
         var obj;
         if (content == "time") {
@@ -58,16 +58,6 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     };
     function saveProject() {
         try {
-            console.log(JSON.stringify({
-                "proj_id": pid,
-                "uid": uid,
-                "proj_name": project.proj_name,
-                "description": project.description,
-                "start_time": project.start_time,
-                "close_time": project.close_time,
-                "status": status,
-                "max_num": 25
-            }));
             fetch('http://localhost:5000/edit_project', {
                 method: 'POST',
                 headers: {
@@ -82,7 +72,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                     "start_time": start_time,
                     "close_time": close_time,
                     "status": status,
-                    "max_num": 25
+                    "max_num": project.max_num
                 })
             }).then(res => {
                 res.json().then((val) => {
@@ -109,7 +99,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
             status = 4;
             break;
     }
-    
+
     useEffect(() => {
         setTimeout(() => {
             ref?.current.getTabPane(urlMsg.asPath, `Project Name`)
@@ -129,6 +119,20 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                     setStart_time(moment(val.result.start_time).format('YYYY-MM-DD').toString());
                     setClose_time(moment(val.result.close_time).format('YYYY-MM-DD').toString());
                     console.log(val.result);
+
+                    var newfileList = [];
+                    Object.entries(val.result.files).forEach(file => {
+                        const [key, value] = file;
+                        console.log(value.file_name);
+                        const newfile = {
+                            'uid': key,
+                            'name': value.file_name,
+                            'url': value.file_url,
+                            'status': 'done'
+                        }
+                        newfileList.push(newfile);
+                    });
+                    setFileList(newfileList);
                     setProject(val.result);
                 });
             });
@@ -194,9 +198,9 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                     <br />
                     <Upload
                         action="http://localhost:5000/upload_file"
-                        listType="picture"
                         className="upload-list-inline"
                         accept=".pdf"
+                        defaultFileList={fileList}
                     >
                         <Button icon={<UploadOutlined />}>Upload</Button>
                     </Upload>
@@ -227,12 +231,10 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                 <Row>
                     <Col span={2}></Col>
                     <Col span={20}>
-
                         <Space direction="vertical" size="middle" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'start' }}>
                             <Title>Edit Project</Title>
                             <br />
                             <Title level={4}>Change project name</Title>
-
                             <Input
                                 defaultValue={project.proj_name}
                                 key={project.proj_name}
@@ -254,19 +256,27 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                                 }} />
                         </Space>
                         <br />
-                        <Row>
-                            <Col span={20}>
-                                <Title level={4}>Change start time and end time</Title>
-                                <RangeDatePicker />
-                            </Col>
-                        </Row>
+                        <br />
+                        <Title level={4}>Change start time and end time</Title>
+                        <RangeDatePicker />
+                        <br />
+                        <br />
+                        <Title level={4}>Change project capacity</Title>
+                        <Input
+                            style={{ width: 200 }}
+                            type={'number'}
+                            defaultValue={project.max_num}
+                            key={project.max_num}
+                            onChange={(e) => {
+                                changeProject(e, 'max_num');
+                            }}
+                        />
+                        <br />
                         <br />
                         <Title level={3}>Project current progress</Title>
                         <br />
+                        <br />
                         <ProgressBars userRole={userRole} />
-                        <br />
-                        <br />
-                        <UploadDocumnets status={status} />
                         <br />
                         <br />
                         <br />
@@ -275,7 +285,15 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                                 saveProject();
                             }}>Save Project</Button>
                         </Space>
-
+                        <br />
+                        <br />
+                        <UploadDocumnets status={status} />
+                        <br />
+                        <br />
+                        <br />
+                        <br />
+                        <br />
+                        <br />
                     </Col>
                     <Col span={2}></Col>
                 </Row>

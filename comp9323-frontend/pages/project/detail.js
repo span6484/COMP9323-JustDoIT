@@ -1,6 +1,6 @@
 import PageBase from '../basePage'
 import React, { useRef, onChange, useState, useEffect } from 'react'
-import { Col, Row, Button, Typography, Tooltip, Space, Collapse, Steps, Input, Statistic, Comment, Avatar, Popconfirm } from 'antd';
+import { Col, Row, Button, Typography, Tooltip, Space, Collapse, Steps, Input, Statistic, Comment, Avatar, Popconfirm, message } from 'antd';
 import { MailOutlined, DeleteOutlined, FormOutlined, UnderlineOutlined } from "@ant-design/icons"
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import Search from 'antd/lib/transfer/search';
@@ -61,12 +61,10 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
             console.log(e)
         };
     }, [pagestate]);
-    //console.log(project);
-
     var joined = true;
     joined = false;
     // 0待审核Pending, 1已通过approved, 2已发布open to join 3进行中in progress 4已结束ended 5未通过not approved 
-    // change to status(0: 待审核，1: 审核通过/2: 审核未通过，3 已发布 4: 项目进行中，5: 项目已结束
+    // change to => status(0: 待审核，1: 审核通过/2: 审核未通过，3 已发布 4: 项目进行中，5: 项目已结束
     var status = project.status;
     switch (project.status) {
         case 2:
@@ -85,7 +83,6 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     const onChange = (key) => {
         console.log(key);
     };
-
     function getProjectDetail() {
         // fetch project info
         try {
@@ -98,12 +95,11 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                 body: JSON.stringify({ "proj_id": pid, "uid": uid, })
             }).then(res => {
                 res.json().then((val) => {
-                    //console.log(val);
                     // convert datetime
                     val.result.start_time = moment(val.result.start_time).format('YYYY-MM-DD');
                     val.result.close_time = moment(val.result.close_time).format('YYYY-MM-DD');
                     setProject(val.result);
-                    // console.log('project val:', val.result);
+                    console.log('project val:', val.result);
                 });
             });
         } catch (e) {
@@ -154,7 +150,6 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
             console.log(e)
         }
     }
-
     function Buttons(props) {
         const userRole = props.userRole;
         if (userRole == "CA") {
@@ -170,52 +165,54 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     }
     function CAButtons(props) {
         const status = props.status;
-        if (status == 0) {
-            return (
-                <>
-                    <Button type="primary" onClick={() => {
-                        ref.current.setTabPane(
-                            `Project Edit`,
-                            '',
-                            `/project/edit?id=${pid}`
-                        )
-                    }}>Edit Project</Button>
-                    <br />
-                    <Button type="primary" onClick={() => {
-                        approveProject(pid, uid);
-                    }}>Approve Project</Button>
-                    <br />
-                    <Button type="primary" onClick={() => {
-                        disapproveProject(pid, uid);
-                    }}>Disapprove Project</Button>
-                </>
-            )
-        } else if (status == 1) {
-            return (
-                <>
-                    <Button type="primary" onClick={() => {
-                        sendChangeProjectStatus(pid, uid, 2);
-                    }}>Open Project To Join</Button>
-                </>
-            )
-        } else if (status == 3 || status == 4) {
-            return (
-                <>
-                    <br />
-                    <Button type="primary" onClick={() => {
-                        ref.current.setTabPane(
-                            `Project Work`,
-                            '',
-                            `/project/work?id=${pid}`
-                        )
-                    }}>View works</Button>
+        if (uid == project.authority_id) {
+            if (status == 0) {
+                return (
+                    <>
+                        <Button type="primary" onClick={() => {
+                            ref.current.setTabPane(
+                                `Project Edit`,
+                                '',
+                                `/project/edit?id=${pid}`
+                            )
+                        }}>Edit Project</Button>
+                        <br />
+                        <Button type="primary" onClick={() => {
+                            approveProject(pid, uid);
+                        }}>Approve Project</Button>
+                        <br />
+                        <Button type="primary" onClick={() => {
+                            disapproveProject(pid, uid);
+                        }}>Disapprove Project</Button>
+                    </>
+                )
+            } else if (status == 1) {
+                return (
+                    <>
+                        <Button type="primary" onClick={() => {
+                            sendChangeProjectStatus(pid, uid, 3);
+                        }}>Open Project To Join</Button>
+                    </>
+                )
+            } else if (status == 3 || status == 4) {
+                return (
+                    <>
+                        <br />
+                        <Button type="primary" onClick={() => {
+                            ref.current.setTabPane(
+                                `Project Work`,
+                                '',
+                                `/project/work?id=${pid}`
+                            )
+                        }}>View works</Button>
 
-                </>
-            )
-        } else {
-            return null;
+                    </>
+                )
+            } else {
+                return null;
+            }
         }
-
+        return null;
     }
     function RButtons(props) {
         if (props.status = 0) {
@@ -235,35 +232,38 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     }
     function PButtons(props) {
         const status = props.status;
-        if (status == 0) {
-            return (
-                <>
-                    <Button type="primary" onClick={() => {
-                        ref.current.setTabPane(
-                            `Project Edit`,
-                            '',
-                            `/project/edit?id=${pid}`
-                        )
-                    }}>Edit Project</Button>
-                </>
-            )
-        } else if (status == 3 || status == 4) {
-            return (
-                <>
-                    <br />
-                    <Button type="primary" onClick={() => {
-                        ref.current.setTabPane(
-                            `Project Work`,
-                            '',
-                            `/project/work?id=${pid}`
-                        )
-                    }}>View works</Button>
+        if (uid == project.proposer_id) {
+            if (status == 0) {
+                return (
+                    <>
+                        <Button type="primary" onClick={() => {
+                            ref.current.setTabPane(
+                                `Project Edit`,
+                                '',
+                                `/project/edit?id=${pid}`
+                            )
+                        }}>Edit Project</Button>
+                    </>
+                )
+            } else if (status == 3 || status == 4) {
+                return (
+                    <>
+                        <br />
+                        <Button type="primary" onClick={() => {
+                            ref.current.setTabPane(
+                                `Project Work`,
+                                '',
+                                `/project/work?id=${pid}`
+                            )
+                        }}>View works</Button>
 
-                </>
-            )
-        } else {
-            return null;
+                    </>
+                )
+            } else {
+                return null;
+            }
         }
+        return null;
     }
     function SButtons(props) {
         if (props.status < 5) {
@@ -308,7 +308,6 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
             return null;
         }
     }
-
     function SubmitWorkButton(props) {
         if (props.userRole == "S" && props.status == 3) {
             return (
@@ -398,13 +397,20 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
         }
         return (
             <>
-                <Title level={3}> Add Comment</Title><Input.Group compact>
+                <br />
+                <br />
+                <Title level={3}> Add Comment</Title>
+                <Input.Group compact
+                    style={{ display: 'flex', flexDirection: 'row', width: 'fit-content' }}
+                >
                     <Input
                         type="text"
                         value={newComment}
                         onChange={(e) => setNewComment(e.target.value)} />
                     <Button onClick={handleClick}>Send</Button>
                 </Input.Group>
+                <br />
+                <br />
             </>
         )
     }
@@ -606,20 +612,21 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                                     <Title level={2}>A project for {project.course_name}</Title>
                                     <Row>
                                         <Col span={12}>
-                                            <Title level={4}>Start Time</Title>
+                                            <Title level={5}>Start Time</Title>
                                             <Title level={5}>{project.start_time}</Title>
                                         </Col>
                                         <Col span={12}>
-                                            <Title level={4}>End time</Title>
+                                            <Title level={5}>End time</Title>
                                             <Title level={5}>{project.close_time}</Title>
                                         </Col>
                                     </Row>
+                                    <Title level={4}>Project Description</Title>
                                     <Paragraph>
                                         {project.description}
                                     </Paragraph>
-                                    <Space direction="vertical" size="middle" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around' }}>
-                                        <div>
-                                            <Title level={4}>Course Authority:</Title>
+                                    <Row>
+                                        <Col span={12}>
+                                            <Title level={5}>Course Authority:</Title>
                                             <Comment
                                                 className="comment-box-item"
                                                 author={<div>
@@ -643,9 +650,9 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                                                 content={null}
                                             >
                                             </Comment>
-                                        </div>
-                                        <div>
-                                            <Title level={4}>Project Proposer:</Title>
+                                        </Col>
+                                        <Col span={12}>
+                                            <Title level={5}>Project Proposer:</Title>
                                             <Comment
                                                 className="comment-box-item"
                                                 author={<div>
@@ -669,8 +676,8 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                                                 content={null}
                                             >
                                             </Comment>
-                                        </div>
-                                    </Space>
+                                        </Col>
+                                    </Row>
                                 </Space>
                             </Col>
                             <Col span={4}></Col>
