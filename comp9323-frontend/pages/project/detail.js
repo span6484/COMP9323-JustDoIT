@@ -612,12 +612,12 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                                     <Title level={2}>A project for {project.course_name}</Title>
                                     <Row>
                                         <Col span={12}>
-                                            <Title level={5}>Start Time</Title>
-                                            <Title level={5}>{project.start_time}</Title>
+                                            <Title level={4}>Start Time</Title>
+                                            <Paragraph>{project.start_time}</Paragraph>
                                         </Col>
                                         <Col span={12}>
-                                            <Title level={5}>End time</Title>
-                                            <Title level={5}>{project.close_time}</Title>
+                                            <Title level={4}>End time</Title>
+                                            <Paragraph>{project.close_time}</Paragraph>
                                         </Col>
                                     </Row>
                                     <Title level={4}>Project Description</Title>
@@ -626,7 +626,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                                     </Paragraph>
                                     <Row>
                                         <Col span={12}>
-                                            <Title level={5}>Course Authority:</Title>
+                                            <Title level={4}>Course Authority:</Title>
                                             <Comment
                                                 className="comment-box-item"
                                                 author={<div>
@@ -652,7 +652,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                                             </Comment>
                                         </Col>
                                         <Col span={12}>
-                                            <Title level={5}>Project Proposer:</Title>
+                                            <Title level={4}>Project Proposer:</Title>
                                             <Comment
                                                 className="comment-box-item"
                                                 author={<div>
@@ -691,8 +691,8 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                         </Row>
                         <br />
                         <Title level={3}>Project current progress</Title>
-                        <br />
                         <ProgressBars userRole={userRole} />
+                        <br />
                         <br />
                         <Row>
                             <Col span={24}>

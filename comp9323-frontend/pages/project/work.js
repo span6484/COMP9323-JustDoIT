@@ -3,7 +3,7 @@ import projectStyle from "./project.less";
 import moment from 'moment';
 import React, { useRef, onChange, useState, useEffect } from 'react';
 import { UploadOutlined } from '@ant-design/icons';
-import { Col, Row, Collapse, Typography, Button, Space, Input, message, Upload, Comment, Avatar, Tooltip, Tabs } from 'antd';
+import { Col, Row, Collapse, Typography, Button, Space, Input, message, Upload, Comment, Avatar, Tooltip, Tabs, Divider } from 'antd';
 const { Dragger } = Upload;
 const { TabPane } = Tabs;
 import { CopyToClipboard } from 'react-copy-to-clipboard';
@@ -35,6 +35,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     var pid = urlMsg.asPath.toString().replace('/project/work?id=', '');
     const [pagestate, setPageState] = useState(0);
     const [project, setProject] = useState({});
+    const [studentList, setStudentList] = useState([]);
     useEffect(() => {
         setTimeout(() => {
             ref?.current.getTabPane(urlMsg.asPath, `Project Name`)
@@ -60,6 +61,19 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                     // convert datetime
                     val.result.start_time = moment(val.result.start_time).format('YYYY-MM-DD');
                     val.result.close_time = moment(val.result.close_time).format('YYYY-MM-DD');
+                    var studentList = [];
+                    Object.entries(val.result.student_lst).forEach(studentObj => {
+                        const [key, student] = studentObj;
+                        console.log(student);
+                        // const newfile = {
+                        //     'uid': key,
+                        //     'name': value.file_name,
+                        //     'url': value.file_url,
+                        //     'status': 'done'
+                        // }
+                        studentList.push(student);
+                    });
+                    setStudentList(studentList);
                     setProject(val.result);
                     // console.log('project val:', val.result);
                 });
@@ -68,14 +82,68 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
             console.log(e)
         };
     }
+    function sendFeedback(pid, uid, sid, feedback) {
+        try {
+            fetch('http://localhost:5000/give_feedback', {
+                method: 'POST',
+                headers: {
+                    "content": 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                body: JSON.stringify({
+                    "proj_id": pid,
+                    "uid": uid,
+                    "sid": sid,
+                    "feedback": feedback
+                })
+            }).then(res => {
+                res.json().then((val) => {
+                    console.log("sendFeedback res = ", val);
+                    setPageState(pagestate + 1);
+                });
+            });
+        } catch (e) {
+            console.log(e)
+        }
+    }
+    function Documents(props) {
+        var files = props.files;
+        if (files != undefined) {
+            console.log("display documents", Array.from(files));
+            console.log("number of docs", files.length);
+            if (files.length > 0) {
+                return (
+                    <>
+                        <Collapse onChange={onChange}>
+                            {files.map((item, index) => {
+                                return (
+                                    <Panel header={item.file_name} key={index}>
+                                        <iframe
+                                            src={item.file_url}
+                                            title={item.file_name}
+                                            width="100%"
+                                            height="1200"
+                                        ></iframe>
+                                    </Panel>
+                                )
+                            })}
 
+                        </Collapse>
+                    </>
+                )
+            }
+        }
+
+        return null;
+
+    }
     function ProjectWorks(props) {
         <style dangerouslySetInnerHTML={{
             __html: projectStyle
         }} />
 
         // for CA P Submitted
-        if (props.userRole != "S" || props.reviewed) {
+        if (props.userRole != "S") {
             return (
                 <>
                     <Title level={3}>Submissions by students</Title>
@@ -85,45 +153,41 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
 
                         }}
                     >
-                        {[
-                            ...Array.from(
-                                {
-                                    length: 30,
-                                },
-                                (_, i) => i,
-                            ),
-                        ].map((i) => (
-                            <TabPane tab={`Student-${i}`} key={i} disabled={false}>
-                                <Comment
-                                    className="comment-box-item"
-                                    author={<div>
-                                        Example author
-                                        <Tooltip placement="top" title={<div className={"email-tool-tip-component"}>
-                                            ExampleEmail@COMP9323.com
-                                            <CopyToClipboard
-                                                text={"ExampleEmail@COMP9323.com"}
-                                                onCopy={() => {
-                                                    message.success('copy email success');
-                                                }}
-                                            >
-                                                <span className={"email-tool-tip-component-copy"}>COPY</span>
-                                            </CopyToClipboard>
-                                        </div>}>
-                                            <MailOutlined className={"mail-box"} />
-                                        </Tooltip>
-                                    </div>
-                                    }
-                                    avatar={<Avatar src="/static/ca.png" />}
-                                    content={null}
-                                >
-                                </Comment>
-                                <Title level={3}>Submitted documents</Title>
+                        {studentList.map((student, index) => (
+                            <TabPane tab={<Comment
+                                className="comment-box-item"
+                                author={<div>
+                                    {student.student_name}
+                                    {/* <Tooltip placement="top" title={<div className={"email-tool-tip-component"}>
+                                        ExampleEmail@COMP9323.com
+                                        <CopyToClipboard
+                                            text={"ExampleEmail@COMP9323.com"}
+                                            onCopy={() => {
+                                                message.success('copy email success');
+                                            }}
+                                        >
+                                            <span className={"email-tool-tip-component-copy"}>COPY</span>
+                                        </CopyToClipboard>
+                                    </div>}>
+                                        <MailOutlined className={"mail-box"} />
+                                    </Tooltip> */}
+                                </div>
+                                }
+                                avatar={<Avatar src="/static/ca.png" />}
+                                content={null}
+                            >
+                            </Comment>} key={index} disabled={false}>
 
+
+                                <Title level={5}>Submitted documents</Title>
+                                <Documents files={student.file} />
+                                <br />
+                                <br />
+                                <Feedbacks student={student} />
                             </TabPane>
                         ))}
                     </Tabs>
 
-                    <Feedbacks userRole={userRole} />
 
 
 
@@ -159,46 +223,55 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
             }
 
         }
-
+        return null;
     }
     function Feedbacks(props) {
-        if (!props.submitted) {
+        const [feedback, setFeedback] = useState('');
+
+        const student = props.student
+        if (student.file.length == 0) {
             return null;
         }
-        if (props.reviewed) {
+        if (student.a_feedback) {
             return (
                 <>
-                    <Title level={4}>Project work feedback</Title>
+                    <Title level={5}>Project work feedback</Title>
                     <Paragraph>
-                        You showed incredible leadership instincts in your work on that project. I would love to work with you to develop those skills. Amazing work.
-                        You have all the qualities we look for in a leader. I hope you might consider taking them to the next level by leading our next big project in this area.
+                        {student.a_feedback}
                     </Paragraph>
                     <br />
-                    <Button type='primary' style={{ width: 300, marginTop: 20 }}>Back</Button>
-                </>
-            )
-        } else if (!props.reviewed && props.userRole == "S") {
-            return (
-                <>
-                    <Title level={4}>Project work feedback</Title>
-                    <Paragraph>
-                        No feedbacks yet
-                    </Paragraph>
-
-                    <Button type='primary' style={{ width: 300, marginTop: 20 }}>Back</Button>
-
                 </>
             )
         } else {
-            return (
-                <>
-                    <Title level={4}>Enter feedback</Title>
-                    <Input placeholder="Enter your project work feedback here" />
-                    <br />
-                    <Button type='primary' style={{ width: 300, marginTop: 20 }}>Submit Feedback</Button>
-
-                </>
-            )
+            if (userRole != "CA") {
+                return (
+                    <>
+                        <Title level={5}>Project work feedback</Title>
+                        <Paragraph>
+                            No feedbacks yet
+                        </Paragraph>
+                    </>
+                )
+            } else {
+                return (
+                    <>
+                        <Title level={5}>Enter feedback</Title>
+                        <Input
+                            key={project.proj_name}
+                            placeholder="Enter your project work feedback here"
+                            onChange={(e) => {
+                                setFeedback(e.target.value);
+                            }}
+                        />
+                        <br />
+                        <Button type='primary' onClick={() => {
+                            console.log(pid, uid, student.sid, feedback);
+                            sendFeedback(pid, uid, student.sid, feedback);
+                        }}
+                            style={{ width: 300, marginTop: 20 }}>Submit Feedback</Button>
+                    </>
+                )
+            }
         }
     }
 
@@ -212,23 +285,24 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                         <Row>
                             <Col span={24}>
                                 <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
-                                    <Title level={1}>{project.proj_name}</Title>
+                                    <Title>{project.project_name}</Title>
                                     <Title level={2}>A project for {project.course_name}</Title>
                                     <Row>
                                         <Col span={12}>
                                             <Title level={4}>Start Time</Title>
-                                            <Title level={5}>{project.start_time}</Title>
+                                            <Paragraph>{project.start_time}</Paragraph>
                                         </Col>
                                         <Col span={12}>
                                             <Title level={4}>End time</Title>
-                                            <Title level={5}>{project.close_time}</Title>
+                                            <Paragraph>{project.close_time}</Paragraph>
                                         </Col>
                                     </Row>
+                                    <Title level={4}>Project Description</Title>
                                     <Paragraph>
                                         {project.description}
                                     </Paragraph>
-                                    <Space direction="vertical" size="middle" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around' }}>
-                                        <div>
+                                    <Row>
+                                        <Col span={12}>
                                             <Title level={4}>Course Authority:</Title>
                                             <Comment
                                                 className="comment-box-item"
@@ -253,8 +327,8 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                                                 content={null}
                                             >
                                             </Comment>
-                                        </div>
-                                        <div>
+                                        </Col>
+                                        <Col span={12}>
                                             <Title level={4}>Project Proposer:</Title>
                                             <Comment
                                                 className="comment-box-item"
@@ -279,13 +353,12 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                                                 content={null}
                                             >
                                             </Comment>
-                                        </div>
-                                    </Space>
+                                        </Col>
+                                    </Row>
                                 </Space>
                             </Col>
                         </Row>
-
-                        <br />
+                        <Divider />
                         <Row>
                             <Col span={24} >
                                 <ProjectWorks />
