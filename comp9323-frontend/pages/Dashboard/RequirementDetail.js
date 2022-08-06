@@ -171,7 +171,11 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
                         }}>Edit</Button> :
                         <Button onClick={handleSubmit}>Submit</Button>
                   }
-                  <Button onClick={handleDeleteRequirement}>Delete</Button>
+                  {
+                    !projectList || projectList.length === 0 ?
+                        <Button onClick={handleDeleteRequirement}>Delete</Button> :
+                        <div className={"action-button-box-button"} />
+                  }
                   <div className={"action-button-box-button"} />
                       {/*<Button onClick={handlePublishAllProjects}>Publish All Approved Proposals</Button>*/}
                 </Col>

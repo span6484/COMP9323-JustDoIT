@@ -92,7 +92,7 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
               <Col span={6}
                   className={"action-button-box"}>
                   {contentref ?
-                    <Button onClick={() => setContentref(false)}>Edit</Button> :
+                    <div/> :
                     <Button onClick={() => {
                       if(!value){
                         message.warning("Please enter your requirement");
@@ -166,10 +166,4 @@ CourseDetail.getInitialProps = async (status) => {
   }
 }
 
-let mapToProps=(state)=>{
-  console.log(state);
-    return {
-      editReducer
-    }
-}
 export default CourseDetail

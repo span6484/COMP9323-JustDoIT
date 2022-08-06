@@ -71,7 +71,12 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
 							<br />
 							<Title level={4}>Project Description</Title>
 							<Form.Item name="projectDescription">
-								<Input placeholder="Enter new project description here" />
+								<Input.TextArea
+									autoSize={{
+										minRows: 3,
+										maxRows: 5,
+									}}
+									placeholder="Enter new project description here" />
 							</Form.Item>
 							<br />
 						</Space>
