@@ -80,3 +80,9 @@ export function deleteProposal(param) {
 export function joinQuitProject(param) {
     return fetchData('http://127.0.0.1:5000/join_quit_project', param);
 }
+export function viewProject(param) {
+    return fetchData('http://127.0.0.1:5000/view_project', param);
+}
+export function editProject(param) {
+    return fetchData('http://127.0.0.1:5000/edit_project', param);
+}
