@@ -1,11 +1,11 @@
 import PageBase from '../basePage';
 import React, { useRef, useState, useEffect } from 'react';
-import { Col, Row, message, Typography, Button, Space, Tooltip, Comment, Avatar, Input, Modal } from 'antd';
+import {Col, Row, message, Typography, Button, Space, Tooltip, Comment, Avatar, Input, Modal, Empty} from 'antd';
 import { MailOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 
 import CourseDetailStyle from "./CourseDetail.less";
 import { CopyToClipboard } from 'react-copy-to-clipboard';
-import { getRequirementDetail,getProposals } from "../MockData";
+import { getRequirementDetail,getProposals,editRequirement,deleteRequirement } from "../MockData";
 import {getQueryString,setDay} from "../../util/common";
 
 const { confirm } = Modal;
@@ -19,7 +19,7 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
   const [requirementDetail, changeRequirementDetail] = useState({}); // 
   const [projectList, changeProjectList] = useState([]); // Project List
   const [user] = useState(USERMESSAGE); // User Info
-  const [descVal, setDescVal] = useState(""); // Description Value
+  const [descVal, setDescVal] = useState(null); // Description Value
   const [editConent,changeEditConent] = useState(false);
   const [project,changeProject] = useState([])
   // Init
@@ -84,7 +84,20 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
   // Edit
   const handleEdit = () => {};
   // Submit
-  const handleSubmit = () => {};
+  const handleSubmit = () => {
+    editRequirement({
+      uid :USERMESSAGE && USERMESSAGE.uid,
+      rid: getQueryString("id") || "",
+      content : descVal.content || ""
+    }).then(res => {
+      if(res.code === 200){
+        message.success("Edit requirement successfully");
+        changeEditConent(false);
+      }else{
+        message.error("Edit requirement failed");
+      }
+    })
+  };
   // Delete Requirement
   const handleDeleteRequirement = () => {
     confirm({
@@ -93,8 +106,17 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
       okText : "YES",
       cancelText : "NO",
       onOk(){
-        setDescVal('')
-        message.success("Delete successfully");
+        deleteRequirement({
+          uid :USERMESSAGE && USERMESSAGE.uid,
+          rid: getQueryString("id") || "",
+        }).then(res => {
+          if(res.code === 200){
+            message.success("Delete successfully");
+            setDescVal(null);
+          }else{
+            message.success("Delete failed");
+          }
+        })
       },
     });
   };
@@ -126,70 +148,80 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
         <Row>
           <Col span={2} />
           <Col span={20}>
-            <Row>
-              <Col span={14}>
-                <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
-                  <Title>Requirement</Title>
-                  <Paragraph>
-                    {
-                      !editConent ?
-                          <div>
-                            <strong>Description:&nbsp;</strong><span>{descVal.content}</span>
-                          </div>:
-                          <>
-                            <strong>Description:&nbsp;</strong>
-                            <TextArea
-                                style={{marginTop : "10px"}}
-                                value={descVal.content}
-                                onChange={(e) =>{
-                                  const _descVal = _.cloneDeep(descVal);
-                                  _descVal.content = e.target.value;
-                                  setDescVal(_descVal)
-                                }}
-                                placeholder="Please enter your requirement here"
-                                autoSize={{ minRows: 3, maxRows: 5 }}
-                            />
-                          </>
+            {
+              !!descVal ?
+                <>
+                  <Row>
+                    <Col span={14}>
+                      <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
+                        <Title>Requirement</Title>
+                        <Paragraph>
+                          {
+                            !editConent ?
+                                <div>
+                                  <strong>Description:&nbsp;</strong><span>{descVal.content}</span>
+                                </div>:
+                                <>
+                                  <strong>Description:&nbsp;</strong>
+                                  <TextArea
+                                      style={{marginTop : "10px"}}
+                                      value={descVal.content}
+                                      onChange={(e) =>{
+                                        const _descVal = _.cloneDeep(descVal);
+                                        _descVal.content = e.target.value;
+                                        setDescVal(_descVal)
+                                      }}
+                                      placeholder="Please enter your requirement here"
+                                      autoSize={{ minRows: 3, maxRows: 5 }}
+                                  />
+                                </>
+                          }
+
+
+
+
+                        </Paragraph>
+                        <Paragraph>
+                          <strong>Proposal submitted deadline:</strong> &nbsp;
+                          <span>{setDay(descVal.submit_ddl)}</span>
+                        </Paragraph>
+                      </Space>
+                    </Col>
+                    <Col span={4} />
+                    { user.role === 0 && !!descVal.is_operation &&
+                        <Col span={6} className={"action-button-box"}>
+                          {
+                            !editConent ? <Button onClick={()=>{
+                                  changeEditConent(true)
+                                }}>Edit</Button> :
+                                <Button onClick={handleSubmit}>Submit</Button>
+                          }
+                          {
+                            !projectList || projectList.length === 0 ?
+                                <Button onClick={handleDeleteRequirement}>Delete</Button> :
+                                <div className={"action-button-box-button"} />
+                          }
+                          <div className={"action-button-box-button"} />
+                          {/*<Button onClick={handlePublishAllProjects}>Publish All Approved Proposals</Button>*/}
+                        </Col>
                     }
+                    { user.role === 2 &&
+                        <Col span={6} className={"action-button-box"}>
+                          <Button onClick={()=>{
+                            handleAddProposal(getQueryString("id") || "");
+                          }}>Add Proposal</Button>
+                          <div className={"action-button-box-button"} />
+                        </Col>
+                    }
+                  </Row>
+                  <br />
+                </> : <Empty
+                      description={"No Message"}
+                      style={{
+                    marginTop:"80px"
+                  }}/>
 
-
-
-
-                  </Paragraph>
-                  <Paragraph>
-                    <strong>Proposal submitted deadline:</strong> &nbsp;
-                    <span>{setDay(descVal.submit_ddl)}</span>
-                  </Paragraph>
-                </Space>
-              </Col>
-              <Col span={4} />
-              { user.role === 0 &&
-                <Col span={6} className={"action-button-box"}>
-                  {
-                    !editConent ? <Button onClick={()=>{
-                         changeEditConent(true)
-                        }}>Edit</Button> :
-                        <Button onClick={handleSubmit}>Submit</Button>
-                  }
-                  {
-                    !projectList || projectList.length === 0 ?
-                        <Button onClick={handleDeleteRequirement}>Delete</Button> :
-                        <div className={"action-button-box-button"} />
-                  }
-                  <div className={"action-button-box-button"} />
-                      {/*<Button onClick={handlePublishAllProjects}>Publish All Approved Proposals</Button>*/}
-                </Col>
-              }
-              { user.role === 2 &&
-                <Col span={6} className={"action-button-box"}>
-                  <Button onClick={()=>{
-                    handleAddProposal(getQueryString("id") || "");
-                  }}>Add Proposal</Button>
-                  <div className={"action-button-box-button"} />
-                </Col>
-              }
-            </Row>
-            <br />
+            }
             
             {/* Course Authority */}
             {!!descVal && !!descVal.course_authority &&
