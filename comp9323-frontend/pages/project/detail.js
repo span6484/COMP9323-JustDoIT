@@ -1,22 +1,17 @@
 import PageBase from '../basePage'
 import React, { useRef, onChange, useState, useEffect } from 'react'
-import { Col, Row, Button, Typography, Tooltip, Space, Collapse, Steps, Input, Statistic, Comment, Avatar, Popconfirm } from 'antd';
+import { Col, Row, Button, Typography, Tooltip, Space, Collapse, Steps, Input, Statistic, Comment, Avatar, Popconfirm, message } from 'antd';
 import { MailOutlined, DeleteOutlined, FormOutlined, UnderlineOutlined } from "@ant-design/icons"
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import Search from 'antd/lib/transfer/search';
+import moment from 'moment';
 import { template } from 'lodash';
 const { Title, Paragraph, Text, Link } = Typography;
 const { Step } = Steps;
 
-// USERMESSAGE
-//     "name": "Test Name",
-//     "type": 0,
-//     "uid": "u00001",
-//     "token": "VGVzdCBOYW1lJiZzYWRhc2Rhc2RhZCYmMTY2MDExMzQyNDc3MyYmMSYmVGVzdCBOYW1l"
-
 const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     const ref = useRef();
-    console.log(USERMESSAGE);
+    //console.log(USERMESSAGE);
     const uid = USERMESSAGE.uid;
     // get roles based project users
     var userRole = undefined;
@@ -35,9 +30,9 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
             break;
     }
     // get project id from url 
-    var pid = urlMsg.asPath.toString().replace('/project/detail?id=', '');
+    const pid = urlMsg.asPath.toString().replace('/project/detail?id=', '');
     const { Panel } = Collapse;
-
+    const [pagestate, setPageState] = useState(0);
     const [project, setProject] = useState({});
     const [posts, setPosts] = useState({});
     useEffect(() => {
@@ -45,27 +40,10 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
             ref?.current.getTabPane(urlMsg.asPath, `Project Name`)
         }, 0);
         // fetch project info on load
-        try {
-            fetch('http://localhost:5000/view_project', {
-                method: 'POST',
-                headers: {
-                    "content": 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                },
-                body: JSON.stringify({ "proj_id": pid, "uid": uid, })
-            }).then(res => {
-                res.json().then((val) => {
-                    //console.log(val);
-                    setProject(val.result);
-                    console.log(project);
-                });
-            });
-        } catch (e) {
-            console.log(e)
-        };
+        getProjectDetail()
         // fetch posts
         try {
-            console.log('fetch posts for proj', pid);
+            //console.log('fetch posts for proj', pid);
             fetch('http://localhost:5000/view_comment', {
                 method: 'POST',
                 headers: {
@@ -76,32 +54,63 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
             }).then(res => {
                 res.json().then((val) => {
                     setPosts(val.result);
-                    console.log('Get posts ', posts);
+                    // console.log('Get posts ', posts);
                 });
             });
         } catch (e) {
             console.log(e)
         };
-    }, []);
-    //console.log(project);
-    // convert datetime
-    project.start_time = (new Date(project.start_time)).toLocaleDateString();
-    project.close_time = (new Date(project.close_time)).toLocaleDateString();
-
+    }, [pagestate]);
     var joined = true;
-    //joined = false;
-    // 0待审核Pending, 1已通过approved, 2已发布open to join 
-    // 3进行中in progress 4已结束ended 5未通过not approved 
+    joined = false;
+    // 0待审核Pending, 1已通过approved, 2已发布open to join 3进行中in progress 4已结束ended 5未通过not approved 
+    // change to => status(0: 待审核，1: 审核通过/2: 审核未通过，3 已发布 4: 项目进行中，5: 项目已结束
     var status = project.status;
-
+    switch (project.status) {
+        case 2:
+            status = 5;
+            break;
+        case 3:
+            status = 2;
+            break;
+        case 4:
+            status = 3;
+            break;
+        case 5:
+            status = 4;
+            break;
+    }
     const onChange = (key) => {
         console.log(key);
     };
+    function getProjectDetail() {
+        // fetch project info
+        try {
+            fetch('http://localhost:5000/view_project', {
+                method: 'POST',
+                headers: {
+                    "content": 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                body: JSON.stringify({ "proj_id": pid, "uid": uid, })
+            }).then(res => {
+                res.json().then((val) => {
+                    // convert datetime
+                    val.result.start_time = moment(val.result.start_time).format('YYYY-MM-DD');
+                    val.result.close_time = moment(val.result.close_time).format('YYYY-MM-DD');
+                    setProject(val.result);
+                    console.log('project val:', val.result);
+                });
+            });
+        } catch (e) {
+            console.log(e)
+        };
+    }
     function approveProject(pid, uid) {
         sendChangeProjectStatus(pid, uid, 1);
     }
     function disapproveProject(pid, uid) {
-        sendChangeProjectStatus(pid, uid, 5);
+        sendChangeProjectStatus(pid, uid, 4);
     }
     function sendChangeProjectStatus(pid, uid, status) {
         try {
@@ -114,34 +123,33 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                 body: JSON.stringify({ "proj_id": pid, "uid": uid, "status": status })
             }).then(res => {
                 res.json().then((val) => {
-                    console.log("res val = ", val);
-                    window.location.reload();
+                    // console.log("res val = ", val);
+                    setPageState(pagestate + 1);
                 });
             });
         } catch (e) {
             console.log(e)
         }
     }
-    // function openProject(pid, uid, status) {
-    //     try {
-    //         fetch('http://localhost:5000/change_project_status2', {
-    //             method: 'POST',
-    //             headers: {
-    //                 "content": 'application/json',
-    //                 'Access-Control-Allow-Origin': '*'
-    //             },
-    //             body: JSON.stringify({ "proj_id": pid })
-    //         }).then(res => {
-    //             res.json().then((val) => {
-    //                 console.log("res val = ", val);
-    //                 window.location.reload();
-    //             });
-    //         });
-    //     } catch (e) {
-    //         console.log(e)
-    //     }
-    // }
-
+    function sendJoinQuitProject(pid, uid, join_state) {
+        try {
+            fetch('http://localhost:5000/join_quit_project', {
+                method: 'POST',
+                headers: {
+                    "content": 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                body: JSON.stringify({ "proj_id": pid, "sid": uid, "join_state": join_state })
+            }).then(res => {
+                res.json().then((val) => {
+                    console.log("join_quit_project res ", val);
+                    setPageState(pagestate + 1);
+                });
+            });
+        } catch (e) {
+            console.log(e)
+        }
+    }
     function Buttons(props) {
         const userRole = props.userRole;
         if (userRole == "CA") {
@@ -157,52 +165,54 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     }
     function CAButtons(props) {
         const status = props.status;
-        if (status == 0) {
-            return (
-                <>
-                    <Button type="primary" onClick={() => {
-                        ref.current.setTabPane(
-                            `Project Edit`,
-                            '',
-                            `/project/edit?id=${pid}`
-                        )
-                    }}>Edit Project</Button>
-                    <br />
-                    <Button type="primary" onClick={() => {
-                        approveProject(pid, uid);
-                    }}>Approve Project</Button>
-                    <br />
-                    <Button type="primary" onClick={() => {
-                        disapproveProject(pid, uid);
-                    }}>Disapprove Project</Button>
-                </>
-            )
-        } else if (status == 1) {
-            return (
-                <>
-                    <Button type="primary" onClick={() => {
-                        sendChangeProjectStatus(pid, uid, 2);
-                    }}>Open Project To Join</Button>
-                </>
-            )
-        } else if (status == 3 || status == 4) {
-            return (
-                <>
-                    <br />
-                    <Button type="primary" onClick={() => {
-                        ref.current.setTabPane(
-                            `Project Work`,
-                            '',
-                            `/project/work?id=${pid}`
-                        )
-                    }}>View works</Button>
+        if (uid == project.authority_id) {
+            if (status == 0) {
+                return (
+                    <>
+                        <Button type="primary" onClick={() => {
+                            ref.current.setTabPane(
+                                `Project Edit`,
+                                '',
+                                `/project/edit?id=${pid}`
+                            )
+                        }}>Edit Project</Button>
+                        <br />
+                        <Button type="primary" onClick={() => {
+                            approveProject(pid, uid);
+                        }}>Approve Project</Button>
+                        <br />
+                        <Button type="primary" onClick={() => {
+                            disapproveProject(pid, uid);
+                        }}>Disapprove Project</Button>
+                    </>
+                )
+            } else if (status == 1) {
+                return (
+                    <>
+                        <Button type="primary" onClick={() => {
+                            sendChangeProjectStatus(pid, uid, 3);
+                        }}>Open Project To Join</Button>
+                    </>
+                )
+            } else if (status == 3 || status == 4) {
+                return (
+                    <>
+                        <br />
+                        <Button type="primary" onClick={() => {
+                            ref.current.setTabPane(
+                                `Project Work`,
+                                '',
+                                `/project/work?id=${pid}`
+                            )
+                        }}>View works</Button>
 
-                </>
-            )
-        } else {
-            return null;
+                    </>
+                )
+            } else {
+                return null;
+            }
         }
-
+        return null;
     }
     function RButtons(props) {
         if (props.status = 0) {
@@ -222,35 +232,38 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     }
     function PButtons(props) {
         const status = props.status;
-        if (status == 0) {
-            return (
-                <>
-                    <Button type="primary" onClick={() => {
-                        ref.current.setTabPane(
-                            `Project Edit`,
-                            '',
-                            `/project/edit?id=${pid}`
-                        )
-                    }}>Edit Project</Button>
-                </>
-            )
-        } else if (status == 3 || status == 4) {
-            return (
-                <>
-                    <br />
-                    <Button type="primary" onClick={() => {
-                        ref.current.setTabPane(
-                            `Project Work`,
-                            '',
-                            `/project/work?id=${pid}`
-                        )
-                    }}>View works</Button>
+        if (uid == project.proposer_id) {
+            if (status == 0) {
+                return (
+                    <>
+                        <Button type="primary" onClick={() => {
+                            ref.current.setTabPane(
+                                `Project Edit`,
+                                '',
+                                `/project/edit?id=${pid}`
+                            )
+                        }}>Edit Project</Button>
+                    </>
+                )
+            } else if (status == 3 || status == 4) {
+                return (
+                    <>
+                        <br />
+                        <Button type="primary" onClick={() => {
+                            ref.current.setTabPane(
+                                `Project Work`,
+                                '',
+                                `/project/work?id=${pid}`
+                            )
+                        }}>View works</Button>
 
-                </>
-            )
-        } else {
-            return null;
+                    </>
+                )
+            } else {
+                return null;
+            }
         }
+        return null;
     }
     function SButtons(props) {
         if (props.status < 5) {
@@ -262,8 +275,11 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                             title={"Quit this project now?"}
                             okText="Yes"
                             cancelText="No"
+                            onConfirm={() => {
+                                sendJoinQuitProject(pid, uid, 0)
+                            }}
                         >
-                            <Button type="primary">Quit Project</Button>
+                            <Button type="primary" >Quit Project</Button>
                         </Popconfirm>
 
 
@@ -278,6 +294,9 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                             title={"Join this project now?"}
                             okText="Yes"
                             cancelText="No"
+                            onConfirm={() => {
+                                sendJoinQuitProject(pid, uid, 1)
+                            }}
                         >
                             <Button type="primary">Join Project</Button>
                         </Popconfirm>
@@ -289,7 +308,6 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
             return null;
         }
     }
-
     function SubmitWorkButton(props) {
         if (props.userRole == "S" && props.status == 3) {
             return (
@@ -359,7 +377,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     function AddComment() {
         const [newComment, setNewComment] = useState("");
         const handleClick = (event) => {
-            console.log("Add comment to proj", pid, 'by', uid);
+            // console.log("Add comment to proj", pid, 'by', uid);
             try {
                 fetch('http://localhost:5000/add_comment', {
                     method: 'POST',
@@ -370,7 +388,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                     body: JSON.stringify({ "proj_id": pid, "uid": uid, "content": newComment })
                 }).then(res => {
                     res.json().then((val) => {
-                        window.location.reload();
+                        setPageState(pagestate + 1);
                     });
                 });
             } catch (e) {
@@ -379,13 +397,20 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
         }
         return (
             <>
-                <Title level={3}> Add Comment</Title><Input.Group compact>
+                <br />
+                <br />
+                <Title level={3}> Add Comment</Title>
+                <Input.Group compact
+                    style={{ display: 'flex', flexDirection: 'row', width: 'fit-content' }}
+                >
                     <Input
                         type="text"
                         value={newComment}
                         onChange={(e) => setNewComment(e.target.value)} />
                     <Button onClick={handleClick}>Send</Button>
                 </Input.Group>
+                <br />
+                <br />
             </>
         )
     }
@@ -397,9 +422,9 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
         // console.log(target_uid, parent_id, root_id);
         const [newComment, setNewComment] = useState("");
         const handleClick = (event) => {
-            console.log("Reply comment to proj", pid, 'by', uid);
-            console.log('target_uid, parent_id, root_id');
-            console.log(target_uid, parent_id, root_id);
+            // console.log("Reply comment to proj", pid, 'by', uid);
+            // console.log('target_uid, parent_id, root_id');
+            // console.log(target_uid, parent_id, root_id);
             try {
                 fetch('http://localhost:5000/reply_comment', {
                     method: 'POST',
@@ -407,12 +432,6 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                         "content": 'application/json',
                         'Access-Control-Allow-Origin': '*'
                     },
-                    // "proj_id": "1",
-                    // "uid":  "u10002",
-                    // "content": "hi student_1",
-                    // "target_uid": "u10001",
-                    // "parent_id": "u10001",
-                    // "root_id": "cm00007"
                     body: JSON.stringify({
                         "proj_id": pid,
                         "uid": uid,
@@ -423,7 +442,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                     })
                 }).then(res => {
                     res.json().then((val) => {
-                        // window.location.reload();
+                        setPageState(pagestate + 1);
                     });
                 });
             } catch (e) {
@@ -452,7 +471,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     }
 
     const handleDeleteComment = (cid, uid) => {
-        console.log("Delete comment ", cid, "by", uid);
+        // console.log("Delete comment ", cid, "by", uid);
         try {
             fetch('http://localhost:5000/delete_comment', {
                 method: 'POST',
@@ -466,7 +485,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                 })
             }).then(res => {
                 res.json().then((val) => {
-                    window.location.reload();
+                    setPageState(pagestate + 1);
                 });
             });
         } catch (e) {
@@ -478,42 +497,52 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
         // "parent_id": "u10002",
         // "root_id": "cm00001"
         var status = props.status;
-        console.log("project is in", status);
-        console.log("posts ", posts);
+        // console.log("project is in", status);
+        // console.log("posts ", posts);
 
         if (status >= 2 && status <= 4 || true) {
             if (posts != undefined) {
                 var comments = posts.posts;
                 if (comments != undefined) {
-                    console.log("number of comments", comments.length);
-                    console.log("comments are ", comments)
+                    // console.log("number of comments", comments.length);
+                    // console.log("comments are ", comments)
                     return (
                         <>
                             <Title level={3}>Forum</Title>
-                            {comments.map((item, index) => {
+                            {comments.map((item) => {
                                 return (
                                     <>
-                                        <Comment
+                                        <Comment key={'comment' + item.root_id}
                                             author={<a>{item.root_name}</a>}
                                             avatar={<Avatar src="/static/ca.png" />}
-                                            content={<p>{item.root_content}</p>
+                                            content={
+                                                <>
+                                                    <Space direction="horizontal" size="middle" >
+                                                        <p>{item.root_content}</p>
+                                                        <CommentDeleteButton key={'commentDel' + item.root_id} uid={item.root_uid} cm_id={item.root_id} />
+                                                    </Space>
+                                                </>
                                             }
                                         >
-                                            <CommentDeleteButton uid={item.root_uid} cm_id={item.root_id} />
-                                            <ReplyComment target_uid={item.root_uid} parent_id={item.root_uid} root_id={item.root_id} />
+                                            <ReplyComment key={'commentReply' + item.root_id} target_uid={item.root_uid} parent_id={item.root_uid} root_id={item.root_id} />
                                             {item.reply_comment.map((item) => {
                                                 return (
                                                     <>
-                                                        <Comment
-                                                            author={<a>{item.target_name}</a>}
+                                                        <Comment key={'comment' + item.cm_id}
+                                                            author={<a>{item.owner_name}</a>}
                                                             avatar={<Avatar src="/static/ca.png" />}
-                                                            content={<p>
-                                                                {item.content}
-                                                            </p>}
-                                                        >
+                                                            content={<>
+                                                                <Space direction="horizontal" size="middle" >
+                                                                    <p>
+                                                                        {item.content}
+                                                                    </p>
+                                                                    <CommentDeleteButton key={'commentDel' + item.root_id} uid={item.owner_uid} cm_id={item.cm_id} />
+                                                                </Space>
 
+                                                            </>}
+                                                        >
                                                         </Comment>
-                                                        <CommentDeleteButton uid={item.owner_uid} cm_id={item.cm_id} />
+
 
                                                     </>
                                                 )
@@ -583,20 +612,21 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                                     <Title level={2}>A project for {project.course_name}</Title>
                                     <Row>
                                         <Col span={12}>
-                                            <Title level={4}>Start Time</Title>
+                                            <Title level={5}>Start Time</Title>
                                             <Title level={5}>{project.start_time}</Title>
                                         </Col>
                                         <Col span={12}>
-                                            <Title level={4}>End time</Title>
+                                            <Title level={5}>End time</Title>
                                             <Title level={5}>{project.close_time}</Title>
                                         </Col>
                                     </Row>
+                                    <Title level={4}>Project Description</Title>
                                     <Paragraph>
                                         {project.description}
                                     </Paragraph>
-                                    <Space direction="vertical" size="middle" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around' }}>
-                                        <div>
-                                            <Title level={4}>Course Authority:</Title>
+                                    <Row>
+                                        <Col span={12}>
+                                            <Title level={5}>Course Authority:</Title>
                                             <Comment
                                                 className="comment-box-item"
                                                 author={<div>
@@ -620,9 +650,9 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                                                 content={null}
                                             >
                                             </Comment>
-                                        </div>
-                                        <div>
-                                            <Title level={4}>Project Proposer:</Title>
+                                        </Col>
+                                        <Col span={12}>
+                                            <Title level={5}>Project Proposer:</Title>
                                             <Comment
                                                 className="comment-box-item"
                                                 author={<div>
@@ -646,8 +676,8 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                                                 content={null}
                                             >
                                             </Comment>
-                                        </div>
-                                    </Space>
+                                        </Col>
+                                    </Row>
                                 </Space>
                             </Col>
                             <Col span={4}></Col>
