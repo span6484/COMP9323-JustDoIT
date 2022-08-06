@@ -9,15 +9,15 @@ const { TabPane } = Tabs;
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { MailOutlined, DeleteOutlined, FormOutlined } from "@ant-design/icons"
 const { Title, Paragraph, Text, Link } = Typography;
-
+import {viewProject, viewWorks,studentSubmit} from "../MockData"
 const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     const ref = useRef();
     const { Panel } = Collapse;
     // console.log(USERMESSAGE, urlMsg);
-    const uid = USERMESSAGE.uid;
+    const uid = USERMESSAGE && USERMESSAGE.uid;
     // get roles based project users
     var userRole = undefined;
-    switch (USERMESSAGE.type) {
+    switch (USERMESSAGE && USERMESSAGE.type) {
         case 0:
             userRole = "CA";
             break;
@@ -42,23 +42,25 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
         }, 0);
         // fetch project info on load
         getProjectWorks();
+        getProjectDetail();
     }, [pagestate]);
-
+    function getProjectDetail(){
+        viewProject({ "proj_id": pid, "uid": uid, }).then(val =>{
+            if(val.code === 200){
+                val.result.start_time = moment(val.result.start_time).format('YYYY-MM-DD');
+                val.result.close_time = moment(val.result.close_time).format('YYYY-MM-DD');
+                setProject(val.result);
+                ref?.current.getTabPane(urlMsg.asPath, val.result?.proj_name)
+            }
+        })
+    }
     function getProjectWorks() {
         // fetch project info
         console.log(JSON.stringify({ "proj_id": pid, "uid": uid, "student_index": 0 }));
         try {
-            fetch('http://localhost:5000/view_works', {
-                method: 'POST',
-                headers: {
-                    "content": 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                },
-                body: JSON.stringify({ "proj_id": pid, "uid": uid, "student_index": 0 })
-            }).then(res => {
-                res.json().then((val) => {
-                    console.log('works:', val.result);
-                    // convert datetime
+            viewWorks({ "proj_id": pid, "uid": uid, "student_index": 0 })
+                .then(val =>{
+                if(val.code === 200){
                     val.result.start_time = moment(val.result.start_time).format('YYYY-MM-DD');
                     val.result.close_time = moment(val.result.close_time).format('YYYY-MM-DD');
                     var studentList = [];
@@ -74,10 +76,8 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                         studentList.push(student);
                     });
                     setStudentList(studentList);
-                    setProject(val.result);
-                    // console.log('project val:', val.result);
-                });
-            });
+                }
+            })
         } catch (e) {
             console.log(e)
         };
@@ -137,13 +137,9 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
         return null;
 
     }
+    const [pdfList ,changePdfList] = useState([])
     function ProjectWorks(props) {
-        <style dangerouslySetInnerHTML={{
-            __html: projectStyle
-        }} />
-
-        // for CA P Submitted
-        if (props.userRole != "S") {
+        if (userRole != "S") {
             return (
                 <>
                     <Title level={3}>Submissions by students</Title>
@@ -158,19 +154,6 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                                 className="comment-box-item"
                                 author={<div>
                                     {student.student_name}
-                                    {/* <Tooltip placement="top" title={<div className={"email-tool-tip-component"}>
-                                        ExampleEmail@COMP9323.com
-                                        <CopyToClipboard
-                                            text={"ExampleEmail@COMP9323.com"}
-                                            onCopy={() => {
-                                                message.success('copy email success');
-                                            }}
-                                        >
-                                            <span className={"email-tool-tip-component-copy"}>COPY</span>
-                                        </CopyToClipboard>
-                                    </div>}>
-                                        <MailOutlined className={"mail-box"} />
-                                    </Tooltip> */}
                                 </div>
                                 }
                                 avatar={<Avatar src="/static/ca.png" />}
@@ -196,31 +179,62 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
         }
         else {
             // for S, work not reviewed
-            if (props.submitted) {
-                return null;
-            } else {
-                return (
-                    <>
-                        <Title level={3}>Upload documents here:</Title>
-                        <Upload
-                            action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
-                            listType="picture"
-                            className="upload-list-inline"
-                        >
-                            <Button icon={<UploadOutlined />}>Upload</Button>
-                        </Upload>
-                        <br />
-                        <br />
-                        <br />
-                        <Space direction="horizontal" size="middle" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around' }}>
 
-                            <Button type='primary' style={{ width: 300, marginTop: 20 }}>Submit</Button>
-                            <Button style={{ width: 300, marginTop: 20 }}>Back</Button>
+            return (
+                <div>
+                    <Title level={4}>Upload documents here:</Title>
+                    <Upload
+                        maxCount={1}
+                        beforeUpload={(file)=>{
+                            let fileType = file.name.split('.');
+                            const fileDate = fileType.slice(-1);
+                            const isLt200M = file.size / 1024 / 1024 < 0.5;
+                            if (!isLt200M) {
+                                message.error('File size cannot be greater than 500kb');
+                                return
+                            }
+                            return isLt200M;
+                        }}
+                        onChange={({file,fileList})=>{
+                            if(fileList && fileList.length > 0){
+                                const _file = fileList[0];
+                                const pdf_url = _file?.response?.result?.pdf_url || "";
+                                changePdfList([pdf_url])
+                            }else{
+                                changePdfList([])
+                            }
+                        }}
+                        action="http://127.0.0.1:5000/upload_file"
+                        className="upload-list-inline">
+                        <Button icon={<UploadOutlined />}>Upload (Max: 1)</Button>
+                    </Upload>
+                    <br />
+                    <br />
+                    <br />
+                    <Space direction="horizontal" size="middle" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around' }}>
+                        <Button
+                            onClick={()=>{
+                                if(!pdfList ||pdfList.length === 0){
+                                    message.warning("Please submit your work");
+                                    return;
+                                }
+                                studentSubmit({
+                                    uid : USERMESSAGE && USERMESSAGE.uid,
+                                    proj_id : pid,
+                                    file : pdfList && pdfList[0]
+                                }).then(res => {
+                                    if(res.code === 200){
+                                        message.success("Submit successfully");
+                                    }else{
+                                        message.error("Submit failed");
+                                    }
+                                })
+                            }}
+                            type='primary' style={{ width: 300, marginTop: 20 }}>Submit</Button>
+                    </Space>
+                </div>
+            )
 
-                        </Space>
-                    </>
-                )
-            }
 
         }
         return null;
@@ -282,86 +296,92 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                 <Row>
                     <Col span={2}></Col>
                     <Col span={20}>
-                        <Row>
-                            <Col span={24}>
-                                <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
-                                    <Title>{project.project_name}</Title>
-                                    <Title level={2}>A project for {project.course_name}</Title>
-                                    <Row>
-                                        <Col span={12}>
-                                            <Title level={4}>Start Time</Title>
-                                            <Paragraph>{project.start_time}</Paragraph>
-                                        </Col>
-                                        <Col span={12}>
-                                            <Title level={4}>End time</Title>
-                                            <Paragraph>{project.close_time}</Paragraph>
-                                        </Col>
-                                    </Row>
-                                    <Title level={4}>Project Description</Title>
-                                    <Paragraph>
-                                        {project.description}
-                                    </Paragraph>
-                                    <Row>
-                                        <Col span={12}>
-                                            <Title level={4}>Course Authority:</Title>
-                                            <Comment
-                                                className="comment-box-item"
-                                                author={<div>
-                                                    {project.authority_name}
-                                                    <Tooltip placement="top" title={<div className={"email-tool-tip-component"}>
-                                                        {project.authority_email}
-                                                        <CopyToClipboard
-                                                            text={project.authority_email}
-                                                            onCopy={() => {
-                                                                message.success('copy email success');
-                                                            }}
-                                                        >
-                                                            <span className={"email-tool-tip-component-copy"}>COPY</span>
-                                                        </CopyToClipboard>
-                                                    </div>}>
-                                                        <MailOutlined className={"mail-box"} />
-                                                    </Tooltip>
-                                                </div>
-                                                }
-                                                avatar={<Avatar src="/static/ca.png" />}
-                                                content={null}
-                                            >
-                                            </Comment>
-                                        </Col>
-                                        <Col span={12}>
-                                            <Title level={4}>Project Proposer:</Title>
-                                            <Comment
-                                                className="comment-box-item"
-                                                author={<div>
-                                                    {project.proposer_name}
-                                                    <Tooltip placement="top" title={<div className={"email-tool-tip-component"}>
-                                                        {project.proposer_email}
-                                                        <CopyToClipboard
-                                                            text={project.proposer_email}
-                                                            onCopy={() => {
-                                                                message.success('copy email success');
-                                                            }}
-                                                        >
-                                                            <span className={"email-tool-tip-component-copy"}>COPY</span>
-                                                        </CopyToClipboard>
-                                                    </div>}>
-                                                        <MailOutlined className={"mail-box"} />
-                                                    </Tooltip>
-                                                </div>
-                                                }
-                                                avatar={<Avatar src="/static/ca.png" />}
-                                                content={null}
-                                            >
-                                            </Comment>
-                                        </Col>
-                                    </Row>
-                                </Space>
-                            </Col>
-                        </Row>
+                        {!!project && <Row>
+                                <Col span={14}>
+                                    <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
+                                        <Title>{project.proj_name}</Title>
+                                        <Title level={5}>Course: {project.course_name}</Title>
+                                        <Row>
+                                            <Col span={24}>
+                                                <Title level={5}>
+                                                    Project Description:
+                                                </Title>
+                                                <Paragraph>{project.description}</Paragraph>
+                                            </Col>
+                                        </Row>
+                                        <Row>
+                                            <Col span={24}>
+                                                <Title level={5}>Duration:</Title>
+                                                <Paragraph>From {project.start_time} to {project.close_time}</Paragraph>
+                                            </Col>
+                                        </Row>
+                                        <Row>
+                                            <Col span={24} style={{display : "flex",alignItems : "center"}}>
+                                                <Title level={5}>Course Authority:</Title>
+                                                <Comment
+                                                    style={{marginLeft : "10px"}}
+                                                    className="comment-box-item"
+                                                    author={<div>
+                                                        {project.authority_name}
+                                                        <Tooltip placement="top" title={<div className={"email-tool-tip-component"}>
+                                                            {project.authority_email}
+                                                            <CopyToClipboard
+                                                                text={project.authority_email}
+                                                                onCopy={() => {
+                                                                    message.success('copy email success');
+                                                                }}
+                                                            >
+                                                                <span className={"email-tool-tip-component-copy"}>COPY</span>
+                                                            </CopyToClipboard>
+                                                        </div>}>
+                                                            <MailOutlined className={"mail-box"} />
+                                                        </Tooltip>
+                                                    </div>
+                                                    }
+                                                    avatar={<Avatar src="/static/ca.png" />}
+                                                    content={null}
+                                                >
+                                                </Comment>
+                                            </Col>
+                                            <Col span={24} style={{display : "flex",alignItems : "center"}}>
+                                                <Title level={5}>Project Proposer:</Title>
+                                                <Comment
+                                                    style={{marginLeft : "10px"}}
+                                                    className="comment-box-item"
+                                                    author={<div>
+                                                        {project.proposer_name}
+                                                        <Tooltip placement="top" title={<div className={"email-tool-tip-component"}>
+                                                            {project.proposer_email}
+                                                            <CopyToClipboard
+                                                                text={project.proposer_email}
+                                                                onCopy={() => {
+                                                                    message.success('copy email success');
+                                                                }}
+                                                            >
+                                                                <span className={"email-tool-tip-component-copy"}>COPY</span>
+                                                            </CopyToClipboard>
+                                                        </div>}>
+                                                            <MailOutlined className={"mail-box"} />
+                                                        </Tooltip>
+                                                    </div>
+                                                    }
+                                                    avatar={<Avatar src="/static/ca.png" />}
+                                                    content={null}
+                                                >
+                                                </Comment>
+                                            </Col>
+                                        </Row>
+                                    </Space>
+                                </Col>
+                                <Col span={4}></Col>
+                            </Row>
+                       }
                         <Divider />
                         <Row>
                             <Col span={24} >
-                                <ProjectWorks />
+                                {
+                                    ProjectWorks()
+                                }
                             </Col>
                         </Row>
                     </Col>

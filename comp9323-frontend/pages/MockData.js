@@ -89,3 +89,9 @@ export function editProject(param) {
 export function changeProjectStatus(param) {
     return fetchData('http://127.0.0.1:5000/change_project_status', param);
 }
+export function viewWorks(param) {
+    return fetchData('http://127.0.0.1:5000/view_works', param);
+}
+export function studentSubmit(param) {
+    return fetchData('http://127.0.0.1:5000/student_submit', param);
+}
