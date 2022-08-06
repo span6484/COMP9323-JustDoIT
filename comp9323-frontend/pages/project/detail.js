@@ -9,6 +9,7 @@ const { Title, Paragraph, Text, Link } = Typography;
 const { Step } = Steps;
 import _ from "lodash"
 import "./detail.less"
+import {joinQuitProject} from "../MockData"
 const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     const ref = useRef();
     //console.log(USERMESSAGE);
@@ -61,8 +62,6 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
             console.log(e)
         };
     }, [pagestate]);
-    var joined = true;
-    joined = false;
     // 0待审核Pending, 1已通过approved, 2已发布open to join 3进行中in progress 4已结束ended 5未通过not approved 
     // change to => status(0: 待审核，1: 审核通过/2: 审核未通过，3 已发布 4: 项目进行中，5: 项目已结束
     var status = project.status;
@@ -133,23 +132,21 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
         }
     }
     function sendJoinQuitProject(pid, uid, join_state) {
-        try {
-            fetch('http://localhost:5000/join_quit_project', {
-                method: 'POST',
-                headers: {
-                    "content": 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                },
-                body: JSON.stringify({ "proj_id": pid, "sid": uid, "join_state": join_state })
-            }).then(res => {
-                res.json().then((val) => {
-                    console.log("join_quit_project res ", val);
-                    setPageState(pagestate + 1);
-                });
-            });
-        } catch (e) {
-            console.log(e)
-        }
+        joinQuitProject({
+            "proj_id": pid,
+            "sid": uid,
+            "join_state": join_state
+        }).then(res => {
+            if(res.code === 200){
+                message.success("Join project successfully");
+                const _project = _.cloneDeep(project);
+                _project.is_join = join_state;
+                setProject(_project)
+            }else{
+                message.error("Join project failed")
+            }
+            setPageState(pagestate + 1);
+        })
     }
     function Buttons(props) {
         const userRole = props.userRole;
@@ -268,7 +265,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     }
     function SButtons(props) {
         if (props.status < 5) {
-            if (joined) {
+            if (project.is_join) {
                 return (
                     <>
                         <Popconfirm
@@ -280,7 +277,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                                 sendJoinQuitProject(pid, uid, 0)
                             }}
                         >
-                            <Button type="primary" >Quit Project</Button>
+                            <Button >Quit Project</Button>
                         </Popconfirm>
 
 
@@ -664,7 +661,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
             if (files.length > 0) {
                 return (
                     <>
-                        <Title level={3}>Specification documents</Title>
+                        <Title level={4}>Specification documents</Title>
                         <Collapse onChange={onChange}>
                             {files.map((item, index) => {
                                 return (
