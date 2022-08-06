@@ -2,25 +2,23 @@ import PageBase from '../basePage'
 import React, { useRef, useState, useEffect } from 'react'
 import { Col, Row, message, Typography, Button, Space, Tooltip, Steps, Comment, Avatar, Input, Modal } from 'antd';
 const {confirm} = Modal;
-import { MailOutlined, DeleteOutlined, FormOutlined, ExclamationCircleOutlined } from "@ant-design/icons"
-const { Title, Paragraph, Text, Link } = Typography;
+import { MailOutlined, ExclamationCircleOutlined } from "@ant-design/icons"
+const { Title, Paragraph} = Typography;
 import CourseDetailStyle from "./CourseDetail.less"
 import { CopyToClipboard } from 'react-copy-to-clipboard';
-import { getRequirement } from '../MockData';
-import {connect}  from 'react-redux';
+import {getRequirement, getUserProfile,addRequirement} from '../MockData';
 import store from '../../util/store';
-import { Content } from 'antd/lib/layout/layout';
+import {getQueryString} from "../../util/common";
+const { TextArea } = Input
 const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
   console.log(store.getState)
   const ref = useRef();
   // const [requirement,changeRequirement] = useState({})
-  const [projectList, changeProjectList] = useState([{}, {}])
   // 0:CA，1:S，2:P，3:R
-  const [user, changeUser] = useState({ role: 0 })
   const [contentref, setContentref] = useState(true);
-  const { TextArea } = Input
   const [value, setValue] = useState("");
-  const [descVal, setDescVal] = useState(value)
+  const [descVal, setDescVal] = useState(value);
+  const [userProfile,changeUserProfile] = useState({})
   const getRequireMent = () => {
     getRequirement().then(res => {
       // console.log(res);
@@ -33,16 +31,6 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
       icon: <ExclamationCircleOutlined />,
       okText : "YES",
       cancelText : "NO",
-      // onOk() {
-      //   clearHistory({uid}).then(res => {
-      //      if(res.code === 200){
-      //         message.success("Clear successfully");
-      //         fetchData();
-      //      }else{
-      //        message.error("Clear failed");
-      //      }
-      //   })
-      // }
       onOk(){
         setDescVal('')
         message.success("Delete successfully");
@@ -52,7 +40,16 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
   
   useEffect(() => {
     setTimeout(() => {
-      ref?.current.getTabPane(urlMsg.asPath, `New Requirement`)
+      ref?.current.getTabPane(urlMsg.asPath, `New Requirement`);
+      getUserProfile({
+        uid :  USERMESSAGE && USERMESSAGE.uid
+      }).then(res => {
+        if(res.code === 200){
+          changeUserProfile(res.result)
+        }else{
+          changeUserProfile({})
+        }
+      })
     }, 0)
     // getRequireMent()
   }, []);
@@ -95,12 +92,28 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
               <Col span={6}
                   className={"action-button-box"}>
                   {contentref ?
-                    <Button onClick={() => setContentref(false)}>Edit</Button> :
+                    <div/> :
                     <Button onClick={() => {
-                      setContentref(true)
-                      //todo 发起请求
+                      if(!value){
+                        message.warning("Please enter your requirement");
+                        return;
+                      }
+                      addRequirement({
+                        uid: USERMESSAGE && USERMESSAGE.uid,
+                        cid: getQueryString("id") || "",
+                        content : value
+                      }).then(res => {
+                        if(res.code === 200){
+                          message.success("Add requirement successfully");
+                          setContentref(true);
+                        }else{
+                          message.error("Add requirement failed")
+                        }
+                      })
                     }}>Submit</Button>}
-                  <Button onClick={()=>deleteRequirement()} disabled={!value&&true}>Cancel</Button>
+                {!contentref && <Button onClick={()=>{
+                    setDescVal('')
+                  }} >Clear</Button>}
                 </Col>
             </Row>
             <br />
@@ -111,9 +124,9 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
                   <Comment
                     className="comment-box-item"
                     author={<div>
-                      Authority Name
+                      {userProfile.username}
                       <Tooltip placement="top" title={<div className={"email-tool-tip-component"}>
-                        email12131@qq.com
+                        {userProfile.email}
                         <CopyToClipboard
                           text={"email12131@qq.com"}
                           onCopy={() => {
@@ -153,10 +166,4 @@ CourseDetail.getInitialProps = async (status) => {
   }
 }
 
-let mapToProps=(state)=>{
-  console.log(state);
-    return {
-      editReducer
-    }
-}
 export default CourseDetail
