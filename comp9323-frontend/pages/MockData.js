@@ -72,5 +72,5 @@ export function addProposal(param) {
     return fetchData('http://127.0.0.1:5000/add_proposal', param);
 }
 export function uploadPdf(param) {
-    return fetchData('http://127.0.0.1:5000/upload_pdf', param);
+    return fetchData('http://127.0.0.1:5000/upload_file', param);
 }

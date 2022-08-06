@@ -43,8 +43,6 @@ def init_route(app: Flask):
     app.add_url_rule('/edit_requirement', view_func=course.edit_requirement, methods=['POST'])
     app.add_url_rule('/delete_requirement', view_func=course.delete_requirement, methods=['POST'])
 
-    app.add_url_rule('/upload_pdf', view_func=course.upload_pdf, methods=['POST','OPTIONS'])
-
 
 
 

@@ -82,27 +82,13 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
 						</Space>
 						<Title level={4}>Upload Documents</Title>
 						<br />
-						<div className={"input_file"}>
-							<UploadOutlined />
-							&nbsp;Upload
-							<input
-								className={"input_file_button"}
-								onChange={(e)=>{
-									// console.log("e",e)
-									uploadPdf({
-										file : e.target.value
-									})
-								}}
-								type={"file"}/>
-						</div>
 						<Upload
 							beforeUpload={(file)=>{
 								let fileType = file.name.split('.');
 								const fileDate = fileType.slice(-1);
-								const isLt200M = file.size / 1024 / 1024 < 200;
-								console.log("isLt200M",file.size)
+								const isLt200M = file.size / 1024 / 1024 < 0.5;
 								if (!isLt200M) {
-									message.error('附件大小不能超过200M!');
+									message.error('File size cannot be greater than 500kb');
 									this.setState({
 										file
 									})
@@ -112,9 +98,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
 								return isLt200M;
 
 							}}
-
-
-							action="http://127.0.0.1:5000/upload_pdf"
+							action="http://127.0.0.1:5000/upload_file"
 							className="upload-list-inline">
 							<Button icon={<UploadOutlined />}>Upload</Button>
 						</Upload>
