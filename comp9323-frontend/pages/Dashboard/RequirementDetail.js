@@ -1,11 +1,12 @@
 import PageBase from '../basePage';
 import React, { useRef, useState, useEffect } from 'react';
-import {Col, Row, message, Typography, Button, Space, Tooltip, Comment, Avatar, Input, Modal, Empty} from 'antd';
-import { MailOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
+import {Col, Row, message, Typography, Button, Space,Popconfirm,
+  Tooltip, Comment, Avatar, Input, Modal, Empty} from 'antd';
+import { MailOutlined, ExclamationCircleOutlined ,DeleteOutlined} from "@ant-design/icons";
 
 import CourseDetailStyle from "./CourseDetail.less";
 import { CopyToClipboard } from 'react-copy-to-clipboard';
-import { getRequirementDetail,getProposals,editRequirement,deleteRequirement } from "../MockData";
+import { getRequirementDetail,getProposals,editRequirement,deleteRequirement ,deleteProposal} from "../MockData";
 import {getQueryString,setDay} from "../../util/common";
 
 const { confirm } = Modal;
@@ -140,7 +141,21 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
   const handleClickProjectName = (id) => {
     ref.current.setTabPane(`Project Name`, '', `/project/detail?id=${id}`);
   };
-
+  function delProposal(id,index){
+    deleteProposal({
+      "uid": USERMESSAGE && USERMESSAGE.uid,
+      "proj_id": id
+    }).then(res => {
+      if(res.code === 200){
+        message.success("Delete project successfully");
+        const _projectList = _.cloneDeep(projectList);
+        _projectList.splice(index,1);
+        changeProjectList(_projectList)
+      }else{
+        message.error("Delete project failed");
+      }
+    })
+  }
   return (
     <PageBase cRef={ref} USERMESSAGE={USERMESSAGE}>
       <style dangerouslySetInnerHTML={{ __html: CourseDetailStyle }} />
@@ -257,6 +272,17 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
                   {
                     projectList && projectList.map((item, index) => {
                       return <div className={"requirement_box"} key={"requirementList_" + index}>
+                        {
+                          item.is_delete === 1 &&
+                            item.status === 0 &&
+                            <Popconfirm placement="top" title={"Are you sure delete this project?"}
+                                        onConfirm={()=>{
+                                          delProposal(item.proj_id,index);
+                                        }} okText="SURE" cancelText="CANCEL">
+                                <DeleteOutlined className={"cancel-icon"}/>
+                            </Popconfirm>
+                        }
+
                         <p onClick={()=>{
                           handleClickProjectName(item.proj_id);
                         }}>{ item.proj_name }</p>
