@@ -32,8 +32,8 @@ const AllProject = ({ USERMESSAGE, urlMsg }) => {
     {
       title: 'Course',
       width: 100,
-      dataIndex: 'course',
-      key: 'course',
+      dataIndex: 'course_name',
+      key: 'course_name',
       fixed: 'left',
     },
     {

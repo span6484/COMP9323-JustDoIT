@@ -19,7 +19,8 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
   const [requirementList, changeRequirementList] = useState([]); // Requirement List
   const [user, changeUser] = useState(USERMESSAGE || {}); // User Info
   const [projectList, changeProjectList] = useState([]); // Project List
-  const [project,changeProject] = useState([])
+  const [project,changeProject] = useState([]);
+  const [courseResList ,changeCourseResList] = useState([]);
   // 初始化
   useEffect(() => {
     handleGetCourseDetail(); // 获取course详情
@@ -71,7 +72,15 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
              email : res.result?.course_cas[i].email
           })
         }
+        const _list2 = [];
+        for(let i = 0 ; i < (res.result?.course_res || []).length ; i++){
+          _list2.push({
+            name : res.result?.course_res[i].re_name,
+            email : res.result?.course_res[i].re_email
+          })
+        }
         changeCourseAuthorityList(_list);
+        changeCourseResList(_list2);
         ref?.current.getTabPane(urlMsg.asPath, res.result?.course_name || `Course Detail`)
       }
 
@@ -189,35 +198,74 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
             <br />
 
             {/* Course Authority */}
-            <Row>
-              <Col span={24}>
-                <Title level={3}>Course Authority</Title>
-                <div className={"comment-box"}>
-                  { courseAuthorityList.map((item, index) =>
-                    <Comment key={index} className="comment-box-item"
-                      author={
-                        <div>
-                          { item.name }
-                          <Tooltip placement="top" title={
-                            <div className={"email-tool-tip-component"}>
-                              { item.email }
-                              <CopyToClipboard text={ item.email } onCopy={() => { message.success('copy email success'); }}>
-                                <span className={"email-tool-tip-component-copy"}>COPY</span>
-                              </CopyToClipboard>
-                            </div>}
+            {
+              courseAuthorityList && courseAuthorityList.length > 0 &&
+                <Row>
+                  <Col span={24}>
+                    <Title level={3}>Course Authority</Title>
+                    <div className={"comment-box"}>
+                      { courseAuthorityList.map((item, index) =>
+                          <Comment key={index} className="comment-box-item"
+                                   author={
+                                     <div>
+                                       { item.name }
+                                       <Tooltip placement="top" title={
+                                         <div className={"email-tool-tip-component"}>
+                                           { item.email }
+                                           <CopyToClipboard text={ item.email } onCopy={() => { message.success('copy email success'); }}>
+                                             <span className={"email-tool-tip-component-copy"}>COPY</span>
+                                           </CopyToClipboard>
+                                         </div>}
+                                       >
+                                         <MailOutlined className={"mail-box"} />
+                                       </Tooltip>
+                                     </div>
+                                   }
+                                   avatar={<Avatar src="/static/ca.png" alt="Han Solo" />}
+                                   content={null}
                           >
-                            <MailOutlined className={"mail-box"} />
-                          </Tooltip>
-                        </div>
-                      }
-                      avatar={<Avatar src="/static/ca.png" alt="Han Solo" />}
-                      content={null}
-                    >
-                    </Comment>
+                          </Comment>
+                      )}
+                    </div>
+                  </Col>
+                </Row>
+            }
+
+
+            {/* Reviewers List */}
+            {!!courseResList && courseResList.length > 0 &&
+                <Row>
+              <Col span={24}>
+                <Title level={3}>Reviewers</Title>
+                <div className={"comment-box"}>
+                  { courseResList && courseResList.map((item, index) =>
+                      <Comment key={index} className="comment-box-item"
+                               author={
+                                 <div>
+                                   { item.name }
+                                   <Tooltip placement="top" title={
+                                     <div className={"email-tool-tip-component"}>
+                                       { item.email }
+                                       <CopyToClipboard text={ item.email } onCopy={() => { message.success('copy email success'); }}>
+                                         <span className={"email-tool-tip-component-copy"}>COPY</span>
+                                       </CopyToClipboard>
+                                     </div>}
+                                   >
+                                     <MailOutlined className={"mail-box"} />
+                                   </Tooltip>
+                                 </div>
+                               }
+                               avatar={<Avatar src="/static/ca.png" alt="Han Solo" />}
+                               content={null}
+                      >
+                      </Comment>
                   )}
                 </div>
               </Col>
             </Row>
+            }
+
+
 
             {/* Requirement List */}
             <Row>

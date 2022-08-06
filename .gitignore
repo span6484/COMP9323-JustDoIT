@@ -4,3 +4,6 @@ frontend/node_modules/.bin/acorn
 *.pyc
 ./comp9323-backend/app/__pycache__
 ./comp9323-backend/app/login/__pycache__
+comp9323-backend/app/.DS_Store
+comp9323-backend/migrations/versions/*.py
+comp9323-backend/migrations/versions/5f9c7b31c0fc_.py

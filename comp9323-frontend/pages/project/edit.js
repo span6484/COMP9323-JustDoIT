@@ -1,7 +1,7 @@
 import PageBase from '../basePage';
 import projectStyle from "./project.less";
 import moment from 'moment';
-import React, { useRef, onChange, useState } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { UploadOutlined } from '@ant-design/icons';
 import { Col, Row, Button, Typography, Input, Space, Select, message, Upload, Comment, Avatar, DatePicker, Steps } from 'antd';
 const { Dragger } = Upload;
@@ -9,38 +9,141 @@ import { SP } from 'next/dist/next-server/lib/utils';
 const { Title, Paragraph, Text, Link } = Typography;
 const { Step } = Steps;
 const dateFormat = 'YYYY/MM/DD';
-const TextIndex = ({ USERMESSAGE }) => {
+
+const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     const ref = useRef();
-    const { Option } = Select;
-    var role = "CA"
-    // 0待审核Pending, 1已通过approved, 2已发布open to join 
-    // 3进行中in progress 4已结束ended 5未通过not approved 
-    var status = 0;
-    const fileList = [
-        {
-            uid: '-1',
-            name: 'test.pdf',
-            status: 'done',
-            url: 'https://www.orimi.com/pdf-test.pdf',
-        },
-        {
-            uid: '-2',
-            name: 'error.png',
-            status: 'error',
-        },
-    ];
+    //console.log(urlMsg, USERMESSAGE);
+    const uid = USERMESSAGE.uid;
+    // get roles based project users
+    var userRole = undefined;
+    switch (USERMESSAGE.type) {
+        case 0:
+            userRole = "CA";
+            break;
+        case 1:
+            userRole = "S";
+            break;
+        case 2:
+            userRole = "P";
+            break;
+        case 3:
+            userRole = "R";
+            break;
+    }
+    // get project id from url 
+    var pid = urlMsg.asPath.toString().replace('/project/edit?id=', '');
+
+    const [project, setProject] = useState({});
+
+    const changeProject = (e, content) => {
+        const obj = Object.assign(project, {
+            [content]: e.target.value,
+        });
+        setProject(obj);
+    };
+    function saveProject(pid, uid, status) {
+        try {
+            fetch('http://localhost:5000/edit_project', {
+                method: 'POST',
+                headers: {
+                    "content": 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                // "proj_id": "1",
+                // "uid": "u00001",
+                // "proj_name": "test edit proj",
+                // "description": "test test test test test test",
+                // "start_time": "2022-01-01",
+                // "close_time": "2022-12-31",
+                // "status": 0,
+                // "max_num":25
+                body: JSON.stringify({
+                    "proj_id": pid,
+                    "uid": uid,
+                    "proj_name": "test edit proj",
+                    "description": "test test test test test test",
+                    "start_time": "2022-01-01",
+                    "close_time": "2022-12-31",
+                    "status": status,
+                    "max_num": 25
+                })
+            }).then(res => {
+                res.json().then((val) => {
+                    console.log("res val = ", val);
+                    // window.location.reload();
+                });
+            });
+        } catch (e) {
+            console.log(e)
+        }
+    }
+    var status = project.status;
+
+    useEffect(() => {
+        setTimeout(() => {
+            ref?.current.getTabPane(urlMsg.asPath, `Project Name`)
+        }, 0);
+        // fetch project info on load
+        try {
+            fetch('http://localhost:5000/view_project', {
+                method: 'POST',
+                headers: {
+                    "content": 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                body: JSON.stringify({ "proj_id": pid, "uid": uid, })
+            }).then(res => {
+                res.json().then((val) => {
+                    console.log(moment(val.result.start_time).isValid());
+                    // val.result.start_time = moment(val.result.start_time).format(dateFormat);
+                    // val.result.close_time = moment(val.result.close_time).format(dateFormat);
+                    val.result.start_time = moment(val.result.start_time).format(dateFormat).toString();
+                    val.result.close_time = moment(val.result.close_time).format(dateFormat).toString();
+                    console.log(val.result);
+                    console.log(moment(val.result.start_time).isValid());
+                    console.log(val.result.start_time, val.result.close_time);
+                    setProject(val.result);
+                });
+            });
+        } catch (e) {
+            console.log(e)
+        };
+    }, []);
 
     function ProgressBars(props) {
         const userRole = props.userRole;
-        const status = props.status;
+
+        if (status < 5) {
+            if (userRole != "S") {
+
+                return (
+                    <>
+                        <Steps current={status}>
+                            <Step title="Pending" description="Project being reviewed" />
+                            <Step title="Approved" description="Approved by course authority" />
+                            <Step title="Open to join" description="Open to student to join" />
+                            <Step title="In Progress" description="Project in progress" />
+                            <Step title="Ended" description="Student works are submitted" />
+                        </Steps>
+                    </>
+                );
+            } else {
+                return (
+                    <>
+                        <Steps current={status - 2}>
+                            <Step title="Open to join" description="Open to student to join" />
+                            <Step title="In Progress" description="Project in progress" />
+                            <Step title="Ended" description="Student works are submitted" />
+                        </Steps>
+                    </>
+                );
+            }
+        }
         return (
             <>
-                <Steps current={status}>
+                <Steps current={1}>
                     <Step title="Pending" description="Project being reviewed" />
-                    <Step title="Approved" description="Approved by course authority" />
-                    <Step title="Open to join" description="Open to student to join" />
-                    <Step title="In Progress" description="Project in progress" />
-                    <Step title="Ended" description="Student works are submitted" />
+                    <Step title="Not Approved" description="Not approved by course authority" />
                 </Steps>
             </>
         );
@@ -88,46 +191,58 @@ const TextIndex = ({ USERMESSAGE }) => {
                             <br />
                             <Title level={4}>Change project name</Title>
                             <Input
-                                value={"Natural Language Processing with Disaster Tweets"}
+                                value={project.proj_name}
                                 placeholder="Enter new project name here" />
                             <br />
                             <Title level={4}>Change project description</Title>
                             <Input.TextArea
                                 maxLength={1200}
                                 autoSize={{ minRows: 4, maxRows: 8 }}
-                                value={"Twitter has become an important communication channel in times of emergency. The ubiquitousness of smartphones enables people to announce an emergency they’re observing in real-time. Because of this, more agencies are interested in programatically monitoring Twitter (i.e. disaster relief organizations and news agencies)."}
+                                value={project.description}
                                 placeholder="Enter new project description here" />
 
                         </Space>
                         <br />
                         <Row>
                             <Col span={20}>
-                                <Title level={4}>Start Time - End Time</Title>
-                                <Title level={5}>
-                                    <DatePicker.RangePicker
-                                        disabledDate={disabledDate}
-                                        defaultValue={[moment('2022/07/26', dateFormat), moment('2022/07/28', dateFormat)]}
-                                        format={dateFormat}
-                                    />
-                                </Title>
+                                <Title level={4}>Change Start Time and End Time</Title>
+
+                                <Space direction="vertical" size="middle" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
+                                    <Space direction="vertical" size="middle" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                                        <Title level={5}>
+                                            Current: Start Time - End Time
+                                        </Title>
+                                        <Title level={5}>
+                                            {project.start_time} - {project.close_time}
+                                        </Title>
+                                    </Space>
+                                    <Space direction="vertical" size="middle" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                                        <Title level={5}>
+                                            New: Start Time - End Time
+                                        </Title>
+                                        <DatePicker.RangePicker
+                                            disabledDate={disabledDate}
+                                            format={dateFormat}
+                                        />
+                                    </Space>
+                                </Space>
+
                             </Col>
                         </Row>
                         <br />
                         <Title level={3}>Project current progress</Title>
                         <br />
-                        <ProgressBars userRole={role} status={status} />
-
+                        <ProgressBars userRole={userRole} />
                         <br />
                         <br />
-                        <UploadDocumnets status={status} />
+                        {/* //<UploadDocumnets status={status} /> */}
                         <br />
                         <br />
                         <br />
                         <Space direction="horizontal" size="middle" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around' }}>
-
-                            <Button type='primary' style={{ width: 300 }}>Save Project</Button>
-                            <Button style={{ width: 300 }}>Back</Button>
-
+                            <Button type='primary' style={{ width: 300 }} onClick={() => {
+                                saveProject();
+                            }}>Save Project</Button>
                         </Space>
 
                     </Col>
@@ -139,5 +254,12 @@ const TextIndex = ({ USERMESSAGE }) => {
             </>    </PageBase>
     )
 }
-
+TextIndex.getInitialProps = async (status) => {
+    const asPath = status.asPath;
+    return {
+        urlMsg: {
+            asPath
+        }
+    }
+}
 export default TextIndex
