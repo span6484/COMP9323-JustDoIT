@@ -178,7 +178,7 @@ def get_requirement_detail():
 
 def add_proposal():
     data = request.get_json(force=True)
-    uid, rid, proj_name, description = data["uid"], data["rid"], data["proj_name"], data["description"]
+    uid, rid, proj_name, description, file_url = data["uid"], data["rid"], data["proj_name"], data["description"], data["file"]
 
     user = UserModel.query.filter(UserModel.uid == uid, UserModel.role == 2, UserModel.active == 1).first()
     if not user:
@@ -209,8 +209,17 @@ def add_proposal():
                                 start_time=course.start_time, close_time=course.close_time,
                                 ctime=date_time, utime=date_time, status=0)
 
+        if file_url:
+            date_time = get_time()[0]
+            file_name = file_url.split(".com/")[1]
+            file_num = FileModel.query.count()
+            fid = generate_id("file", file_num+1)
+            file = FileModel(fid=fid, proj_id=proj_id, uid=uid, file_name=file_name, file_url=file_url,
+                             type="project", ctime=date_time, utime=date_time)
+
         msg = add_message(requirement.aid, f"Proposer {user.username} add a proposal to your requirement in course {course.name}.")
         if msg:
+            db.session.add(file)
             db.session.add(proposal)
             db.session.commit()
             return jsonify({'code': 200, 'msg': 'Add proposal and send message to authority successfully.'})
@@ -244,7 +253,10 @@ def delete_proposal():
         date_time = get_time()[0]
         proposal.status = -1
         proposal.utime = date_time
-
+        file = FileModel.query.filter(FileModel.proj_id == proj_id, FileModel.uid == uid, FileModel.active == 1).first()
+        if file:
+            file.utime = date_time
+            file.active = 0
         msg = add_message(proposal.aid,
                           f"Proposer {user.username} delete a proposal from your requirement in course {course.name}.")
         if msg:
