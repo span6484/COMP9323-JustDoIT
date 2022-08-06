@@ -55,7 +55,7 @@ def view_project():
     result["authority_id"] = authority.uid
     is_join, is_edit = 0, 0
     selection = SelectionModel.query.filter(SelectionModel.sid == uid, SelectionModel.proj_id == proj_id, SelectionModel.active == 1).first()
-    if proj.aid == uid or proj.pid == uid:
+    if (proj.status == 0 and proj.pid == uid) or (proj.aid == uid and (proj.status < 3 and proj.status != 2)):
         is_edit = 1
     elif user.role == 1 and selection:
         is_join = 1
@@ -509,17 +509,20 @@ def edit_project():
     close_time = data["close_time"]
     max_num = data["max_num"]
     uid = data["uid"]
-    status = data["status"]
+    # status = data["status"]
+    file_url = data["file"]
+    user = UserModel.query.filter(UserModel.uid == uid, UserModel.active == 1).first()
+    if not user:
+        return jsonify({'code': 400, 'msg': 'User does not exist.'})
     proj = ProjectModel.query.filter(ProjectModel.proj_id == proj_id).first()
     if not proj:
         return jsonify({'code': 400, 'msg': 'not related project'})
 
-    if proj.status != 0:
-        return jsonify({'code': 400, 'msg': 'this project is not pending status, so you could not modify it'})
-
-    user = UserModel.query.filter(UserModel.uid == uid, UserModel.active == 1).first()
-    if not user:
-        return jsonify({'code': 400, 'msg': 'not related user'})
+    can_modify = 0
+    if (proj.status == 0 and proj.pid == uid) or (proj.aid == uid and (proj.status < 3 and proj.status != 2)):
+        can_modify = 1
+    if can_modify == 0:
+        return jsonify({'code': 400, 'msg': 'this project cannot be modified'})
 
     cid = proj.cid
     course = CourseModel.query.filter(CourseModel.cid == cid, CourseModel.active == 1).first()
@@ -530,8 +533,8 @@ def edit_project():
     if not user:
         return jsonify({'code': 400, 'msg': 'no related user exist, Only CA or proposer has access'})
 
-    # files = FileModel.query.filter(FileModel.proj_id == proj_id, FileModel.active == 1).all()
     try:
+        date_time = get_time()[0]
         is_changed = False
         if proj_name:
             proj_name = proj_name.strip()
@@ -549,12 +552,24 @@ def edit_project():
             end_time_lst = time_list(close_time)
             proj.close_time = dt(end_time_lst[0], end_time_lst[1], end_time_lst[2])
             is_changed = True
-        if status:
-            proj.status = status
-            is_changed = True
         if is_changed:
-            date_time = get_time()[0]
             proj.utime = date_time
+        if file_url:
+            file = FileModel.query.filter(FileModel.proj_id == proj_id, FileModel.type == "project",
+                                          FileModel.active == 1).first()
+            if file:
+                file_name = file_url.split('.com/')[1]
+                file.file_name = file_name
+                file.file_url = file_url
+                file.utime = date_time
+            else:
+                file_name = file_url.split('.com/')[1]
+                file_num = FileModel.query.count()
+                fid = generate_id("file", file_num + 1)
+                new_file = FileModel(fid=fid, proj_id=proj_id, uid=uid, file_name=file_name, file_url=file_url,
+                                     type="project", ctime=date_time, utime=date_time)
+                db.session.add(new_file)
+
         proj.max_num = max_num
         db.session.commit()
         return jsonify({'code': 200, 'msg': 'modify successfully'})
