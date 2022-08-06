@@ -583,31 +583,37 @@ def getStudentSelectionInfo(selection, proj):
 
 def view_works():
     data = request.get_json(force=True)
-    result = {}
-    uid = data["uid"]
-    student_index = data["student_index"]
-    proj_id = data["proj_id"]
-    proj = ProjectModel.query.filter(ProjectModel.proj_id == proj_id).first()
-    if not proj:
-        return jsonify({'code': 400, 'msg': 'not related project'})
+    uid, proj_id = data["uid"], data["proj_id"]
+    pagesize, page_index = data["page_size"], data["page_index"]
     user = UserModel.query.filter(UserModel.uid == uid, UserModel.active == 1).first()
     if not user:
-        return jsonify({'code': 400, 'msg': 'User does not exist'})
-    cid = proj.cid
-    course = CourseModel.query.filter(CourseModel.cid == cid, CourseModel.active == 1).first()
+        return jsonify({'code': 400, 'msg': 'User does not exist.'})
+    proj = ProjectModel.query.filter(ProjectModel.proj_id == proj_id, or_(ProjectModel.status == 4, ProjectModel.status == 5)).first() #
+    if not proj:
+        return jsonify({'code': 400, 'msg': 'Project does not exist.'})
+
+    course = CourseModel.query.filter(CourseModel.cid == proj.cid, CourseModel.active == 1).first()
     if not course:
         return jsonify({'code': 400, 'msg': 'not related course'})
 
-    aid = proj.aid
-    authority = UserModel.query.filter(UserModel.uid == aid, UserModel.role == 0, UserModel.active == 1).first()
+    authority = UserModel.query.filter(UserModel.uid == proj.aid, UserModel.role == 0, UserModel.active == 1).first()
     if not authority:
         return jsonify({'code': 400, 'msg': 'no course authority'})
-    pid = proj.pid  # proposer_id
-    proposer = UserModel.query.filter(UserModel.uid == pid, UserModel.role == 2, UserModel.active == 1).first()
+
+    proposer = UserModel.query.filter(UserModel.uid == proj.pid, UserModel.role == 2, UserModel.active == 1).first()
     if not proposer:
         return jsonify({'code': 400, 'msg': 'no proposer'})
-    if user != authority and user != proposer:
-        return jsonify({'code': 400, 'msg': 'this user has no access'})
+
+    selection = SelectionModel.query.filter(SelectionModel.sid == uid, SelectionModel.proj_id == proj_id,
+                                            SelectionModel.active == 1).first()
+    if user.role == 1 and not selection:
+        return jsonify({'code': 400, 'msg': 'Student did not select this project.'})
+
+    all_selections = SelectionModel.query.filter(SelectionModel.proj_id == proj_id, SelectionModel.active == 1).all()
+    if not all_selections:
+        return jsonify({'code': 200, 'msg': 'No students select this project'})
+
+    result = {}
     result["proj_name"] = proj.proj_name
     result["description"] = proj.description
     result["start_time"] = proj.start_time
@@ -623,28 +629,32 @@ def view_works():
     result["authority_name"] = authority.username
     result["authority_email"] = authority.email
     result["authority_id"] = authority.uid
-    print(proj_id)
-    selections = SelectionModel.query.filter(SelectionModel.proj_id == proj_id, SelectionModel.active == 1).all()
-    selection_List = list()
-    count = 0
-    if selections:
-        for selection in selections:
-            temp = getStudentSelectionInfo(selection, proj)
-            print(temp)
+
+    selection_List = []
+    if uid == proj.aid or uid == proj.pid:
+        for s in all_selections:
+            temp = getStudentSelectionInfo(s, proj)
             if temp:
                 selection_List.append(temp)
-                count += 1
-    result["student_count"] = count
-    page_size = 1
-    start = student_index * page_size
-    end = start + page_size
-    if end < result["student_count"]:
-        result["student_lst"] = selection_List[start:end]
+        result["student_count"] = len(selection_List)
+        page_size = 1
+        start = page_index * page_size
+        end = start + page_size
+        if end < result["student_count"]:
+            result["student_lst"] = selection_List[start:end]
+        else:
+            result["student_lst"] = selection_List[start:]
+
+        return jsonify({'code': 200, 'result': result})
+    elif user.role == 1 and selection:
+        work_info = getStudentSelectionInfo(selection, proj)
+        if work_info:
+            selection_List.append(work_info)
+        result["student_count"] = len(selection_List)
+        result["student_lst"] = selection_List
+        return jsonify({'code': 200, 'result': result})
     else:
-        result["student_lst"] = selection_List[start:]
-
-    return jsonify({'code': 200, 'result': result})
-
+        return jsonify({'code': 400, 'msg': "get works failed"})
 
 def give_feedback():
     data = request.get_json(force=True)
