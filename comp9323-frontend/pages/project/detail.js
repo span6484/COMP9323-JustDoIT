@@ -5,10 +5,9 @@ import { MailOutlined, DeleteOutlined, FormOutlined, UnderlineOutlined } from "@
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import Search from 'antd/lib/transfer/search';
 import moment from 'moment';
-import { template } from 'lodash';
 const { Title, Paragraph, Text, Link } = Typography;
 const { Step } = Steps;
-
+import _ from "lodash"
 const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     const ref = useRef();
     //console.log(USERMESSAGE);
@@ -100,6 +99,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                     val.result.close_time = moment(val.result.close_time).format('YYYY-MM-DD');
                     setProject(val.result);
                     console.log('project val:', val.result);
+                    ref?.current.getTabPane(urlMsg.asPath, val.result?.proj_name || "")
                 });
             });
         } catch (e) {
@@ -397,20 +397,49 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
         }
         return (
             <>
-                <br />
-                <br />
-                <Title level={3}> Add Comment</Title>
-                <Input.Group compact
-                    style={{ display: 'flex', flexDirection: 'row', width: 'fit-content' }}
-                >
-                    <Input
-                        type="text"
-                        value={newComment}
-                        onChange={(e) => setNewComment(e.target.value)} />
-                    <Button onClick={handleClick}>Send</Button>
-                </Input.Group>
-                <br />
-                <br />
+                <Title level={5}> Add Comment
+                </Title>
+                {/*<Input.Group compact*/}
+                {/*    style={{ display: 'flex', flexDirection: 'row', width: 'fit-content' }}*/}
+                {/*>*/}
+                {/*    <Input.TextArea*/}
+                {/*        type="text"*/}
+                {/*        style={{*/}
+                {/*            width:"100%"*/}
+                {/*        }}*/}
+                {/*        placeholder={"Please holder your comment"}*/}
+                {/*        value={newComment}*/}
+                {/*        onChange={(e) => setNewComment(e.target.value)} />*/}
+                {/*    /!*<Button onClick={handleClick}>Send</Button>*!/*/}
+                {/*</Input.Group>*/}
+                <Input.TextArea
+                    type="text"
+                    style={{
+                        width:"80%"
+                    }}
+                    allowClear
+                    autoSize={{
+                        minRows: 2,
+                        maxRows: 5,
+                    }}
+                    showCount
+                    maxLength={600}
+                    placeholder={"Please holder your comment"}
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)} />
+                <div style={{
+                    width:"80%",
+                    margin:"30px 0 10px 0"
+                }}>
+                    <Button
+                        style={{
+                            float : "right"
+                        }}
+                        onClick={handleClick}>Send</Button>
+                    <div style={{
+                        clear:"both"
+                    }}/>
+                </div>
             </>
         )
     }
@@ -451,11 +480,39 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
         }
         return (
             <>
-                <form style={{ display: 'flex', flexDirection: 'row', width: 'fit-content' }}>
-                    <Input placeholder="Reply" type="text"
+                <form style={{ width: '80%' }}>
+                    {/*<Input placeholder="Reply" type="text"*/}
+                    {/*    value={newComment}*/}
+                    {/*    onChange={(e) => setNewComment(e.target.value)} />*/}
+                    {/*<Button onClick={handleClick}>Send</Button>*/}
+                    <Input.TextArea
+                        type="text"
+                        style={{
+                            width:"80%"
+                        }}
+                        allowClear
+                        autoSize={{
+                            minRows: 2,
+                            maxRows: 5,
+                        }}
+                        showCount
+                        maxLength={600}
+                        placeholder={"Please holder your reply"}
                         value={newComment}
                         onChange={(e) => setNewComment(e.target.value)} />
-                    <Button onClick={handleClick}>Send</Button>
+                    <div style={{
+                        width:"80%",
+                        margin:"30px 0 10px 0"
+                    }}>
+                        <Button
+                            style={{
+                                float : "right"
+                            }}
+                            onClick={handleClick}>Send</Button>
+                        <div style={{
+                            clear:"both"
+                        }}/>
+                    </div>
                 </form>
 
             </>
@@ -509,7 +566,8 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                     return (
                         <>
                             <Title level={3}>Forum</Title>
-                            {comments.map((item) => {
+                            <AddComment />
+                            {comments.map((item,index) => {
                                 return (
                                     <>
                                         <Comment key={'comment' + item.root_id}
@@ -521,10 +579,43 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                                                         <p>{item.root_content}</p>
                                                         <CommentDeleteButton key={'commentDel' + item.root_id} uid={item.root_uid} cm_id={item.root_id} />
                                                     </Space>
+                                                    <div style={{
+                                                         marginTop : "5px"
+                                                    }}>
+                                                        <span
+                                                            onClick={()=>{
+                                                                const _posts = _.cloneDeep(posts);
+                                                                const _comments = _.cloneDeep(comments);
+                                                                for(let i = 0 ; i < _comments.length ; i++){
+                                                                    if(i === index){
+                                                                        _comments[index].showReplayInput = !_comments[index].showReplayInput ;
+                                                                    }else{
+                                                                        _comments[i].showReplayInput = false;
+                                                                    }
+                                                                }
+
+                                                                _posts.posts = _comments
+                                                                setPosts(_posts);
+                                                            }}
+                                                                style={{
+                                                                    cursor : "pointer",
+                                                                    color : "#2f54eb",
+                                                                    fontSize: "14px",
+                                                                    textDecoration: "underline"
+                                                                }}
+                                                            >
+                                                            reply
+                                                        </span>
+                                                    </div>
                                                 </>
                                             }
                                         >
-                                            <ReplyComment key={'commentReply' + item.root_id} target_uid={item.root_uid} parent_id={item.root_uid} root_id={item.root_id} />
+                                            {
+                                                item.showReplayInput &&
+                                                <ReplyComment key={'commentReply' + item.root_id} target_uid={item.root_uid} parent_id={item.root_uid} root_id={item.root_id} />
+                                            }
+
+
                                             {item.reply_comment.map((item) => {
                                                 return (
                                                     <>
@@ -552,8 +643,6 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                                     </>
                                 )
                             })}
-
-                            <AddComment />
                         </>
                     )
                 } else {
