@@ -5,6 +5,8 @@ from app.login.utils import *
 from app.models import *
 from app.login.views import add_message
 
+from qiniu import Auth, put_file, etag
+import qiniu.config
 
 def get_courses():
     data = request.get_json(force=True)
@@ -452,3 +454,36 @@ def delete_requirement():
 
     except Exception as e:
         return jsonify({'code': 400, 'msg': 'Delete requirement failed.', 'error_msg': str(e)})
+
+def upload_pdf():
+    # 需要填写你的 Access Key 和 Secret Key
+    access_key = 'v3MHegseyWvv-nWth1rNLEhEHlBIYTJVxxKwjU1C'
+    secret_key = 'hNP6rsfl27TnPpNBOo2fitFZDieu-Y-q1IysX88r'
+    # 构建鉴权对象
+    q = Auth(access_key, secret_key)
+    # 要上传的空间
+    bucket_name = 'amber-li-pdf'
+    localfile = 'file/123.pdf'
+    # 上传后保存的文件名
+    keyNameList = localfile.split("/")
+    keyNameLength = len(keyNameList)
+    timeNow = get_time()[1]
+    _key = keyNameList[keyNameLength - 1]
+    _key_list = _key.split(".")
+    key = _key_list[0] + "_" + str(timeNow) + "."+ _key_list[1]
+    # 生成上传 Token，可以指定过期时间等
+    token = q.upload_token(bucket_name, key, 3600)
+    # 要上传文件的本地路径
+    # localfile = 'file/123.pdf'
+    try:
+        ret, info = put_file(token, key, localfile, version='v2')
+        return jsonify({'code': 200, 'msg': {
+            'pdf_url': 'http://rg6rfshto.hn-bkt.clouddn.com/' + key
+        }})
+    except Exception as e:
+        return jsonify({'code': 200, 'msg': {
+            'pdf_url': 'http://rg6rfshto.hn-bkt.clouddn.com/' + key
+        },'error' : str(e)})
+
+
+

@@ -5,7 +5,7 @@ import { UploadOutlined, MailOutlined } from '@ant-design/icons';
 import { Form, Col, Row, Button, Typography, Input, Space, message, Upload, Comment, Avatar, Tooltip } from 'antd';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 const { Title } = Typography;
-import { addProposal } from "../MockData";
+import {addProposal, uploadPdf} from "../MockData";
 import {getQueryString} from "../../util/common";
 
 const TextIndex = ({ USERMESSAGE, urlMsg }) => {
@@ -82,7 +82,40 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
 						</Space>
 						<Title level={4}>Upload Documents</Title>
 						<br />
-						<Upload action="https://www.mocky.io/v2/5cc8019d300000980a055e76" className="upload-list-inline">
+						<div className={"input_file"}>
+							<UploadOutlined />
+							&nbsp;Upload
+							<input
+								className={"input_file_button"}
+								onChange={(e)=>{
+									// console.log("e",e)
+									uploadPdf({
+										file : e.target.value
+									})
+								}}
+								type={"file"}/>
+						</div>
+						<Upload
+							beforeUpload={(file)=>{
+								let fileType = file.name.split('.');
+								const fileDate = fileType.slice(-1);
+								const isLt200M = file.size / 1024 / 1024 < 200;
+								console.log("isLt200M",file.size)
+								if (!isLt200M) {
+									message.error('附件大小不能超过200M!');
+									this.setState({
+										file
+									})
+									this.onRemove(file);
+									return
+								}
+								return isLt200M;
+
+							}}
+
+
+							action="http://127.0.0.1:5000/upload_pdf"
+							className="upload-list-inline">
 							<Button icon={<UploadOutlined />}>Upload</Button>
 						</Upload>
 						<br />
