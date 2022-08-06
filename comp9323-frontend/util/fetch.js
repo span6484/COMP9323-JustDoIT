@@ -18,6 +18,11 @@ export default class Fetch {
       axios
         .post(postUrl, {
           ...param
+        },{
+          headers: {
+            "content": 'application/json',
+            'Access-Control-Allow-Origin': '*'
+          }
         })
         .then((res) => {
           if (res) {
