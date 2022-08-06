@@ -45,7 +45,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
 
     function getProjectWorks() {
         // fetch project info
-        // console.log(JSON.stringify({ "proj_id": pid, "uid": uid, "student_index": 0 }));
+        console.log(JSON.stringify({ "proj_id": pid, "uid": uid, "student_index": 0 }));
         try {
             fetch('http://localhost:5000/view_works', {
                 method: 'POST',
@@ -69,11 +69,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
         };
     }
 
-    var reviewed = false;
-    var submitted = false;
-
-
-    function Documents(props) {
+    function ProjectWorks(props) {
         <style dangerouslySetInnerHTML={{
             __html: projectStyle
         }} />
@@ -97,7 +93,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                                 (_, i) => i,
                             ),
                         ].map((i) => (
-                            <TabPane tab={`Student-${i}`} key={i} disabled={i === 28}>
+                            <TabPane tab={`Student-${i}`} key={i} disabled={false}>
                                 <Comment
                                     className="comment-box-item"
                                     author={<div>
@@ -127,6 +123,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                         ))}
                     </Tabs>
 
+                    <Feedbacks userRole={userRole} />
 
 
 
@@ -291,11 +288,9 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                         <br />
                         <Row>
                             <Col span={24} >
-                                <Documents />
+                                <ProjectWorks />
                             </Col>
                         </Row>
-                        <br />
-                        <Feedbacks userRole={userRole} reviewed={reviewed} submitted={submitted} />
                     </Col>
                     <Col span={2}></Col>
                 </Row>

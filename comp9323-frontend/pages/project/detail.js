@@ -66,8 +66,22 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     var joined = true;
     joined = false;
     // 0待审核Pending, 1已通过approved, 2已发布open to join 3进行中in progress 4已结束ended 5未通过not approved 
+    // change to status(0: 待审核，1: 审核通过/2: 审核未通过，3 已发布 4: 项目进行中，5: 项目已结束
     var status = project.status;
-
+    switch (project.status) {
+        case 2:
+            status = 5;
+            break;
+        case 3:
+            status = 2;
+            break;
+        case 4:
+            status = 3;
+            break;
+        case 5:
+            status = 4;
+            break;
+    }
     const onChange = (key) => {
         console.log(key);
     };

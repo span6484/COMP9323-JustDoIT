@@ -95,7 +95,21 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
         }
     }
     var status = project.status;
-
+    switch (project.status) {
+        case 2:
+            status = 5;
+            break;
+        case 3:
+            status = 2;
+            break;
+        case 4:
+            status = 3;
+            break;
+        case 5:
+            status = 4;
+            break;
+    }
+    
     useEffect(() => {
         setTimeout(() => {
             ref?.current.getTabPane(urlMsg.asPath, `Project Name`)
@@ -112,15 +126,9 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
             }).then(res => {
                 res.json().then((val) => {
                     // console.log(moment(val.result.start_time).isValid());
-                    // val.result.start_time = moment(val.result.start_time).format(dateFormat);
-                    // val.result.close_time = moment(val.result.close_time).format(dateFormat);
-                    val.result.start_time = moment(val.result.start_time).format(dateFormat).toString();
-                    val.result.close_time = moment(val.result.close_time).format(dateFormat).toString();
                     setStart_time(moment(val.result.start_time).format('YYYY-MM-DD').toString());
                     setClose_time(moment(val.result.close_time).format('YYYY-MM-DD').toString());
-                    // console.log(val.result);
-                    // console.log(moment(val.result.start_time).isValid());
-                    // console.log(val.result.start_time, val.result.close_time);
+                    console.log(val.result);
                     setProject(val.result);
                 });
             });
@@ -175,7 +183,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     };
     function UploadDocumnets(props) {
         const status = props.status;
-        
+
         if (status == 0) {
             return (
                 <>
@@ -190,7 +198,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                         className="upload-list-inline"
                         accept=".pdf"
                     >
-                        <Button  icon={<UploadOutlined />}>Upload</Button>
+                        <Button icon={<UploadOutlined />}>Upload</Button>
                     </Upload>
                 </>
             );
