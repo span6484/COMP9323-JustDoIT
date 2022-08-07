@@ -2,7 +2,7 @@ import PageBase from '../basePage';
 import projectStyle from "./project.less";
 import moment from 'moment';
 import React, { useRef, onChange, useState, useEffect } from 'react';
-import { UploadOutlined } from '@ant-design/icons';
+import { viewProject, viewWorks, studentSubmit } from "../MockData"
 import { Col, Row, Collapse, Typography, Button, Space, Input, message, Upload, Comment, Avatar, Tooltip } from 'antd';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { MailOutlined, DeleteOutlined, FormOutlined } from "@ant-design/icons"
@@ -36,39 +36,112 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     var pid = urlMsg.asPath.toString().replace('/project/showcase?id=', '');
     const [pagestate, setPageState] = useState(0);
     const [project, setProject] = useState({});
+    const [student, setStudent] = useState();
+    const [pdfList, changePdfList] = useState([]);
+    const [files, changeFiles] = useState([]);
+
     useEffect(() => {
         setTimeout(() => {
             ref?.current.getTabPane(urlMsg.asPath, `Project Name`)
         }, 0);
         // fetch project info on load
-        getProjectDetail();
+        getProjectWorks();
     }, [pagestate]);
 
-    function getProjectDetail() {
+    function getProjectWorks() {
         // fetch project info
         try {
-            fetch('http://localhost:5000/view_project', {
-                method: 'POST',
-                headers: {
-                    "content": 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                },
-                body: JSON.stringify({ "proj_id": pid, "uid": uid, })
-            }).then(res => {
-                res.json().then((val) => {
-                    //console.log(val);
-                    // convert datetime
-                    val.result.start_time = moment(val.result.start_time).format('YYYY-MM-DD');
-                    val.result.close_time = moment(val.result.close_time).format('YYYY-MM-DD');
-                    setProject(val.result);
-                    // console.log('project val:', val.result);
-                });
-            });
+            viewWorks({ "proj_id": pid, "uid": uid, "page_index": 0, "page_size": 200 })
+                .then(val => {
+                    if (val.code === 200) {
+                        console.log(val.result);
+                        val.result.start_time = moment(val.result.start_time).format('YYYY-MM-DD');
+                        val.result.close_time = moment(val.result.close_time).format('YYYY-MM-DD');
+                        setProject(val.result);
+                        Object.entries(val.result.student_lst).forEach(studentObj => {
+                            const [key, student] = studentObj;
+                            if (student.award == 1) {
+                                console.log('student', student);
+                                setStudent(student);
+                            }
+                        });
+
+                    }
+                })
         } catch (e) {
             console.log(e)
         };
     }
+    function Documents(props) {
+        var files = props.files;
+        if (files != undefined) {
+            console.log("display documents", Array.from(files));
+            console.log("number of docs", files.length);
+            if (files.length > 0) {
+                return (
+                    <>
+                        <Collapse onChange={onChange}>
+                            {files.map((item, index) => {
+                                return (
+                                    <Panel header={item.file_name} key={index}>
+                                        <iframe
+                                            src={item.file_url}
+                                            title={item.file_name}
+                                            width="100%"
+                                            height="1200"
+                                        ></iframe>
+                                    </Panel>
+                                )
+                            })}
 
+                        </Collapse>
+                    </>
+                )
+            }
+        }
+        return (
+            <>
+                <Paragraph>No work has been submitted yet.</Paragraph>
+            </>
+        );
+
+    }
+    function FeedBacks(props) {
+        let a_list = [];
+        if (student.a_feedback) {
+            a_list.push(<>
+                <Title level={5}>Course Authority Feedback</Title>
+                <Paragraph>
+                    {student.a_feedback}
+                </Paragraph>
+                <br />
+            </>)
+
+        }
+        if (student.p_feedback) {
+            a_list.push(<>
+                <Title level={5}>Proposer Feedback</Title>
+                <Paragraph>
+                    {student.p_feedback}
+                </Paragraph>
+                <br />
+            </>)
+
+        }
+        if (!student.p_feedback && !student.a_feedback) {
+            return (<>
+                <Title level={5}>Feedback</Title>
+                <Paragraph>
+                    No feedbacks yet.
+                </Paragraph>
+                <br />
+            </>)
+        }
+        return a_list.map((item) => {
+            return item
+        })
+        return null;
+    }
     return (
         <PageBase cRef={ref} USERMESSAGE={USERMESSAGE}>
             <>
@@ -79,25 +152,27 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                         <Row>
                             <Col span={24}>
                                 <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
-                                    <Title>{project.project_name}</Title>
-                                    <Title level={2}>A project for {project.course_name}</Title>
+                                    <Title>{project.proj_name}</Title>
+                                    <Title level={5}>Course: {project.course_name}</Title>
                                     <Row>
-                                        <Col span={12}>
-                                            <Title level={4}>Start Time</Title>
-                                            <Title level={5}>{project.start_time}</Title>
-                                        </Col>
-                                        <Col span={12}>
-                                            <Title level={4}>End time</Title>
-                                            <Title level={5}>{project.close_time}</Title>
+                                        <Col span={24}>
+                                            <Title level={5}>
+                                                Project Description:
+                                            </Title>
+                                            <Paragraph>{project.description}</Paragraph>
                                         </Col>
                                     </Row>
-                                    <Paragraph>
-                                        {project.description}
-                                    </Paragraph>
-                                    <Space direction="vertical" size="middle" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around' }}>
-                                        <div>
-                                            <Title level={4}>Course Authority:</Title>
+                                    <Row>
+                                        <Col span={24}>
+                                            <Title level={5}>Duration:</Title>
+                                            <Paragraph>From {project.start_time} to {project.close_time}</Paragraph>
+                                        </Col>
+                                    </Row>
+                                    <Row>
+                                        <Col span={24} style={{ display: "flex", alignItems: "center" }}>
+                                            <Title level={5}>Course Authority:</Title>
                                             <Comment
+                                                style={{ marginLeft: "10px" }}
                                                 className="comment-box-item"
                                                 author={<div>
                                                     {project.authority_name}
@@ -120,10 +195,11 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                                                 content={null}
                                             >
                                             </Comment>
-                                        </div>
-                                        <div>
-                                            <Title level={4}>Project Proposer:</Title>
+                                        </Col>
+                                        <Col span={24} style={{ display: "flex", alignItems: "center" }}>
+                                            <Title level={5}>Project Proposer:</Title>
                                             <Comment
+                                                style={{ marginLeft: "10px" }}
                                                 className="comment-box-item"
                                                 author={<div>
                                                     {project.proposer_name}
@@ -146,71 +222,30 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                                                 content={null}
                                             >
                                             </Comment>
-                                        </div>
-                                    </Space>
+                                        </Col>
+                                    </Row>
                                 </Space>
                             </Col>
                         </Row>
-                        <Row>
-                            <Col span={24} >
-                                <Title level={2}>Awarded work to showcase</Title>
-                                <br />
 
-                                <Title level={3}>Author of project</Title>
-                                <Comment
-                                    className="comment-box-item"
-                                    author={<div>
-                                        Example author
-                                        <Tooltip placement="top" title={<div className={"email-tool-tip-component"}>
-                                            ExampleEmail@COMP9323.com
-                                            <CopyToClipboard
-                                                text={"ExampleEmail@COMP9323.com"}
-                                                onCopy={() => {
-                                                    message.success('copy email success');
-                                                }}
-                                            >
-                                                <span className={"email-tool-tip-component-copy"}>COPY</span>
-                                            </CopyToClipboard>
-                                        </div>}>
-                                            <MailOutlined className={"mail-box"} />
-                                        </Tooltip>
-                                    </div>
-                                    }
-                                    avatar={<Avatar src="/static/ca.png" />}
-                                    content={null}
-                                >
-                                </Comment>
-                                <br />
-                                <Collapse defaultActiveKey={['1']} onChange={onChange}>
-                                    <Panel header="Document 1" key="1">
-                                        <iframe
-                                            src={"https://www.orimi.com/pdf-test.pdf"}
-                                            title="file"
-                                            width="100%"
-                                            height="1200"
-                                        ></iframe>
-                                    </Panel>
-                                    <Panel header="Document 2" key="2">
-                                        <iframe src="https://onedrive.live.com/embed?resid=1B47937AD843C12%2184207&amp;authkey=%21AOztocS2WvBRawc&amp;em=2&amp;wdAr=1.7777777777777777" width="1200px" height="800px" frameborder="0">This is an embedded <a target="_blank" href="https://office.com">Microsoft Office</a> presentation, powered by <a target="_blank" href="https://office.com/webapps">Office</a>.</iframe>
-                                    </Panel>
-                                    <Panel header="Document 3" key="3">
-                                        <iframe
-                                            src={"https://www.orimi.com/pdf-test.pdf"}
-                                            title="file"
-                                            width="100%"
-                                            height="1200"
-                                        ></iframe>
-                                    </Panel>
-
-                                </Collapse>
-                            </Col>
-                        </Row>
+                        <Title level={3}>Awarded work to showcase</Title>
+                        <br />
+                        <Title level={5}>Author of project</Title>
+                        <Comment
+                            className="comment-box-item"
+                            author={<div>
+                                {student.student_name}
+                            </div>
+                            }
+                            avatar={<Avatar src="/static/ca.png" />}
+                            content={null}
+                        >
+                        </Comment>
+                        <br />
+                        <Documents files={student.file} />
                         <br />
                         <Title level={4}>Feedback for this work</Title>
-                        <Paragraph>
-                            You showed incredible leadership instincts in your work on that project. I would love to work with you to develop those skills. Amazing work.
-                            You have all the qualities we look for in a leader. I hope you might consider taking them to the next level by leading our next big project in this area.
-                        </Paragraph>
+                        <FeedBacks />
                     </Col>
                     <Col span={2}></Col>
                 </Row>
