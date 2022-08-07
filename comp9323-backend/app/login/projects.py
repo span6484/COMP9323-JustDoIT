@@ -744,7 +744,7 @@ def join_quit_project():
     if not proj:
         return jsonify({'code': 400, 'msg': 'not related project'})
     select_num = SelectionModel.query.count()
-    sel_id = generate_id("selection", select_num)
+    sel_id = generate_id("selection", select_num+1)
     date_time = get_time()[0]
     if join_state == 1:
         if not selection and proj.cur_num < proj.max_num:

@@ -14,6 +14,7 @@ def init_route(app: Flask):
     app.add_url_rule('/get_awards', view_func=views.get_awards, methods=['POST'])
     app.add_url_rule('/change_password', view_func=views.change_password, methods=['POST'])
     app.add_url_rule('/get_user_profile', view_func=views.get_user_profile, methods=['POST'])
+    app.add_url_rule('/get_award_detail', view_func=views.get_award_detail, methods=['POST'])
     # project
     app.add_url_rule('/view_project', view_func=projects.view_project, methods=['POST'])
     app.add_url_rule('/edit_project', view_func=projects.edit_project, methods=['POST'])
