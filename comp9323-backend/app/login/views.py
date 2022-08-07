@@ -1,5 +1,5 @@
 from flask import jsonify, request, g
-from sqlalchemy import exists
+from sqlalchemy import exists, desc
 from app.login.utils import *
 from app.models import *
 
@@ -157,7 +157,7 @@ def add_message(uid, content):
 
     msg = MessageModel(msg_id=msg_id, uid=uid, content=content, read=0, ctime=data_time, utime=data_time, active=1)
     db.session.add(msg)
-    db.session.commit()
+    # db.session.commit()
     return 1
 
 
@@ -249,7 +249,7 @@ def get_awards():
     if not user:
         return jsonify({'code': 400, 'msg': 'No such user in database.'})
 
-    awards = SelectionModel.query.filter(SelectionModel.award == 1, SelectionModel.active == 1).all()
+    awards = SelectionModel.query.filter(SelectionModel.award == 1, SelectionModel.active == 1).order_by(desc(SelectionModel.utime)).all()
     if not awards:
         return jsonify({'code': 200, 'msg': 'No awarded projects.'})
     try:
@@ -257,24 +257,22 @@ def get_awards():
         result_list = []
         recent_awards = awards
         if len(awards) > 10:
-            recent_awards = awards[len(awards)-10:]
+            recent_awards = awards[:10]
+        print(recent_awards)
         for a_p in recent_awards:
-            proj = ProjectModel.query.filter(ProjectModel.proj_id == a_p.proj_id, ProjectModel.status == 5).first()
+            proj = ProjectModel.query.filter(ProjectModel.proj_id == a_p.proj_id, ProjectModel.status == 4).first()
             if proj:
                 course = CourseModel.query.filter(CourseModel.cid == proj.cid, CourseModel.active == 1).first()
                 a = UserModel.query.filter(UserModel.uid == proj.aid, UserModel.active == 1).first()
                 p = UserModel.query.filter(UserModel.uid == proj.pid, UserModel.active == 1).first()
                 s = UserModel.query.filter(UserModel.uid == a_p.sid, UserModel.active == 1).first()
-                files = FileModel.query.filter(FileModel.proj_id == a_p.proj_id, FileModel.uid == a_p.sid, FileModel.active == 1).all()
-                if not course or not a or not p or not s or not files:
+                file = FileModel.query.filter(FileModel.proj_id == a_p.proj_id, FileModel.uid == a_p.sid, FileModel.active == 1).first()
+                if not course or not a or not p or not s or not file:
                     print(f"{a_p.proj_id} has invalid attribute.")
                     continue
-                f_list = []
-                for f in files:
-                    f_dict = {"fid": f.id, "file_name": f.file_name, "file_url": f.file_url}
-                    f_list.append(f_dict)
+                f_dict = {"fid": file.fid, "file_name": file.file_name, "file_url": file.file_url}
                 proj_dict = {"proj_name": proj.proj_name, "course_name": course.name, "course_auth": a.username,
-                             "proposer": p.username, "student": s.username, "files": f_list}
+                             "proposer": p.username, "student": s.username, "files": f_dict}
                 result_list.append(proj_dict)
             else:
                 print(f"Invalid proj_id {a_p.proj_id}.")

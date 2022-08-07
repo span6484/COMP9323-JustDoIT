@@ -208,7 +208,7 @@ def add_proposal():
                                 proj_name=proj_name, description=description,
                                 start_time=course.start_time, close_time=course.close_time,
                                 ctime=date_time, utime=date_time, status=0)
-
+        db.session.add(proposal)
         if file_url:
             date_time = get_time()[0]
             file_name = file_url.split(".com/")[1]
@@ -216,15 +216,15 @@ def add_proposal():
             fid = generate_id("file", file_num+1)
             file = FileModel(fid=fid, proj_id=proj_id, uid=uid, file_name=file_name, file_url=file_url,
                              type="project", ctime=date_time, utime=date_time)
-
-        msg = add_message(requirement.aid, f"Proposer {user.username} add a proposal to your requirement in course {course.name}.")
-        if msg:
             db.session.add(file)
-            db.session.add(proposal)
+
+        auth_msg = add_message(requirement.aid, f"Proposer {user.username} add a proposal {proposal.proj_name} to your requirement in course {course.name}.")
+        proposer_msg = add_message(uid, f"Your proposal {proj_name} was added successfully.")
+        if auth_msg and proposer_msg:
             db.session.commit()
-            return jsonify({'code': 200, 'msg': 'Add proposal and send message to authority successfully.'})
+            return jsonify({'code': 200, 'msg': 'Add proposal and send messages successfully.'})
         else:
-            return jsonify({'code': 400, 'msg': 'Add proposal and send message to authority failed.'})
+            return jsonify({'code': 400, 'msg': 'Add proposal and send messages failed.'})
 
     except Exception as e:
         return jsonify({'code': 400, 'msg': 'Add proposal failed.', 'error_msg': str(e)})
@@ -257,13 +257,14 @@ def delete_proposal():
         if file:
             file.utime = date_time
             file.active = 0
-        msg = add_message(proposal.aid,
-                          f"Proposer {user.username} delete a proposal from your requirement in course {course.name}.")
-        if msg:
+        auth_msg = add_message(proposal.aid,
+                          f"Proposer {user.username} delete proposal {proposal.proj_name} from your requirement in course {course.name}.")
+        pro_msg = add_message(uid, f"Your proposal {proposal.proj_name} delete successfully.")
+        if auth_msg and pro_msg:
             db.session.commit()
-            return jsonify({'code': 200, 'msg': 'Delete proposal and send message to authority successfully.'})
+            return jsonify({'code': 200, 'msg': 'Delete proposal and send messages successfully.'})
         else:
-            return jsonify({'code': 400, 'msg': 'Delete proposal and send message to authority failed.'})
+            return jsonify({'code': 400, 'msg': 'Delete proposal and send messages failed.'})
 
     except Exception as e:
         return jsonify({'code': 400, 'msg': 'Delete proposal failed.', 'error_msg': str(e)})
