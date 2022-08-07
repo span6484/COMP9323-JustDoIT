@@ -15,29 +15,28 @@ def view_project():
     result = {}
 
     proj_id = data["proj_id"]
-    proj = ProjectModel.query.filter(ProjectModel.proj_id == proj_id).first()
+    proj = ProjectModel.query.filter(ProjectModel.proj_id == proj_id, ProjectModel.status != -1).first()
     if not proj:
         return jsonify({'code': 400, 'msg': 'not related project'})
+
     uid = data["uid"]
     user = UserModel.query.filter(UserModel.uid == uid, UserModel.active == 1).first()
     if not user:
         return jsonify({'code': 400, 'msg': 'User does not exist'})
-    cid = proj.cid
-    course = CourseModel.query.filter(CourseModel.cid == cid, CourseModel.active == 1).first()
+
+    course = CourseModel.query.filter(CourseModel.cid == proj.cid, CourseModel.active == 1).first()
     if not course:
         return jsonify({'code': 400, 'msg': 'not related course'})
 
-    aid = proj.aid
-    authority = UserModel.query.filter(UserModel.uid == aid, UserModel.role == 0).first()
+    authority = UserModel.query.filter(UserModel.uid == proj.aid, UserModel.role == 0).first()
     if not authority:
         return jsonify({'code': 400, 'msg': 'no course authority'})
 
-    pid = proj.pid  # proposer_id
-    proposer = UserModel.query.filter(UserModel.uid == pid, UserModel.role == 2).first()
+    proposer = UserModel.query.filter(UserModel.uid == proj.pid, UserModel.role == 2).first()
     if not proposer:
         return jsonify({'code': 400, 'msg': 'no proposer'})
 
-    files = FileModel.query.filter(FileModel.proj_id == proj_id, FileModel.active == 1).all()
+    file = FileModel.query.filter(FileModel.proj_id == proj_id, FileModel.type == "project", FileModel.active == 1).first()
     result["proj_name"] = proj.proj_name
     result["description"] = proj.description
     result["start_time"] = proj.start_time
@@ -62,16 +61,9 @@ def view_project():
     result["is_join"] = is_join
     result["is_edit"] = is_edit
     # list file
-    if files:
-        file_lst = list()
-        file = dict()
-        for f in files:
-            file["file_name"] = f.file_name
-            file["file_url"] = f.file_url
-            file["type"] = f.type
-            file["utime"] = f.utime
-            file_lst.append(file)
-        result["files"] = file_lst
+    if file:
+        file_info = {"file_name": file.file_name, "file_url": file.file_url, "type": file.type, "utime": file.utime}
+        result["files"] = file_info
     else:
         result["files"] = None
 
@@ -293,7 +285,7 @@ def show_reply_comment(root_id, proj_id):
 def view_comment():
     data = request.get_json(force=True)
     proj_id = data["proj_id"]
-    proj = ProjectModel.query.filter(ProjectModel.proj_id == proj_id).first()
+    proj = ProjectModel.query.filter(ProjectModel.proj_id == proj_id, ProjectModel.status >= 3).first()
     if not proj:
         return jsonify({'code': 400, 'msg': 'not related project'})
     comments = CommentModel.query.filter(CommentModel.proj_id == proj_id, CommentModel.active == 1).order_by(
@@ -339,7 +331,7 @@ def add_comment():
     content = data["content"]
 
     # determine the project json data
-    proj = ProjectModel.query.filter(ProjectModel.proj_id == proj_id).first()
+    proj = ProjectModel.query.filter(ProjectModel.proj_id == proj_id, ProjectModel.status >= 3).first()
     if not proj:
         return jsonify({'code': 400, 'msg': 'not related project'})
     cid = proj.cid
@@ -388,19 +380,17 @@ def reply_comment():
     target_uid = data["target_uid"]
     parent_id = data["parent_id"]
     root_id = data["root_id"]
-
+    user = UserModel.query.filter(UserModel.uid == uid, UserModel.active == 1).first()
+    if not user:
+        return jsonify({'code': 400, 'msg': 'not related user'})
     # determine the project json data
-    proj = ProjectModel.query.filter(ProjectModel.proj_id == proj_id).first()
+    proj = ProjectModel.query.filter(ProjectModel.proj_id == proj_id, ProjectModel.status >= 3).first()
     if not proj:
-        return jsonify({'code': 400, 'msg': 'not related project'})
-    cid = proj.cid
-    course = CourseModel.query.filter(CourseModel.cid == cid, CourseModel.active == 1).first()
+        return jsonify({'code': 400, 'msg': 'No project can reply comment.'})
+    course = CourseModel.query.filter(CourseModel.cid == proj.cid, CourseModel.active == 1).first()
     if not course:
         return jsonify({'code': 400, 'msg': 'not related course'})
     ## users json
-    usr = UserModel.query.filter(UserModel.uid == uid, UserModel.active == 1).first()
-    if not usr:
-        return jsonify({'code': 400, 'msg': 'not related user'})
     user = ProjectModel.query.filter(or_(ProjectModel.aid == uid, ProjectModel.pid == uid)).first()
     is_user_exist = False
     if user:
@@ -537,6 +527,7 @@ def edit_project():
                 file_name = file_url.split('.com/')[1]
                 file.file_name = file_name
                 file.file_url = file_url
+                file.uid = uid
                 file.utime = date_time
             else:
                 file_name = file_url.split('.com/')[1]
