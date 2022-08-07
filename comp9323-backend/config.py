@@ -13,7 +13,7 @@ SQLALCHEMY_DATABASE_URI = '{}+{}://{}:{}@{}:{}/{}?charset=utf8'.format(
 SQLALCHEMY_COMMIT_ON_TEARDOWN = True
 SQLALCHEMY_TRACK_MODIFICATIONS = True
 
-##################################################################
+#################################################################
 
 # from urllib.parse import quote_plus as urlquote
 # SECRET_KEY = "1234567890123"
