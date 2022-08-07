@@ -36,7 +36,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     var pid = urlMsg.asPath.toString().replace('/project/showcase?id=', '');
     const [pagestate, setPageState] = useState(0);
     const [project, setProject] = useState({});
-    const [student, setStudent] = useState();
+    const [student, setStudent] = useState([]);
     const [pdfList, changePdfList] = useState([]);
     const [files, changeFiles] = useState([]);
 
