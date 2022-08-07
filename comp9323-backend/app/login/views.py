@@ -260,7 +260,7 @@ def get_awards():
             recent_awards = awards[:10]
         print(recent_awards)
         for a_p in recent_awards:
-            proj = ProjectModel.query.filter(ProjectModel.proj_id == a_p.proj_id, ProjectModel.status == 4).first()
+            proj = ProjectModel.query.filter(ProjectModel.proj_id == a_p.proj_id, ProjectModel.status == 5).first()
             if proj:
                 course = CourseModel.query.filter(CourseModel.cid == proj.cid, CourseModel.active == 1).first()
                 a = UserModel.query.filter(UserModel.uid == proj.aid, UserModel.active == 1).first()
