@@ -138,17 +138,19 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                     setClose_time(moment(val.result.close_time).format('YYYY-MM-DD').toString());
 
                     var newfileList = [],pdf_url_list =[];
-                    Object.entries(val.result.files).forEach(file => {
+                    Object.entries([val.result?.files || {}]).forEach(file => {
                         const [key, value] = file;
-                        console.log(value.file_name);
-                        const newfile = {
-                            'uid': key,
-                            'name': value.file_name,
-                            'url': value.file_url,
-                            'status': 'done'
+                        if(value.file_url){
+                            const newfile = {
+                                'uid': key,
+                                'name': value.file_name,
+                                'url': value.file_url,
+                                'status': 'done'
+                            }
+                            newfileList.push(newfile);
+                            pdf_url_list.push(value.file_url);
                         }
-                        newfileList.push(newfile);
-                        pdf_url_list.push(value.file_url);
+
                     });
                     setFileList(newfileList);
                     changePdfList(pdf_url_list)
