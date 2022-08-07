@@ -9,7 +9,7 @@ const { Title, Paragraph, Text, Link } = Typography;
 const { Step } = Steps;
 import _ from "lodash"
 import "./detail.less"
-import {changeProjectStatus, joinQuitProject} from "../MockData"
+import { changeProjectStatus, joinQuitProject } from "../MockData"
 const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     const ref = useRef();
     //console.log(USERMESSAGE);
@@ -119,10 +119,10 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                 "uid": uid,
                 "status": status
             }).then(res => {
-                if(res.code === 200){
+                if (res.code === 200) {
                     message.success("Change status successfully");
                     setPageState(pagestate + 1);
-                }else{
+                } else {
                     message.error("Change status failed")
                 }
             })
@@ -136,12 +136,12 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
             "sid": uid,
             "join_state": join_state
         }).then(res => {
-            if(res.code === 200){
+            if (res.code === 200) {
                 message.success("Join project successfully");
                 const _project = _.cloneDeep(project);
                 _project.is_join = join_state;
                 setProject(_project)
-            }else{
+            } else {
                 message.error("Join project failed")
             }
             setPageState(pagestate + 1);
@@ -186,20 +186,40 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
             } else if (status == 1) {
                 return (
                     <>
-                        <Button type="primary" onClick={() => {
-                            ref.current.setTabPane(
-                                `Project Edit`,
-                                '',
-                                `/project/edit?id=${pid}`
-                            )
-                        }}>Edit Project</Button>
                         <br />
                         <Button type="primary" onClick={() => {
                             sendChangeProjectStatus(pid, uid, 3);
                         }}>Open Project To Join</Button>
                     </>
                 )
-            } else if (status == 3 || status == 4) {
+            } else if (status == 2) {
+                return (
+                    <>
+                        <br />
+                        <Button type="primary" onClick={() => {
+                            sendChangeProjectStatus(pid, uid, 4);
+                        }}>Start Project</Button>
+                    </>
+                )
+            } else if (status == 3) {
+                return (
+                    <>
+                        <br />
+                        <Button type="primary" onClick={() => {
+                            sendChangeProjectStatus(pid, uid, 5);
+                        }}>End Project</Button>
+                        <br />
+                        <Button type="primary" onClick={() => {
+                            ref.current.setTabPane(
+                                `Project Work`,
+                                '',
+                                `/project/work?id=${pid}`
+                            )
+                        }}>View works</Button>
+
+                    </>
+                )
+            } else if (status == 4) {
                 return (
                     <>
                         <br />
@@ -271,7 +291,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
         return null;
     }
     function SButtons(props) {
-        if (props.status < 5) {
+        if (props.status < 4) {
             if (project.is_join) {
                 return (
                     <>
@@ -314,7 +334,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
         }
     }
     function SubmitWorkButton(props) {
-        if (props.userRole == "S" && props.status == 3) {
+        if (props.userRole == "S" && props.status == 3 && project.is_join == 1) {
             return (
                 <>
                     <br />
@@ -325,6 +345,19 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                             `/project/work?id=${pid}`
                         )
                     }}>Submit Work</Button>
+                </>
+            )
+        } else if (props.userRole == "S" && props.status > 3 && project.is_join == 1) {
+            return (
+                <>
+                    <br />
+                    <Button type="primary" onClick={() => {
+                        ref.current.setTabPane(
+                            `Project Work`,
+                            '',
+                            `/project/work?id=${pid}`
+                        )
+                    }}>View Work</Button>
                 </>
             )
         }
@@ -420,7 +453,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                 <Input.TextArea
                     type="text"
                     style={{
-                        width:"80%"
+                        width: "80%"
                     }}
                     allowClear
                     autoSize={{
@@ -433,17 +466,17 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)} />
                 <div style={{
-                    width:"80%",
-                    margin:"30px 0 10px 0"
+                    width: "80%",
+                    margin: "30px 0 10px 0"
                 }}>
                     <Button
                         style={{
-                            float : "right"
+                            float: "right"
                         }}
                         onClick={handleClick}>Send</Button>
                     <div style={{
-                        clear:"both"
-                    }}/>
+                        clear: "both"
+                    }} />
                 </div>
             </>
         )
@@ -493,7 +526,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                     <Input.TextArea
                         type="text"
                         style={{
-                            width:"80%"
+                            width: "80%"
                         }}
                         allowClear
                         autoSize={{
@@ -506,17 +539,17 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                         value={newComment}
                         onChange={(e) => setNewComment(e.target.value)} />
                     <div style={{
-                        width:"80%",
-                        margin:"30px 0 10px 0"
+                        width: "80%",
+                        margin: "30px 0 10px 0"
                     }}>
                         <Button
                             style={{
-                                float : "right"
+                                float: "right"
                             }}
                             onClick={handleClick}>Send</Button>
                         <div style={{
-                            clear:"both"
-                        }}/>
+                            clear: "both"
+                        }} />
                     </div>
                 </form>
 
@@ -562,7 +595,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
         // console.log("project is in", status);
         // console.log("posts ", posts);
 
-        if (status >= 2 && status <= 4 || true) {
+        if (status >= 2 && status <= 4) {
             if (posts != undefined) {
                 var comments = posts.posts;
                 if (comments != undefined) {
@@ -572,7 +605,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                         <>
                             <Title level={3}>Forum</Title>
                             <AddComment />
-                            {comments.map((item,index) => {
+                            {comments.map((item, index) => {
                                 return (
                                     <>
                                         <Comment key={'comment' + item.root_id}
@@ -585,16 +618,16 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                                                         <CommentDeleteButton key={'commentDel' + item.root_id} uid={item.root_uid} cm_id={item.root_id} />
                                                     </Space>
                                                     <div style={{
-                                                         marginTop : "5px"
+                                                        marginTop: "5px"
                                                     }}>
                                                         <span
-                                                            onClick={()=>{
+                                                            onClick={() => {
                                                                 const _posts = _.cloneDeep(posts);
                                                                 const _comments = _.cloneDeep(comments);
-                                                                for(let i = 0 ; i < _comments.length ; i++){
-                                                                    if(i === index){
-                                                                        _comments[index].showReplayInput = !_comments[index].showReplayInput ;
-                                                                    }else{
+                                                                for (let i = 0; i < _comments.length; i++) {
+                                                                    if (i === index) {
+                                                                        _comments[index].showReplayInput = !_comments[index].showReplayInput;
+                                                                    } else {
                                                                         _comments[i].showReplayInput = false;
                                                                     }
                                                                 }
@@ -602,13 +635,13 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                                                                 _posts.posts = _comments
                                                                 setPosts(_posts);
                                                             }}
-                                                                style={{
-                                                                    cursor : "pointer",
-                                                                    color : "#2f54eb",
-                                                                    fontSize: "14px",
-                                                                    textDecoration: "underline"
-                                                                }}
-                                                            >
+                                                            style={{
+                                                                cursor: "pointer",
+                                                                color: "#2f54eb",
+                                                                fontSize: "14px",
+                                                                textDecoration: "underline"
+                                                            }}
+                                                        >
                                                             reply
                                                         </span>
                                                     </div>
@@ -664,7 +697,6 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
         var files = props.files;
         if (files != undefined) {
             console.log("display documents", Array.from(files));
-            console.log("number of docs", files.length);
             if (files.length > 0) {
                 return (
                     <>
@@ -719,10 +751,10 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                                         </Col>
                                     </Row>
                                     <Row>
-                                        <Col span={24} style={{display : "flex",alignItems : "center"}}>
+                                        <Col span={24} style={{ display: "flex", alignItems: "center" }}>
                                             <Title level={5}>Course Authority:</Title>
                                             <Comment
-                                                style={{marginLeft : "10px"}}
+                                                style={{ marginLeft: "10px" }}
                                                 className="comment-box-item"
                                                 author={<div>
                                                     {project.authority_name}
@@ -746,10 +778,10 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                                             >
                                             </Comment>
                                         </Col>
-                                        <Col span={24} style={{display : "flex",alignItems : "center"}}>
+                                        <Col span={24} style={{ display: "flex", alignItems: "center" }}>
                                             <Title level={5}>Project Proposer:</Title>
                                             <Comment
-                                                style={{marginLeft : "10px"}}
+                                                style={{ marginLeft: "10px" }}
                                                 className="comment-box-item"
                                                 author={<div>
                                                     {project.proposer_name}

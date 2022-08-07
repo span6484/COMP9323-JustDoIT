@@ -9,7 +9,7 @@ const { TabPane } = Tabs;
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { MailOutlined, DeleteOutlined, FormOutlined } from "@ant-design/icons"
 const { Title, Paragraph, Text, Link } = Typography;
-import {viewProject, viewWorks,studentSubmit} from "../MockData"
+import { viewProject, viewWorks, studentSubmit } from "../MockData"
 const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     const ref = useRef();
     const { Panel } = Collapse;
@@ -44,9 +44,9 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
         getProjectWorks();
         getProjectDetail();
     }, [pagestate]);
-    function getProjectDetail(){
-        viewProject({ "proj_id": pid, "uid": uid, }).then(val =>{
-            if(val.code === 200){
+    function getProjectDetail() {
+        viewProject({ "proj_id": pid, "uid": uid, }).then(val => {
+            if (val.code === 200) {
                 val.result.start_time = moment(val.result.start_time).format('YYYY-MM-DD');
                 val.result.close_time = moment(val.result.close_time).format('YYYY-MM-DD');
                 setProject(val.result);
@@ -57,38 +57,39 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     function getProjectWorks() {
         // fetch project info
         try {
-            viewWorks({ "proj_id": pid, "uid": uid, "page_index": 0 , "page_size" : 200 })
-                .then(val =>{
-                if(val.code === 200){
-                    val.result.start_time = moment(val.result.start_time).format('YYYY-MM-DD');
-                    val.result.close_time = moment(val.result.close_time).format('YYYY-MM-DD');
-                    var studentList = [];
-                    Object.entries(val.result.student_lst).forEach(studentObj => {
-                        const [key, student] = studentObj;
-                        studentList.push(student);
-                    });
-                    setStudentList(studentList);
-                    const _uid = USERMESSAGE && USERMESSAGE.uid;
-                    const index = studentList && studentList.findIndex((item) => {
-                        return item.sid === _uid && item.file && item.file.length > 0
-                    })
-                    const list = [];
-                    if(index >= 0){
-                        const _file = studentList[index];
-                        Object.entries(_file.file).forEach(file => {
-                            const [key, value] = file;
-                            const newfile = {
-                                'uid': key,
-                                'name': value.file_name,
-                                'url': value.file_url,
-                                'status': 'done'
-                            }
-                            list.push(newfile);
+            viewWorks({ "proj_id": pid, "uid": uid, "page_index": 0, "page_size": 200 })
+                .then(val => {
+                    if (val.code === 200) {
+                        console.log(val.result);
+                        val.result.start_time = moment(val.result.start_time).format('YYYY-MM-DD');
+                        val.result.close_time = moment(val.result.close_time).format('YYYY-MM-DD');
+                        var studentList = [];
+                        Object.entries(val.result.student_lst).forEach(studentObj => {
+                            const [key, student] = studentObj;
+                            studentList.push(student);
                         });
+                        setStudentList(studentList);
+                        const _uid = USERMESSAGE && USERMESSAGE.uid;
+                        const index = studentList && studentList.findIndex((item) => {
+                            return item.sid === _uid && item.file && item.file.length > 0
+                        })
+                        const list = [];
+                        if (index >= 0) {
+                            const _file = studentList[index];
+                            Object.entries(_file.file).forEach(file => {
+                                const [key, value] = file;
+                                const newfile = {
+                                    'uid': key,
+                                    'name': value.file_name,
+                                    'url': value.file_url,
+                                    'status': 'done'
+                                }
+                                list.push(newfile);
+                            });
+                        }
+                        changeFileList(list);
                     }
-                    changeFileList(list);
-                }
-            })
+                })
         } catch (e) {
             console.log(e)
         };
@@ -145,26 +146,30 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
             }
         }
 
-        return null;
+        return (
+            <>
+                <Paragraph>No work has been submitted yet.</Paragraph>
+            </>
+        );
 
     }
-    const [pdfList ,changePdfList] = useState([]);
-    const [fileList,changeFileList] = useState([])
-    function userIsSubmit(){
-        console.log("studentList",studentList,USERMESSAGE && USERMESSAGE.uid);
+    const [pdfList, changePdfList] = useState([]);
+    const [fileList, changeFileList] = useState([])
+    function userIsSubmit() {
+        // console.log("studentList", studentList, USERMESSAGE && USERMESSAGE.uid);
         const _uid = USERMESSAGE && USERMESSAGE.uid;
         const index = studentList && studentList.findIndex((item) => {
             return item.sid === _uid && item.file && item.file.length > 0
         })
         return index >= 0
     }
-    function getUserFileList(){
+    function getUserFileList() {
         const _uid = USERMESSAGE && USERMESSAGE.uid;
         const index = studentList && studentList.findIndex((item) => {
             return item.sid === _uid && item.file && item.file.length > 0
         })
         const list = []
-        if(index >= 0){
+        if (index >= 0) {
             const _file = studentList[index];
             Object.entries(_file.file).forEach(file => {
                 const [key, value] = file;
@@ -202,8 +207,6 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                                 content={null}
                             >
                             </Comment>} key={index} disabled={false}>
-
-
                                 <Title level={5}>Submitted documents</Title>
                                 <Documents files={student.file} />
                                 <br />
@@ -212,23 +215,19 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                             </TabPane>
                         ))}
                     </Tabs>
-
-
-
-
                 </>
             )
         }
         else {
             // for S, work not reviewed
-
             return (
                 <div>
                     <Title level={4}>Upload documents here:</Title>
                     <Upload
+                        accept='pdf'
                         maxCount={1}
                         disabled={!!userIsSubmit()}
-                        beforeUpload={(file)=>{
+                        beforeUpload={(file) => {
                             let fileType = file.name.split('.');
                             const fileDate = fileType.slice(-1);
                             const isLt200M = file.size / 1024 / 1024 < 0.5;
@@ -238,13 +237,13 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                             }
                             return isLt200M;
                         }}
-                        onChange={({file,fileList})=>{
-                            if(fileList && fileList.length > 0){
+                        onChange={({ file, fileList }) => {
+                            if (fileList && fileList.length > 0) {
                                 const _file = fileList[0];
                                 const pdf_url = _file?.response?.result?.pdf_url || "";
                                 changePdfList([pdf_url]);
 
-                            }else{
+                            } else {
                                 changePdfList([])
                             }
                             changeFileList(fileList)
@@ -252,28 +251,28 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                         fileList={fileList}
                         action="http://127.0.0.1:5000/upload_file"
                         className="upload-list-inline">
-                        <Button   disabled={!!userIsSubmit()}
-                                  icon={<UploadOutlined />}>Upload (Max: 1)</Button>
+                        <Button disabled={!!userIsSubmit()}
+                            icon={<UploadOutlined />}>Upload (Max: 1)</Button>
                     </Upload>
                     <br />
                     {
-                      !userIsSubmit() &&
+                        !userIsSubmit() &&
                         <Space direction="horizontal" size="middle" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around' }}>
                             <Button
-                                onClick={()=>{
-                                    if(!pdfList ||pdfList.length === 0){
+                                onClick={() => {
+                                    if (!pdfList || pdfList.length === 0) {
                                         message.warning("Please submit your work");
                                         return;
                                     }
                                     studentSubmit({
-                                        uid : USERMESSAGE && USERMESSAGE.uid,
-                                        proj_id : pid,
-                                        file : pdfList && pdfList[0]
+                                        uid: USERMESSAGE && USERMESSAGE.uid,
+                                        proj_id: pid,
+                                        file: pdfList && pdfList[0]
                                     }).then(res => {
-                                        if(res.code === 200){
+                                        if (res.code === 200) {
                                             message.success("Submit successfully");
                                             setPageState(pagestate + 1);
-                                        }else{
+                                        } else {
                                             message.error("Submit failed");
                                         }
                                     })
@@ -286,6 +285,8 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                         getFeedBackForUser()
 
                     }
+                    <br />
+
                 </div>
             )
 
@@ -293,26 +294,26 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
         }
         return null;
     }
-    function getFeedBackForUser(){
+    function getFeedBackForUser() {
         const _uid = USERMESSAGE && USERMESSAGE.uid;
         const index = studentList && studentList.findIndex((item) => {
             return item.sid === _uid && item.file && item.file.length > 0
         })
-        if(index >= 0){
-           const _lst =  studentList[index];
-           const {a_feedback,p_feedback} = _lst;
-           let a_list = [];
-           if(a_feedback){
-               a_list.push(<>
-                           <Title level={5}>Course Authority Feedback</Title>
-                           <Paragraph>
-                               {a_feedback}
-                           </Paragraph>
-                           <br />
-                       </>)
+        if (index >= 0) {
+            const _lst = studentList[index];
+            const { a_feedback, p_feedback } = _lst;
+            let a_list = [];
+            if (a_feedback) {
+                a_list.push(<>
+                    <Title level={5}>Course Authority Feedback</Title>
+                    <Paragraph>
+                        {a_feedback}
+                    </Paragraph>
+                    <br />
+                </>)
 
-           }
-            if(p_feedback){
+            }
+            if (p_feedback) {
                 a_list.push(<>
                     <Title level={5}>Proposer Feedback</Title>
                     <Paragraph>
@@ -322,45 +323,54 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                 </>)
 
             }
+            if (!p_feedback && !a_feedback) {
+                return (<>
+                    <Title level={5}>Feedback</Title>
+                    <Paragraph>
+                        No feedbacks yet.
+                    </Paragraph>
+                    <br />
+                </>)
+            }
             return a_list.map((item) => {
                 return item
             })
         }
-        return null
+        return null;
     }
     function Feedbacks(props) {
         const [feedback, setFeedback] = useState('');
-
         const student = props.student
+        console.log('student:', student);
         if (student.file.length == 0) {
             return null;
         }
         const _list = [];
         if (student.a_feedback) {
-            _list.push (
+            _list.push(
                 <>
                     <Title level={5}>Course Authority Feedback</Title>
                     <Paragraph>
                         {student.a_feedback}
                     </Paragraph>
-                    <br/>
+                    <br />
                 </>
             )
         }
         if (student.p_feedback) {
-            _list.push (
+            _list.push(
                 <>
                     <Title level={5}>Proposer Feedback</Title>
                     <Paragraph>
                         {student.p_feedback}
                     </Paragraph>
-                    <br/>
+                    <br />
                 </>
             )
         }
         if ((userRole === "CA" && !student.a_feedback) ||
             (userRole === "P" && !student.p_feedback)) {
-            _list.push (
+            _list.push(
                 <>
                     <Title level={5}>Enter feedback</Title>
                     <Input
@@ -370,15 +380,16 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                             setFeedback(e.target.value);
                         }}
                     />
-                    <br/>
+                    <br />
                     <Button type='primary' onClick={() => {
                         console.log(pid, uid, student.sid, feedback);
                         sendFeedback(pid, uid, student.sid, feedback);
                     }}
-                            style={{width: 300, marginTop: 20}}>Submit Feedback</Button>
+                        style={{ width: 300, marginTop: 20 }}>Submit Feedback</Button>
                 </>
             )
         }
+
         return _list.map(item => item)
     }
 
@@ -390,77 +401,77 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                     <Col span={2}></Col>
                     <Col span={20}>
                         {!!project && <Row>
-                                <Col span={14}>
-                                    <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
-                                        <Title>{project.proj_name}</Title>
-                                        <Title level={5}>Course: {project.course_name}</Title>
-                                        <Row>
-                                            <Col span={24}>
-                                                <Title level={5}>Duration:</Title>
-                                                <Paragraph>From {project.start_time} to {project.close_time}</Paragraph>
-                                            </Col>
-                                        </Row>
-                                        <Row>
-                                            <Col span={24} style={{display : "flex",alignItems : "center"}}>
-                                                <Title level={5}>Course Authority:</Title>
-                                                <Comment
-                                                    style={{marginLeft : "10px"}}
-                                                    className="comment-box-item"
-                                                    author={<div>
-                                                        {project.authority_name}
-                                                        <Tooltip placement="top" title={<div className={"email-tool-tip-component"}>
-                                                            {project.authority_email}
-                                                            <CopyToClipboard
-                                                                text={project.authority_email}
-                                                                onCopy={() => {
-                                                                    message.success('copy email success');
-                                                                }}
-                                                            >
-                                                                <span className={"email-tool-tip-component-copy"}>COPY</span>
-                                                            </CopyToClipboard>
-                                                        </div>}>
-                                                            <MailOutlined className={"mail-box"} />
-                                                        </Tooltip>
-                                                    </div>
-                                                    }
-                                                    avatar={<Avatar src="/static/ca.png" />}
-                                                    content={null}
-                                                >
-                                                </Comment>
-                                            </Col>
-                                            <Col span={24} style={{display : "flex",alignItems : "center"}}>
-                                                <Title level={5}>Project Proposer:</Title>
-                                                <Comment
-                                                    style={{marginLeft : "10px"}}
-                                                    className="comment-box-item"
-                                                    author={<div>
-                                                        {project.proposer_name}
-                                                        <Tooltip placement="top" title={<div className={"email-tool-tip-component"}>
-                                                            {project.proposer_email}
-                                                            <CopyToClipboard
-                                                                text={project.proposer_email}
-                                                                onCopy={() => {
-                                                                    message.success('copy email success');
-                                                                }}
-                                                            >
-                                                                <span className={"email-tool-tip-component-copy"}>COPY</span>
-                                                            </CopyToClipboard>
-                                                        </div>}>
-                                                            <MailOutlined className={"mail-box"} />
-                                                        </Tooltip>
-                                                    </div>
-                                                    }
-                                                    avatar={<Avatar src="/static/ca.png" />}
-                                                    content={null}
-                                                >
-                                                </Comment>
-                                            </Col>
-                                        </Row>
-                                    </Space>
-                                </Col>
-                                <Col span={4}></Col>
-                            </Row>
-                       }
+                            <Col span={14}>
+                                <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
+                                    <Title>{project.proj_name}</Title>
+                                    <Title level={5}>Course: {project.course_name}</Title>
+                                    <Row>
+                                        <Col span={24}>
+                                            <Title level={5}>Duration:</Title>
+                                            <Paragraph>From {project.start_time} to {project.close_time}</Paragraph>
+                                        </Col>
+                                    </Row>
+                                    <Row>
+                                        <Col span={24} style={{ display: "flex", alignItems: "center" }}>
+                                            <Title level={5}>Course Authority:</Title>
+                                            <Comment
+                                                style={{ marginLeft: "10px" }}
+                                                className="comment-box-item"
+                                                author={<div>
+                                                    {project.authority_name}
+                                                    <Tooltip placement="top" title={<div className={"email-tool-tip-component"}>
+                                                        {project.authority_email}
+                                                        <CopyToClipboard
+                                                            text={project.authority_email}
+                                                            onCopy={() => {
+                                                                message.success('copy email success');
+                                                            }}
+                                                        >
+                                                            <span className={"email-tool-tip-component-copy"}>COPY</span>
+                                                        </CopyToClipboard>
+                                                    </div>}>
+                                                        <MailOutlined className={"mail-box"} />
+                                                    </Tooltip>
+                                                </div>
+                                                }
+                                                avatar={<Avatar src="/static/ca.png" />}
+                                                content={null}
+                                            >
+                                            </Comment>
+                                        </Col>
+                                        <Col span={24} style={{ display: "flex", alignItems: "center" }}>
+                                            <Title level={5}>Project Proposer:</Title>
+                                            <Comment
+                                                style={{ marginLeft: "10px" }}
+                                                className="comment-box-item"
+                                                author={<div>
+                                                    {project.proposer_name}
+                                                    <Tooltip placement="top" title={<div className={"email-tool-tip-component"}>
+                                                        {project.proposer_email}
+                                                        <CopyToClipboard
+                                                            text={project.proposer_email}
+                                                            onCopy={() => {
+                                                                message.success('copy email success');
+                                                            }}
+                                                        >
+                                                            <span className={"email-tool-tip-component-copy"}>COPY</span>
+                                                        </CopyToClipboard>
+                                                    </div>}>
+                                                        <MailOutlined className={"mail-box"} />
+                                                    </Tooltip>
+                                                </div>
+                                                }
+                                                avatar={<Avatar src="/static/ca.png" />}
+                                                content={null}
+                                            >
+                                            </Comment>
+                                        </Col>
+                                    </Row>
+                                </Space>
+                            </Col>
+                            <Col span={4}></Col>
+                        </Row>
+                        }
                         <Divider />
                         <Row>
                             <Col span={24} >

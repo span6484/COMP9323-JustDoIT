@@ -1,3 +1,4 @@
+from select import select
 from flask import jsonify, request, g
 from sqlalchemy import exists
 from datetime import datetime as dt
@@ -577,7 +578,6 @@ def getStudentSelectionInfo(selection, proj):
         file_result["file_url"] = file.file_url
         file_lst.append(file_result)
     result["file"] = file_lst
-
     return result
 
 
@@ -637,14 +637,13 @@ def view_works():
             if temp:
                 selection_List.append(temp)
         result["student_count"] = len(selection_List)
-        page_size = 1
+        page_size = len(selection_List)
         start = page_index * page_size
         end = start + page_size
         if end < result["student_count"]:
             result["student_lst"] = selection_List[start:end]
         else:
             result["student_lst"] = selection_List[start:]
-
         return jsonify({'code': 200, 'result': result})
     elif user.role == 1 and selection:
         work_info = getStudentSelectionInfo(selection, proj)
@@ -712,8 +711,7 @@ def join_quit_project():
     if not student:
         return jsonify({'code': 400, 'msg': 'student not exist'})
 
-    selection = SelectionModel.query.filter(SelectionModel.proj_id == proj_id, SelectionModel.sid == sid,
-                                            SelectionModel.active == 1).first()
+    selection = SelectionModel.query.filter(SelectionModel.proj_id == proj_id, SelectionModel.sid == sid).first()
 
     proj = ProjectModel.query.filter(ProjectModel.proj_id == proj_id).first()
     if not proj:
@@ -727,6 +725,12 @@ def join_quit_project():
                                            ctime=date_time, utime=date_time, active=1)
             proj.cur_num += 1
             db.session.add(add_selection)
+            db.session.commit()
+            return jsonify({'code': 200, 'msg': 'join successfully'})
+        elif selection:
+            selection.active = 1
+            selection.utime = date_time
+            proj.cur_num += 1
             db.session.commit()
             return jsonify({'code': 200, 'msg': 'join successfully'})
     if join_state == 0:

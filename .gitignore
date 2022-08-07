@@ -7,3 +7,5 @@ frontend/node_modules/.bin/acorn
 comp9323-backend/app/.DS_Store
 comp9323-backend/migrations/versions/*.py
 comp9323-backend/migrations/versions/5f9c7b31c0fc_.py
+comp9323-backend/.qiniu_pythonsdk_hostscache.json
+comp9323-backend/app/upload/upload_files/*
