@@ -3,13 +3,14 @@ import projectStyle from "./project.less";
 import moment from 'moment';
 import React, { useRef, onChange, useState, useEffect } from 'react';
 import { UploadOutlined } from '@ant-design/icons';
-import { Col, Row, Collapse, Typography, Button, Space, Input, message, Upload, Comment, Avatar, Tooltip, Tabs, Divider } from 'antd';
+import { Col, Row, Collapse, Typography, Popconfirm,
+    Button, Space, Input, message, Upload, Comment, Avatar, Tooltip, Tabs, Divider } from 'antd';
 const { Dragger } = Upload;
 const { TabPane } = Tabs;
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { MailOutlined, DeleteOutlined, FormOutlined } from "@ant-design/icons"
 const { Title, Paragraph, Text, Link } = Typography;
-import {giveFeedback, viewWorks,studentSubmit} from "../MockData"
+import {giveFeedback, viewWorks,studentSubmit,giveAward} from "../MockData"
 const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     const ref = useRef();
     const { Panel } = Collapse;
@@ -157,6 +158,42 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
 
                                 <Title level={5}>Submitted documents</Title>
                                 <Documents files={student.file} />
+                                {
+                                    checkISFeed(student.a_feedback) &&
+                                    checkISFeed(student.p_feedback) &&
+                                    userRole === "CA" &&
+                                    <div style={{
+                                        marginTop : "10px"
+                                    }}>
+                                        <Popconfirm
+                                            placement="top"
+                                            title={student.award === 0 ? "Are you sure award?" :
+                                                "Are you sure cancel award"}
+                                            okText="Yes"
+                                            cancelText="No"
+                                            onConfirm={() => {
+                                                giveAward({
+                                                    "uid": uid,
+                                                    "proj_id": pid,
+                                                    "sid": student.sid,
+                                                    "award": student.award === 0 ? 1 : 0
+                                                }).then(res => {
+                                                    if(res.code === 200){
+                                                        message.success(`${student.award === 0 ? "Award" : "Cancel award"} successfully`);
+                                                        setPageState(pagestate + 1);
+                                                    }else{
+                                                        message.error(`${student.award === 0 ? "Award" : "Cancel award"} failed`);
+                                                    }
+                                                })
+                                            }}
+                                        >
+                                         <Button
+                                             type={student.award === 0 ?'primary' : null}>
+                                             {student.award === 0 ? "AWARD" : "CANEL AWARD"}
+                                         </Button>
+                                        </Popconfirm>
+                                    </div>
+                                }
                                 <br />
                                 <br />
                                 <Feedbacks student={student} />

@@ -98,3 +98,6 @@ export function studentSubmit(param) {
 export function giveFeedback(param) {
     return fetchData('http://127.0.0.1:5000/give_feedback', param);
 }
+export function giveAward(param) {
+    return fetchData('http://127.0.0.1:5000/give_award', param);
+}
