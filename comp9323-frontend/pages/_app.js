@@ -6,6 +6,7 @@ import {Container} from 'next/app'
 import { ConfigProvider } from "antd";
 import enUS from 'antd/lib/locale/en_US';
 import store from '../util/store';
+import {projStartEnd} from "./MockData";
 
 const App = ({ Component, pageProps, cookie, router }) => {
   let _cookie = getCookie('USER_MESSAGE', cookie)
@@ -21,7 +22,7 @@ const App = ({ Component, pageProps, cookie, router }) => {
   if(_cookie && _cookie.id){
 
   }
-
+  projStartEnd({})
   return (
         <Container>
 

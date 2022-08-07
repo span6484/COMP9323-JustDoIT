@@ -858,4 +858,28 @@ def give_award():
 
 
 
+def proj_start_end():
+
+    projs = ProjectModel.query.filter(or_(ProjectModel.status == 3, ProjectModel.status == 4)).all()
+    if projs:
+        for p in projs:
+            start = str(p.start_time)
+            start_date = start.split(" ")[0]
+            end = str(p.close_time)
+            end_data = end.split(" ")[0]
+            if p.status == 3:
+                if check_release(start_date) == 1:
+                    p.status = 4
+                    db.session.commit()
+            else:
+                if check_release(end_data) == 1:
+                    p.status = 5
+                    db.session.commit()
+
+    return jsonify({'code': 200})
+
+
+
+
+
 
