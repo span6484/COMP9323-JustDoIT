@@ -663,34 +663,21 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     function Documents(props) {
         var files = props.files;
         if (files != undefined) {
-            console.log("display documents", Array.from(files));
-            console.log("number of docs", files.length);
-            if (files.length > 0) {
-                return (
-                    <>
+            return  <>
                         <Title level={4}>Specification documents</Title>
                         <Collapse onChange={onChange}>
-                            {files.map((item, index) => {
-                                return (
-                                    <Panel header={item.file_name} key={index}>
+                                    <Panel header={files.file_name}>
                                         <iframe
-                                            src={item.file_url}
-                                            title={item.file_name}
+                                            src={files.file_url}
+                                            title={files.file_name}
                                             width="100%"
                                             height="1200"
                                         ></iframe>
                                     </Panel>
-                                )
-                            })}
-
                         </Collapse>
                     </>
-                )
-            }
         }
-
         return null;
-
     }
     return (
         <PageBase cRef={ref} USERMESSAGE={USERMESSAGE}>
@@ -797,12 +784,16 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                         </Row>
                         <br />
                         <br />
-                        <Row>
+                        {
+                            (project.status === 3 || project.status === 4 || project.status === 5)
+                            &&
+                            <Row>
+                                <Col span={24}>
+                                    < ProjectForum status={status} />
+                                </Col>
+                            </Row>
+                        }
 
-                            <Col span={24}>
-                                < ProjectForum status={status} />
-                            </Col>
-                        </Row>
                     </Col>
                     <Col span={2}></Col>
                 </Row>

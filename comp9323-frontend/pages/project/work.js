@@ -3,13 +3,14 @@ import projectStyle from "./project.less";
 import moment from 'moment';
 import React, { useRef, onChange, useState, useEffect } from 'react';
 import { UploadOutlined } from '@ant-design/icons';
-import { Col, Row, Collapse, Typography, Button, Space, Input, message, Upload, Comment, Avatar, Tooltip, Tabs, Divider } from 'antd';
+import { Col, Row, Collapse, Typography, Popconfirm,
+    Button, Space, Input, message, Upload, Comment, Avatar, Tooltip, Tabs, Divider } from 'antd';
 const { Dragger } = Upload;
 const { TabPane } = Tabs;
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { MailOutlined, DeleteOutlined, FormOutlined } from "@ant-design/icons"
 const { Title, Paragraph, Text, Link } = Typography;
-import {viewProject, viewWorks,studentSubmit} from "../MockData"
+import {giveFeedback, viewWorks,studentSubmit,giveAward} from "../MockData"
 const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     const ref = useRef();
     const { Panel } = Collapse;
@@ -42,18 +43,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
         }, 0);
         // fetch project info on load
         getProjectWorks();
-        getProjectDetail();
     }, [pagestate]);
-    function getProjectDetail(){
-        viewProject({ "proj_id": pid, "uid": uid, }).then(val =>{
-            if(val.code === 200){
-                val.result.start_time = moment(val.result.start_time).format('YYYY-MM-DD');
-                val.result.close_time = moment(val.result.close_time).format('YYYY-MM-DD');
-                setProject(val.result);
-                ref?.current.getTabPane(urlMsg.asPath, val.result?.proj_name)
-            }
-        })
-    }
     function getProjectWorks() {
         // fetch project info
         try {
@@ -67,15 +57,17 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                         const [key, student] = studentObj;
                         studentList.push(student);
                     });
+                    setProject(val.result);
+                    ref?.current.getTabPane(urlMsg.asPath, val.result?.proj_name)
                     setStudentList(studentList);
                     const _uid = USERMESSAGE && USERMESSAGE.uid;
                     const index = studentList && studentList.findIndex((item) => {
-                        return item.sid === _uid && item.file && item.file.length > 0
+                        return item.sid === _uid && item.file && item.file.file_url
                     })
                     const list = [];
                     if(index >= 0){
                         const _file = studentList[index];
-                        Object.entries(_file.file).forEach(file => {
+                        Object.entries([_file.file]).forEach(file => {
                             const [key, value] = file;
                             const newfile = {
                                 'uid': key,
@@ -95,24 +87,19 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     }
     function sendFeedback(pid, uid, sid, feedback) {
         try {
-            fetch('http://localhost:5000/give_feedback', {
-                method: 'POST',
-                headers: {
-                    "content": 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                },
-                body: JSON.stringify({
-                    "proj_id": pid,
-                    "uid": uid,
-                    "sid": sid,
-                    "feedback": feedback
-                })
+            giveFeedback({
+                "proj_id": pid,
+                "uid": uid,
+                "sid": sid,
+                "feedback": feedback
             }).then(res => {
-                res.json().then((val) => {
-                    console.log("sendFeedback res = ", val);
+                if(res.code === 200){
+                    message.success("Feedback successfully");
                     setPageState(pagestate + 1);
-                });
-            });
+                }else{
+                    message.error("Feedback failed");
+                }
+            })
         } catch (e) {
             console.log(e)
         }
@@ -120,29 +107,16 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     function Documents(props) {
         var files = props.files;
         if (files != undefined) {
-            console.log("display documents", Array.from(files));
-            console.log("number of docs", files.length);
-            if (files.length > 0) {
-                return (
-                    <>
-                        <Collapse onChange={onChange}>
-                            {files.map((item, index) => {
-                                return (
-                                    <Panel header={item.file_name} key={index}>
-                                        <iframe
-                                            src={item.file_url}
-                                            title={item.file_name}
-                                            width="100%"
-                                            height="1200"
-                                        ></iframe>
-                                    </Panel>
-                                )
-                            })}
-
-                        </Collapse>
-                    </>
-                )
-            }
+            return  <Collapse onChange={onChange}>
+                        <Panel header={files.file_name}>
+                            <iframe
+                                src={files.file_url}
+                                title={files.file_name}
+                                width="100%"
+                                height="1200"
+                            ></iframe>
+                        </Panel>
+                    </Collapse>
         }
 
         return null;
@@ -154,31 +128,9 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
         console.log("studentList",studentList,USERMESSAGE && USERMESSAGE.uid);
         const _uid = USERMESSAGE && USERMESSAGE.uid;
         const index = studentList && studentList.findIndex((item) => {
-            return item.sid === _uid && item.file && item.file.length > 0
+            return item.sid === _uid && item.file && item.file.file_url
         })
         return index >= 0
-    }
-    function getUserFileList(){
-        const _uid = USERMESSAGE && USERMESSAGE.uid;
-        const index = studentList && studentList.findIndex((item) => {
-            return item.sid === _uid && item.file && item.file.length > 0
-        })
-        const list = []
-        if(index >= 0){
-            const _file = studentList[index];
-            Object.entries(_file.file).forEach(file => {
-                const [key, value] = file;
-                const newfile = {
-                    'uid': key,
-                    'name': value.file_name,
-                    'url': value.file_url,
-                    'status': 'done'
-                }
-                list.push(newfile);
-            });
-        }
-        return list
-
     }
     function ProjectWorks() {
         if (userRole != "S") {
@@ -206,6 +158,42 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
 
                                 <Title level={5}>Submitted documents</Title>
                                 <Documents files={student.file} />
+                                {
+                                    checkISFeed(student.a_feedback) &&
+                                    checkISFeed(student.p_feedback) &&
+                                    userRole === "CA" &&
+                                    <div style={{
+                                        marginTop : "10px"
+                                    }}>
+                                        <Popconfirm
+                                            placement="top"
+                                            title={student.award === 0 ? "Are you sure award?" :
+                                                "Are you sure cancel award"}
+                                            okText="Yes"
+                                            cancelText="No"
+                                            onConfirm={() => {
+                                                giveAward({
+                                                    "uid": uid,
+                                                    "proj_id": pid,
+                                                    "sid": student.sid,
+                                                    "award": student.award === 0 ? 1 : 0
+                                                }).then(res => {
+                                                    if(res.code === 200){
+                                                        message.success(`${student.award === 0 ? "Award" : "Cancel award"} successfully`);
+                                                        setPageState(pagestate + 1);
+                                                    }else{
+                                                        message.error(`${student.award === 0 ? "Award" : "Cancel award"} failed`);
+                                                    }
+                                                })
+                                            }}
+                                        >
+                                         <Button
+                                             type={student.award === 0 ?'primary' : null}>
+                                             {student.award === 0 ? "AWARD" : "CANEL AWARD"}
+                                         </Button>
+                                        </Popconfirm>
+                                    </div>
+                                }
                                 <br />
                                 <br />
                                 <Feedbacks student={student} />
@@ -293,16 +281,19 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
         }
         return null;
     }
+    function checkISFeed(feed){
+        return feed && feed !== "None"
+    }
     function getFeedBackForUser(){
         const _uid = USERMESSAGE && USERMESSAGE.uid;
         const index = studentList && studentList.findIndex((item) => {
-            return item.sid === _uid && item.file && item.file.length > 0
+            return item.sid === _uid && item.file && item.file.file_url
         })
         if(index >= 0){
            const _lst =  studentList[index];
            const {a_feedback,p_feedback} = _lst;
            let a_list = [];
-           if(a_feedback){
+           if(checkISFeed(a_feedback)){
                a_list.push(<>
                            <Title level={5}>Course Authority Feedback</Title>
                            <Paragraph>
@@ -312,7 +303,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                        </>)
 
            }
-            if(p_feedback){
+            if(checkISFeed(p_feedback)){
                 a_list.push(<>
                     <Title level={5}>Proposer Feedback</Title>
                     <Paragraph>
@@ -332,11 +323,11 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
         const [feedback, setFeedback] = useState('');
 
         const student = props.student
-        if (student.file.length == 0) {
+        if (!student.file || !student.file.file_url) {
             return null;
         }
         const _list = [];
-        if (student.a_feedback) {
+        if (checkISFeed(student.a_feedback)) {
             _list.push (
                 <>
                     <Title level={5}>Course Authority Feedback</Title>
@@ -347,7 +338,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                 </>
             )
         }
-        if (student.p_feedback) {
+        if (checkISFeed(student.p_feedback)) {
             _list.push (
                 <>
                     <Title level={5}>Proposer Feedback</Title>
@@ -358,8 +349,8 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                 </>
             )
         }
-        if ((userRole === "CA" && !student.a_feedback) ||
-            (userRole === "P" && !student.p_feedback)) {
+        if ((userRole === "CA" && !checkISFeed(student.a_feedback)) ||
+            (userRole === "P" && !checkISFeed(student.p_feedback))) {
             _list.push (
                 <>
                     <Title level={5}>Enter feedback</Title>
