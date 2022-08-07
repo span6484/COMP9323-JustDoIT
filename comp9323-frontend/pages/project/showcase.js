@@ -3,22 +3,37 @@ import projectStyle from "./project.less";
 import moment from 'moment';
 import React, { useRef, onChange, useState, useEffect } from 'react';
 import { UploadOutlined } from '@ant-design/icons';
-import { Col, Row, Collapse, Typography, Button, Space, Input, message, Upload, Comment, Avatar, Tooltip } from 'antd';
+import {
+    Col,
+    Row,
+    Collapse,
+    Typography,
+    Button,
+    Space,
+    Input,
+    message,
+    Upload,
+    Comment,
+    Avatar,
+    Tooltip,
+    Divider
+} from 'antd';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { MailOutlined, DeleteOutlined, FormOutlined } from "@ant-design/icons"
 
 const { Dragger } = Upload;
 import { SP } from 'next/dist/next-server/lib/utils';
+import {viewProject} from "../MockData";
 const { Title, Paragraph, Text, Link } = Typography;
 
 const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     const ref = useRef();
     const { Panel } = Collapse;
     //console.log(USERMESSAGE);
-    const uid = USERMESSAGE.uid;
+    const uid = USERMESSAGE && USERMESSAGE.uid;
     // get roles based project users
     var userRole = undefined;
-    switch (USERMESSAGE.type) {
+    switch (USERMESSAGE &&USERMESSAGE.type) {
         case 0:
             userRole = "CA";
             break;
@@ -47,23 +62,14 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     function getProjectDetail() {
         // fetch project info
         try {
-            fetch('http://localhost:5000/view_project', {
-                method: 'POST',
-                headers: {
-                    "content": 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                },
-                body: JSON.stringify({ "proj_id": pid, "uid": uid, })
-            }).then(res => {
-                res.json().then((val) => {
-                    //console.log(val);
-                    // convert datetime
+            viewProject({ "proj_id": pid, "uid": uid, }).then(val =>{
+                if(val.code === 200){
                     val.result.start_time = moment(val.result.start_time).format('YYYY-MM-DD');
                     val.result.close_time = moment(val.result.close_time).format('YYYY-MM-DD');
                     setProject(val.result);
-                    // console.log('project val:', val.result);
-                });
-            });
+                    ref?.current.getTabPane(urlMsg.asPath, val.result?.proj_name)
+                }
+            })
         } catch (e) {
             console.log(e)
         };
@@ -76,28 +82,22 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                 <Row>
                     <Col span={2}></Col>
                     <Col span={20}>
-                        <Row>
-                            <Col span={24}>
+                       <Row>
+                            <Col span={14}>
                                 <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
-                                    <Title>{project.project_name}</Title>
-                                    <Title level={2}>A project for {project.course_name}</Title>
+                                    <Title>{project.proj_name}</Title>
+                                    <Title level={5}>Course: {project.course_name}</Title>
                                     <Row>
-                                        <Col span={12}>
-                                            <Title level={4}>Start Time</Title>
-                                            <Title level={5}>{project.start_time}</Title>
-                                        </Col>
-                                        <Col span={12}>
-                                            <Title level={4}>End time</Title>
-                                            <Title level={5}>{project.close_time}</Title>
+                                        <Col span={24}>
+                                            <Title level={5}>Duration:</Title>
+                                            <Paragraph>From {project.start_time} to {project.close_time}</Paragraph>
                                         </Col>
                                     </Row>
-                                    <Paragraph>
-                                        {project.description}
-                                    </Paragraph>
-                                    <Space direction="vertical" size="middle" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around' }}>
-                                        <div>
-                                            <Title level={4}>Course Authority:</Title>
+                                    <Row>
+                                        <Col span={24} style={{display : "flex",alignItems : "center"}}>
+                                            <Title level={5}>Course Authority:</Title>
                                             <Comment
+                                                style={{marginLeft : "10px"}}
                                                 className="comment-box-item"
                                                 author={<div>
                                                     {project.authority_name}
@@ -120,10 +120,11 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                                                 content={null}
                                             >
                                             </Comment>
-                                        </div>
-                                        <div>
-                                            <Title level={4}>Project Proposer:</Title>
+                                        </Col>
+                                        <Col span={24} style={{display : "flex",alignItems : "center"}}>
+                                            <Title level={5}>Project Proposer:</Title>
                                             <Comment
+                                                style={{marginLeft : "10px"}}
                                                 className="comment-box-item"
                                                 author={<div>
                                                     {project.proposer_name}
@@ -146,11 +147,13 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                                                 content={null}
                                             >
                                             </Comment>
-                                        </div>
-                                    </Space>
+                                        </Col>
+                                    </Row>
                                 </Space>
                             </Col>
+                            <Col span={4}></Col>
                         </Row>
+                        <Divider />
                         <Row>
                             <Col span={24} >
                                 <Title level={2}>Awarded work to showcase</Title>
