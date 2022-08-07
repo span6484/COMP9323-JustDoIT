@@ -545,7 +545,7 @@ def edit_project():
         return jsonify({'code': 400, 'msg': 'edit project failed.', 'error_msg': str(e)})
 
 
-def getStudentSelectionInfo(selection, proj):
+def get_sel_Info(selection, proj):
     user = UserModel.query.filter(UserModel.uid == selection.sid, UserModel.active == 1).first()
     file = FileModel.query.filter(FileModel.proj_id == proj.proj_id, FileModel.active == 1,
                                   FileModel.uid == selection.sid).first()
@@ -589,6 +589,10 @@ def view_works():
     if not all_selections:
         return jsonify({'code': 200, 'msg': 'No students select this project'})
 
+    is_award = 0
+    if uid == proj.aid:
+        is_award = 1
+
     result = {}
     result["proj_name"] = proj.proj_name
     result["description"] = proj.description
@@ -605,11 +609,12 @@ def view_works():
     result["authority_name"] = authority.username
     result["authority_email"] = authority.email
     result["authority_id"] = authority.uid
+    result["is_award"] = is_award
 
     selection_List = []
     if uid == proj.aid or uid == proj.pid:
         for s in all_selections:
-            temp = getStudentSelectionInfo(s, proj)
+            temp = get_sel_Info(s, proj)
             if temp:
                 selection_List.append(temp)
         result["student_count"] = len(selection_List)
@@ -623,7 +628,7 @@ def view_works():
 
         return jsonify({'code': 200, 'result': result})
     elif user.role == 1 and selection:
-        work_info = getStudentSelectionInfo(selection, proj)
+        work_info = get_sel_Info(selection, proj)
         if work_info:
             selection_List.append(work_info)
         result["student_count"] = len(selection_List)
