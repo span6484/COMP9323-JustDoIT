@@ -191,10 +191,13 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                             </Col>
                         </Row>
                         <br />
-                        <Title level={4}>Feedback for this work</Title>
+                        <Title level={4}>Course Authority Feedback</Title>
                         <Paragraph>
-                            You showed incredible leadership instincts in your work on that project. I would love to work with you to develop those skills. Amazing work.
-                            You have all the qualities we look for in a leader. I hope you might consider taking them to the next level by leading our next big project in this area.
+                            {project.a_feedback}
+                        </Paragraph>
+                        <Title level={4}>Proposer Feedback</Title>
+                        <Paragraph>
+                            {project.p_feedback}
                         </Paragraph>
                     </Col>
                     <Col span={2}></Col>
