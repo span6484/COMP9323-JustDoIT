@@ -79,9 +79,6 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
             status = 4;
             break;
     }
-    const onChange = (key) => {
-        console.log(key);
-    };
     function getProjectDetail() {
         // fetch project info
         try {
@@ -240,7 +237,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
         return null;
     }
     function RButtons(props) {
-        if (props.status = 0) {
+        if (props.status == 0) {
             return (
                 <>
                     <Button type="primary" onClick={() => {

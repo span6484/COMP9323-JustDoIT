@@ -37,8 +37,8 @@ def view_project():
     proposer = UserModel.query.filter(UserModel.uid == pid, UserModel.role == 2).first()
     if not proposer:
         return jsonify({'code': 400, 'msg': 'no proposer'})
-
-    files = FileModel.query.filter(FileModel.proj_id == proj_id, FileModel.active == 1).all()
+    # only showing spec files pls Shaoqiu
+    files = FileModel.query.filter(FileModel.proj_id == proj_id, FileModel.active == 1,FileModel.type != 'work').all() 
     result["proj_name"] = proj.proj_name
     result["description"] = proj.description
     result["start_time"] = proj.start_time
