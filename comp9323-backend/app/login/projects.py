@@ -435,7 +435,6 @@ def reply_comment():
                                root_id=root_id, content=content, ctime=date_time, utime=date_time, active=1)
         db.session.add(comment)
         db.session.commit()
-        add_comment()
         msg = add_message(uid, f"{username} reply {target_usr.username} message successfully")
 
         return jsonify({'code': 200, 'msg': 'reply comment successfully'})
