@@ -9,7 +9,7 @@ import { SP } from 'next/dist/next-server/lib/utils';
 const { Title, Paragraph, Text, Link } = Typography;
 const { Step } = Steps;
 const dateFormat = 'YYYY/MM/DD';
-import { editProject, viewProject } from "../MockData"
+import {editProject, viewProject} from "../MockData"
 const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     const ref = useRef();
     //console.log(urlMsg, USERMESSAGE);
@@ -67,11 +67,11 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                 "close_time": close_time,
                 "status": status,
                 "max_num": project.max_num,
-                "file": pdfList && pdfList[0] || null
+                "file" : pdfList && pdfList[0] || null
             }).then(res => {
-                if (res.code === 200) {
+                if(res.code === 200){
                     message.success("Edit project successfully")
-                } else {
+                }else{
                     message.error("Edit project failed")
                 }
             })
@@ -94,54 +94,53 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
             status = 4;
             break;
     }
-    function getProjectStatus(statues) {
-        const filterList = statusProject && statusProject.filter((item) => {
+    function getProjectStatus(statues){
+        const filterList = statusProject && statusProject.filter((item) =>{
             return item.key === statues
         })
-        if (!filterList || filterList.length === 0) {
+        if(!filterList || filterList.length === 0){
             return null;
         }
         return filterList[0].value
     }
-    const [statusProject, changeStatusProject] = useState([])
+    const [statusProject,changeStatusProject] = useState([])
     useEffect(() => {
         let projectStatusList = [];
         const userType = USERMESSAGE && USERMESSAGE.type;
-        if (userType !== 1 && userType !== undefined && userType !== null && userType !== "") {
-            projectStatusList = [...projectStatusList, ...[{
-                key: 0,
-                value: "Pending"
-            }, {
-                key: 1,
-                value: "Approved"
-            }, {
-                key: 2,
-                value: "Not approved"
+        if(userType !== 1 && userType !== undefined && userType !== null && userType !== ""){
+            projectStatusList = [...projectStatusList,...[{
+                key : 0,
+                value : "Pending"
+            },{
+                key : 1,
+                value : "Approved"
+            },{
+                key : 2,
+                value : "Not approved"
             }]]
         }
-        projectStatusList = [...projectStatusList, ...[{
-            key: 3,
-            value: "Open to join"
-        }, {
-            key: 4,
-            value: "In Progress"
-        }, {
-            key: 5,
-            value: "Ended"
+        projectStatusList = [...projectStatusList,...[{
+            key : 3,
+            value : "Open to join"
+        },{
+            key : 4,
+            value : "In Progress"
+        },{
+            key : 5,
+            value : "Ended"
         }]]
         changeStatusProject(projectStatusList)
         // fetch project info on load
         try {
-            viewProject({ "proj_id": pid, "uid": uid, }).then(val => {
-                if (val.code === 200) {
+            viewProject({ "proj_id": pid, "uid": uid, }).then(val =>{
+                if(val.code === 200){
                     setStart_time(moment(val.result.start_time).format('YYYY-MM-DD').toString());
                     setClose_time(moment(val.result.close_time).format('YYYY-MM-DD').toString());
-                    var newfileList = [], pdf_url_list = [];
-                    console.log(val.result.files);
-                    if (val.result.files != null) {
-                        Object.entries(val.result.files).forEach(file => {
-                            const [key, value] = file;
-                            console.log(value.file_name);
+
+                    var newfileList = [],pdf_url_list =[];
+                    Object.entries([val.result?.files || {}]).forEach(file => {
+                        const [key, value] = file;
+                        if(value.file_url){
                             const newfile = {
                                 'uid': key,
                                 'name': value.file_name,
@@ -150,10 +149,11 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                             }
                             newfileList.push(newfile);
                             pdf_url_list.push(value.file_url);
-                        });
-                        setFileList(newfileList);
-                        changePdfList(pdf_url_list)
-                    }
+                        }
+
+                    });
+                    setFileList(newfileList);
+                    changePdfList(pdf_url_list)
                     setProject(val.result);
                     ref?.current.getTabPane(urlMsg.asPath, val.result?.proj_name)
                 }
@@ -169,7 +169,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
         // Can not select days before today and today
         return current && current < moment().endOf('day');
     };
-    const [pdfList, changePdfList] = useState([])
+    const [pdfList ,changePdfList] = useState([])
     function RangeDatePicker() {
         return (
             <DatePicker.RangePicker
@@ -241,9 +241,8 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                         <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
                         </Space>
                         <Upload
-                            accept='pdf'
                             maxCount={1}
-                            beforeUpload={(file) => {
+                            beforeUpload={(file)=>{
                                 let fileType = file.name.split('.');
                                 const fileDate = fileType.slice(-1);
                                 const isLt200M = file.size / 1024 / 1024 < 0.5;
@@ -253,12 +252,12 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                                 }
                                 return isLt200M;
                             }}
-                            onChange={({ file, fileList }) => {
-                                if (fileList && fileList.length > 0) {
+                            onChange={({file,fileList})=>{
+                                if(fileList && fileList.length > 0){
                                     const _file = fileList[0];
                                     const pdf_url = _file?.response?.result?.pdf_url || "";
                                     changePdfList([pdf_url])
-                                } else {
+                                }else{
                                     changePdfList([])
                                 }
                                 setFileList(fileList)

@@ -46,7 +46,7 @@ const AwardProjects = ({ USERMESSAGE }) => {
                     ref.current.setTabPane(
                         `Award Showcase`,
                         '',
-                        `/project/showcase?id=${item.work_id}`
+                        `/project/showcase?id=${item.sel_id}`
                     )
                 }}
                 className={"award-project-component-item"} key={"award-project-component-" + index}>

@@ -95,3 +95,15 @@ export function viewWorks(param) {
 export function studentSubmit(param) {
     return fetchData('http://127.0.0.1:5000/student_submit', param);
 }
+export function giveFeedback(param) {
+    return fetchData('http://127.0.0.1:5000/give_feedback', param);
+}
+export function giveAward(param) {
+    return fetchData('http://127.0.0.1:5000/give_award', param);
+}
+export function getAwardDetail(param) {
+    return fetchData('http://127.0.0.1:5000/get_award_detail', param);
+}
+export function projStartEnd(param) {
+    return fetchData('http://127.0.0.1:5000/proj_start_end', param);
+}

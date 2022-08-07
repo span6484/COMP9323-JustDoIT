@@ -1,5 +1,5 @@
 from flask import jsonify, request, g
-from sqlalchemy import exists
+from sqlalchemy import exists, desc
 from app.login.utils import *
 from app.models import *
 
@@ -157,7 +157,7 @@ def add_message(uid, content):
 
     msg = MessageModel(msg_id=msg_id, uid=uid, content=content, read=0, ctime=data_time, utime=data_time, active=1)
     db.session.add(msg)
-    db.session.commit()
+    # db.session.commit()
     return 1
 
 
@@ -249,7 +249,7 @@ def get_awards():
     if not user:
         return jsonify({'code': 400, 'msg': 'No such user in database.'})
 
-    awards = SelectionModel.query.filter(SelectionModel.award == 1, SelectionModel.active == 1).all()
+    awards = SelectionModel.query.filter(SelectionModel.award == 1, SelectionModel.active == 1).order_by(desc(SelectionModel.utime)).all()
     if not awards:
         return jsonify({'code': 200, 'msg': 'No awarded projects.'})
     try:
@@ -257,7 +257,8 @@ def get_awards():
         result_list = []
         recent_awards = awards
         if len(awards) > 10:
-            recent_awards = awards[len(awards)-10:]
+            recent_awards = awards[:10]
+        print(recent_awards)
         for a_p in recent_awards:
             proj = ProjectModel.query.filter(ProjectModel.proj_id == a_p.proj_id, ProjectModel.status == 5).first()
             if proj:
@@ -265,16 +266,13 @@ def get_awards():
                 a = UserModel.query.filter(UserModel.uid == proj.aid, UserModel.active == 1).first()
                 p = UserModel.query.filter(UserModel.uid == proj.pid, UserModel.active == 1).first()
                 s = UserModel.query.filter(UserModel.uid == a_p.sid, UserModel.active == 1).first()
-                files = FileModel.query.filter(FileModel.proj_id == a_p.proj_id, FileModel.uid == a_p.sid, FileModel.active == 1).all()
-                if not course or not a or not p or not s or not files:
+                # file = FileModel.query.filter(FileModel.proj_id == a_p.proj_id, FileModel.uid == a_p.sid, FileModel.active == 1).first()
+                if not course or not a or not p or not s:
                     print(f"{a_p.proj_id} has invalid attribute.")
                     continue
-                f_list = []
-                for f in files:
-                    f_dict = {"fid": f.id, "file_name": f.file_name, "file_url": f.file_url}
-                    f_list.append(f_dict)
+                # f_dict = {"fid": file.fid, "file_name": file.file_name, "file_url": file.file_url}
                 proj_dict = {"proj_name": proj.proj_name, "course_name": course.name, "course_auth": a.username,
-                             "proposer": p.username, "student": s.username, "files": f_list}
+                             "proposer": p.username, "student": s.username, "sel_id": a_p.sel_id}
                 result_list.append(proj_dict)
             else:
                 print(f"Invalid proj_id {a_p.proj_id}.")
@@ -286,3 +284,49 @@ def get_awards():
         return jsonify({'code': 400, 'msg': 'Get awards failed.', 'error_msg': str(e)})
 
 
+def get_award_detail():
+    data = request.get_json(force=True)
+    uid, sel_id = data["uid"], data["sel_id"]
+    user = UserModel.query.filter(UserModel.uid == uid, UserModel.active == 1).first()
+    if not user:
+        return jsonify({'code': 400, 'msg': 'No such user in database.'})
+    selection = SelectionModel.query.filter(SelectionModel.sel_id == sel_id, SelectionModel.active == 1, SelectionModel.award == 1).first()
+    if not selection:
+        return jsonify({'code': 400, 'msg': 'No such awarded project in database.'})
+
+    student = UserModel.query.filter(UserModel.uid == selection.sid, UserModel.active == 1).first()
+    if not student:
+        return jsonify({'code': 400, 'msg': 'No such student in database.'})
+
+    project = ProjectModel.query.filter(ProjectModel.proj_id == SelectionModel.proj_id, ProjectModel.status == 5).first()
+    if not project:
+        return jsonify({'code': 400, 'msg': 'No such project in database.'})
+
+    file = FileModel.query.filter(FileModel.uid == selection.sid, FileModel.proj_id == selection.proj_id, FileModel.active == 1).first()
+    if not file:
+        return jsonify({'code': 400, 'msg': 'No such file in database.'})
+
+    course = CourseModel.query.filter(CourseModel.cid == project.cid, CourseModel.active == 1).first()
+    if not course:
+        return jsonify({'code': 400, 'msg': 'No such course in database.'})
+
+    auth = UserModel.query.filter(UserModel.uid == project.aid, UserModel.active == 1).first()
+    if not auth:
+        return jsonify({'code': 400, 'msg': 'No such auth in database.'})
+
+    proposer = UserModel.query.filter(UserModel.uid == project.pid, UserModel.active == 1).first()
+    if not proposer:
+        return jsonify({'code': 400, 'msg': 'No such proposer in database.'})
+
+    try:
+        course_info = {"cid": course.cid, "course_name": course.name, "description": course.description}
+        proj_info = {"proj_id": project.proj_id, "proj_name": project.proj_name, "description": project.description}
+        ca_info = {"aid": auth.uid, "name": auth.username, "email": auth.email}
+        p_info = {"pid": proposer.uid, "name": proposer.username, "email": proposer.email}
+        stu_info = {"sid": student.uid, "name": student.username, "email": student.email}
+        file_info = {"fid": file.fid, "file_name": file.file_name, "file_url": file.file_url}
+        result = {"course": course_info, "project": proj_info, "ca": ca_info, "p": p_info, "stu": stu_info, "file": file_info,
+                  "a_feedback": selection.a_feedback, "p_feedback": selection.p_feedback}
+        return jsonify({'code': 200, 'result': result})
+    except Exception as e:
+        return jsonify({'code': 400, 'msg': 'Get award detail failed.', 'error_msg': str(e)})

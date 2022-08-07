@@ -1,4 +1,3 @@
-from select import select
 from flask import jsonify, request, g
 from sqlalchemy import exists
 from datetime import datetime as dt
@@ -16,29 +15,28 @@ def view_project():
     result = {}
 
     proj_id = data["proj_id"]
-    proj = ProjectModel.query.filter(ProjectModel.proj_id == proj_id).first()
+    proj = ProjectModel.query.filter(ProjectModel.proj_id == proj_id, ProjectModel.status != -1).first()
     if not proj:
         return jsonify({'code': 400, 'msg': 'not related project'})
+
     uid = data["uid"]
     user = UserModel.query.filter(UserModel.uid == uid, UserModel.active == 1).first()
     if not user:
         return jsonify({'code': 400, 'msg': 'User does not exist'})
-    cid = proj.cid
-    course = CourseModel.query.filter(CourseModel.cid == cid, CourseModel.active == 1).first()
+
+    course = CourseModel.query.filter(CourseModel.cid == proj.cid, CourseModel.active == 1).first()
     if not course:
         return jsonify({'code': 400, 'msg': 'not related course'})
 
-    aid = proj.aid
-    authority = UserModel.query.filter(UserModel.uid == aid, UserModel.role == 0).first()
+    authority = UserModel.query.filter(UserModel.uid == proj.aid, UserModel.role == 0).first()
     if not authority:
         return jsonify({'code': 400, 'msg': 'no course authority'})
 
-    pid = proj.pid  # proposer_id
-    proposer = UserModel.query.filter(UserModel.uid == pid, UserModel.role == 2).first()
+    proposer = UserModel.query.filter(UserModel.uid == proj.pid, UserModel.role == 2).first()
     if not proposer:
         return jsonify({'code': 400, 'msg': 'no proposer'})
-    # only showing spec files pls Shaoqiu
-    files = FileModel.query.filter(FileModel.proj_id == proj_id, FileModel.active == 1,FileModel.type != 'work').all() 
+
+    file = FileModel.query.filter(FileModel.proj_id == proj_id, FileModel.type == "project", FileModel.active == 1).first()
     result["proj_name"] = proj.proj_name
     result["description"] = proj.description
     result["start_time"] = proj.start_time
@@ -63,16 +61,9 @@ def view_project():
     result["is_join"] = is_join
     result["is_edit"] = is_edit
     # list file
-    if files:
-        file_lst = list()
-        file = dict()
-        for f in files:
-            file["file_name"] = f.file_name
-            file["file_url"] = f.file_url
-            file["type"] = f.type
-            file["utime"] = f.utime
-            file_lst.append(file)
-        result["files"] = file_lst
+    if file:
+        file_info = {"file_name": file.file_name, "file_url": file.file_url, "type": file.type, "utime": file.utime}
+        result["files"] = file_info
     else:
         result["files"] = None
 
@@ -215,21 +206,39 @@ def change_project_status():
     if not course:
         return jsonify({'code': 400, 'msg': 'not related course'})
 
-    can_modify = 0
+    can_modify, fst_status, sec_status = 0, "", ""
     cur_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     start_time = project.start_time.strftime('%Y-%m-%d %H:%M:%S')
     close_time = project.close_time.strftime('%Y-%m-%d %H:%M:%S')
     print(cur_time, start_time, close_time)
     if project.aid == uid:
-        if (project.status == 0 and (status == 1 or status == 2)) or (project.status == 1 and status == 3):
+        if project.status == 0 and (status == 1 or status == 2):
             can_modify = 1
+            fst_status = "pending"
+            if status == 1:
+                sec_status = "approved"
+            else:
+                sec_status = "rejected"
+        elif project.status == 1 and status == 3:
+            can_modify = 1
+            fst_status = "approved"
+            sec_status = "open to join"
         elif status == 4 and project.status == 3 and start_time < cur_time < close_time:
             can_modify = 1
+            fst_status = "open to join"
+            sec_status = "in progress"
         elif status == 5 and (project.status == 4 or project.status == 3) and cur_time > close_time:
             can_modify = 1
+            fst_status = "in progress"
+            sec_status = "close"
     elif course.public == 1 and user.role == 3 and project.aid != uid:
         if project.status == 0 and (status == 1 or status == 2):
             can_modify = 1
+            fst_status = "pending"
+            if status == 1:
+                sec_status = "approved"
+            else:
+                sec_status = "rejected"
     else:
         return jsonify({'code': 400, 'msg': 'This Project cannot be changed by this user.'})
 
@@ -238,8 +247,15 @@ def change_project_status():
             project.status = status
             date_time = get_time()[0]
             project.utime = date_time
-            db.session.commit()
-            return jsonify({'code': 200, 'msg': 'modify status successfully'})
+            auth_msg = add_message(project.aid,
+                                   f"Status of project {project.proj_name} was changed from {fst_status} to {sec_status}.")
+            proposer_msg = add_message(project.pid,
+                                       f"Status of your project {project.proj_name} was changed from {fst_status} to {sec_status}.")
+            if auth_msg and proposer_msg:
+                db.session.commit()
+                return jsonify({'code': 200, 'msg': 'Change status and send messages successfully.'})
+            else:
+                return jsonify({'code': 400, 'msg': 'Change status and send messages failed.'})
         else:
             return jsonify({'code': 400, 'msg': 'modify status failed'})
     except Exception as e:
@@ -294,7 +310,7 @@ def show_reply_comment(root_id, proj_id):
 def view_comment():
     data = request.get_json(force=True)
     proj_id = data["proj_id"]
-    proj = ProjectModel.query.filter(ProjectModel.proj_id == proj_id).first()
+    proj = ProjectModel.query.filter(ProjectModel.proj_id == proj_id, ProjectModel.status >= 3).first()
     if not proj:
         return jsonify({'code': 400, 'msg': 'not related project'})
     comments = CommentModel.query.filter(CommentModel.proj_id == proj_id, CommentModel.active == 1).order_by(
@@ -340,7 +356,7 @@ def add_comment():
     content = data["content"]
 
     # determine the project json data
-    proj = ProjectModel.query.filter(ProjectModel.proj_id == proj_id).first()
+    proj = ProjectModel.query.filter(ProjectModel.proj_id == proj_id, ProjectModel.status >= 3).first()
     if not proj:
         return jsonify({'code': 400, 'msg': 'not related project'})
     cid = proj.cid
@@ -389,19 +405,17 @@ def reply_comment():
     target_uid = data["target_uid"]
     parent_id = data["parent_id"]
     root_id = data["root_id"]
-
+    user = UserModel.query.filter(UserModel.uid == uid, UserModel.active == 1).first()
+    if not user:
+        return jsonify({'code': 400, 'msg': 'not related user'})
     # determine the project json data
-    proj = ProjectModel.query.filter(ProjectModel.proj_id == proj_id).first()
+    proj = ProjectModel.query.filter(ProjectModel.proj_id == proj_id, ProjectModel.status >= 3).first()
     if not proj:
-        return jsonify({'code': 400, 'msg': 'not related project'})
-    cid = proj.cid
-    course = CourseModel.query.filter(CourseModel.cid == cid, CourseModel.active == 1).first()
+        return jsonify({'code': 400, 'msg': 'No project can reply comment.'})
+    course = CourseModel.query.filter(CourseModel.cid == proj.cid, CourseModel.active == 1).first()
     if not course:
         return jsonify({'code': 400, 'msg': 'not related course'})
     ## users json
-    usr = UserModel.query.filter(UserModel.uid == uid, UserModel.active == 1).first()
-    if not usr:
-        return jsonify({'code': 400, 'msg': 'not related user'})
     user = ProjectModel.query.filter(or_(ProjectModel.aid == uid, ProjectModel.pid == uid)).first()
     is_user_exist = False
     if user:
@@ -434,10 +448,13 @@ def reply_comment():
         comment = CommentModel(cm_id=cm_id, proj_id=proj_id, owner_uid=uid, target_uid=target_uid, parent_id=parent_id,
                                root_id=root_id, content=content, ctime=date_time, utime=date_time, active=1)
         db.session.add(comment)
-        db.session.commit()
-        msg = add_message(uid, f"{username} reply {target_usr.username} message successfully")
-
-        return jsonify({'code': 200, 'msg': 'reply comment successfully'})
+        # add_comment()
+        msg = add_message(target_usr.uid, f"{username} replied your comment in project {proj.proj_name}.")
+        if msg:
+            db.session.commit()
+            return jsonify({'code': 200, 'msg': 'reply comment successfully and send message successfully.'})
+        else:
+            return jsonify({'code': 200, 'msg': 'reply comment successfully and send message failed.'})
     except Exception as e:
         return jsonify({'code': 400, 'msg': 'reply comment failed.', 'error_msg': str(e)})
 
@@ -537,6 +554,7 @@ def edit_project():
                 file_name = file_url.split('.com/')[1]
                 file.file_name = file_name
                 file.file_url = file_url
+                file.uid = uid
                 file.utime = date_time
             else:
                 file_name = file_url.split('.com/')[1]
@@ -547,43 +565,35 @@ def edit_project():
                 db.session.add(new_file)
 
         proj.max_num = max_num
-        db.session.commit()
-        return jsonify({'code': 200, 'msg': 'modify successfully'})
+        auth_msg = add_message(proj.aid,
+                               f"Project {proj.proj_name} was edited by {user.username}.")
+        proposer_msg = add_message(proj.pid, f"Your project {proj.proj_name} was edited by {user.username}.")
+        if auth_msg and proposer_msg:
+            db.session.commit()
+            return jsonify({'code': 200, 'msg': 'Edit proposal and send messages successfully.'})
+        else:
+            return jsonify({'code': 400, 'msg': 'Edit proposal and send messages failed.'})
 
     except Exception as e:
         return jsonify({'code': 400, 'msg': 'edit project failed.', 'error_msg': str(e)})
 
 
-def getStudentSelectionInfo(selection, proj):
-    result = dict()
-    result["sid"] = selection.sid
-    sid = selection.sid
-    user = UserModel.query.filter(UserModel.uid == sid, UserModel.active == 1).first()
-    if not user:
-        return
-    result["a_feedback"] = selection.a_feedback
-    result["p_feedback"] = selection.p_feedback
-    result["student_name"] = user.username
-    result["uid"] = user.uid
-    result["award"] = selection.award
-    result["utime"] = selection.utime
-    proj_id = proj.proj_id
-    files = FileModel.query.filter(FileModel.proj_id == proj_id, FileModel.active == 1, FileModel.uid == sid).all()
-    file_lst = list()
-    for file in files:
-        file_result = dict()
-        file_result["file_id"] = file.fid
-        file_result["file_name"] = file.file_name
-        file_result["file_url"] = file.file_url
-        file_lst.append(file_result)
-    result["file"] = file_lst
+def get_sel_Info(selection, proj):
+    user = UserModel.query.filter(UserModel.uid == selection.sid, UserModel.active == 1).first()
+    file = FileModel.query.filter(FileModel.proj_id == proj.proj_id, FileModel.active == 1,
+                                  FileModel.uid == selection.sid).first()
+    if not user or not selection or not proj or not file:
+        return {}
+    file_info = {"file_id": file.fid, "file_name": file.file_name, "file_url": file.file_url}
+    result = {"sid": selection.sid, "student_name": user.username, "uid": user.uid, "utime": selection.utime, "file": file_info,
+              "a_feedback": selection.a_feedback, "p_feedback": selection.p_feedback, "award": selection.award}
     return result
 
 
 def view_works():
     data = request.get_json(force=True)
     uid, proj_id = data["uid"], data["proj_id"]
-    pagesize, page_index = data["page_size"], data["page_index"]
+    page_size, page_index = data["page_size"], data["page_index"]
     user = UserModel.query.filter(UserModel.uid == uid, UserModel.active == 1).first()
     if not user:
         return jsonify({'code': 400, 'msg': 'User does not exist.'})
@@ -612,6 +622,10 @@ def view_works():
     if not all_selections:
         return jsonify({'code': 200, 'msg': 'No students select this project'})
 
+    is_award = 0
+    if uid == proj.aid:
+        is_award = 1
+
     result = {}
     result["proj_name"] = proj.proj_name
     result["description"] = proj.description
@@ -628,24 +642,26 @@ def view_works():
     result["authority_name"] = authority.username
     result["authority_email"] = authority.email
     result["authority_id"] = authority.uid
+    result["is_award"] = is_award
 
     selection_List = []
     if uid == proj.aid or uid == proj.pid:
         for s in all_selections:
-            temp = getStudentSelectionInfo(s, proj)
+            temp = get_sel_Info(s, proj)
             if temp:
                 selection_List.append(temp)
         result["student_count"] = len(selection_List)
-        page_size = len(selection_List)
+
         start = page_index * page_size
         end = start + page_size
         if end < result["student_count"]:
             result["student_lst"] = selection_List[start:end]
         else:
             result["student_lst"] = selection_List[start:]
+
         return jsonify({'code': 200, 'result': result})
     elif user.role == 1 and selection:
-        work_info = getStudentSelectionInfo(selection, proj)
+        work_info = get_sel_Info(selection, proj)
         if work_info:
             selection_List.append(work_info)
         result["student_count"] = len(selection_List)
@@ -653,6 +669,7 @@ def view_works():
         return jsonify({'code': 200, 'result': result})
     else:
         return jsonify({'code': 400, 'msg': "get works failed"})
+
 
 def give_feedback():
     data = request.get_json(force=True)
@@ -696,8 +713,18 @@ def give_feedback():
         if user == proposer:
             selection.p_feedback = feedback
         selection.utime = date_time
-        db.session.commit()
-        return jsonify({'code': 200, 'msg': 'give feedback successfully'})
+        role = ""
+        if uid == proj.aid:
+            role = "Course authority"
+        elif uid == proj.pid:
+            role = "Proposer"
+        stu_msg = add_message(sid, f"{role} {user.username} gave you a feedback in project {proj.proj_name}.")
+        if stu_msg:
+            db.session.commit()
+            return jsonify({'code': 200, 'msg': 'Give feedback and send messages successfully.'})
+        else:
+            return jsonify({'code': 400, 'msg': 'Give feedbac and send messages failed.'})
+
     return jsonify({'code': 400, 'msg': 'give feedback fail'})
 
 
@@ -710,13 +737,14 @@ def join_quit_project():
     if not student:
         return jsonify({'code': 400, 'msg': 'student not exist'})
 
-    selection = SelectionModel.query.filter(SelectionModel.proj_id == proj_id, SelectionModel.sid == sid).first()
+    selection = SelectionModel.query.filter(SelectionModel.proj_id == proj_id, SelectionModel.sid == sid,
+                                            SelectionModel.active == 1).first()
 
     proj = ProjectModel.query.filter(ProjectModel.proj_id == proj_id).first()
     if not proj:
         return jsonify({'code': 400, 'msg': 'not related project'})
     select_num = SelectionModel.query.count()
-    sel_id = generate_id("selection", select_num)
+    sel_id = generate_id("selection", select_num+1)
     date_time = get_time()[0]
     if join_state == 1:
         if not selection and proj.cur_num < proj.max_num:
@@ -724,12 +752,6 @@ def join_quit_project():
                                            ctime=date_time, utime=date_time, active=1)
             proj.cur_num += 1
             db.session.add(add_selection)
-            db.session.commit()
-            return jsonify({'code': 200, 'msg': 'join successfully'})
-        elif selection:
-            selection.active = 1
-            selection.utime = date_time
-            proj.cur_num += 1
             db.session.commit()
             return jsonify({'code': 200, 'msg': 'join successfully'})
     if join_state == 0:
@@ -763,8 +785,101 @@ def student_submit():
         new_file = FileModel(fid=fid, proj_id=proj_id, uid=uid, file_name=file_name, file_url=file_url,
                              type="work", ctime=date_time, utime=date_time)
         db.session.add(new_file)
-        db.session.commit()
-        return jsonify({'code': 200, 'msg': 'Submit work successfully.'})
+        stu_msg = add_message(uid, f"Your work {file_name} uploded to project {proj.proj_name} successfully.")
+        auth_msg = add_message(proj.aid,
+                               f"Student {user.username} has uploaded a work to project {proj.proj_name}.")
+        proposer_msg = add_message(proj.pid, f"Student {user.username} has uploaded a work to project {proj.proj_name}.")
+        if stu_msg and auth_msg and proposer_msg:
+            db.session.commit()
+            return jsonify({'code': 200, 'msg': 'Submit and send messages successfully.'})
+        else:
+            return jsonify({'code': 400, 'msg': 'Submit and send messages failed.'})
 
     except Exception as e:
-        return jsonify({'code': 400, 'msg': 'Submit work failed.', 'error_msg': str(e)})
+        file_name = file_url.split('.com/')[1]
+        stu_msg = add_message(uid, f"Your work {file_name} uploded to project {proj.proj_name} successfully.")
+        if stu_msg:
+            db.session.commit()
+            return jsonify({'code': 400, 'msg': 'Submit work failed and send message.', 'error_msg': str(e)})
+        else:
+            return jsonify({'code': 400, 'msg': 'Submit work and send message failed.', 'error_msg': str(e)})
+
+
+def give_award():
+    data = request.get_json(force=True)
+    uid, proj_id, sid, award = data["uid"], data["proj_id"], data["sid"], data["award"]
+    proj = ProjectModel.query.filter(ProjectModel.proj_id == proj_id,
+                                     or_(ProjectModel.status == 4, ProjectModel.status == 5)).first()
+    if not proj:
+        return jsonify({'code': 400, 'msg': 'Project cannot give awards.'})
+    user = UserModel.query.filter(UserModel.uid == uid, UserModel.uid == proj.aid, UserModel.active == 1).first()
+    if not user:
+        return jsonify({'code': 400, 'msg': 'Not this project auth.'})
+    student = UserModel.query.filter(UserModel.uid == sid, UserModel.role == 1, UserModel.active == 1).first()
+    if not student:
+        return jsonify({'code': 400, 'msg': 'Student does not exist.'})
+    proj = ProjectModel.query.filter(ProjectModel.proj_id == proj_id, or_(ProjectModel.status == 4, ProjectModel.status == 5)).first()
+    if not proj:
+        return jsonify({'code': 400, 'msg': 'Project cannot give awards.'})
+    # if uid != proj.aid:
+    #     return jsonify({'code': 400, 'msg': 'Not auth of this proj.'})
+    selection = SelectionModel.query.filter(SelectionModel.sid == sid, SelectionModel.proj_id == proj_id,
+                                            SelectionModel.active == 1).first()
+    if not selection:
+        return jsonify({'code': 400, 'msg': 'Student did not select this project.'})
+    file = FileModel.query.filter(FileModel.proj_id == proj_id, FileModel.uid == sid, FileModel.active == 1).first()
+    if not file:
+        return jsonify({'code': 400, 'msg': 'No file, cannot award.'})
+    if not selection.a_feedback and not selection.p_feedback:
+        return jsonify({'code': 400, 'msg': 'No feedbacks.'})
+    try:
+        date_time = get_time()[0]
+        if award == 1 and selection.award == 0:
+            selection.award = award
+            selection.utime = date_time
+            stu_msg = add_message(sid, f"Congratulations! Your work in {proj.proj_name} got an award!.")
+        elif award == 0 and selection.award == 1:
+            selection.award = award
+            selection.utime = date_time
+            stu_msg = add_message(sid, f"Your award of {proj.proj_name} was canceled.")
+        else:
+            return jsonify({'code': 400, 'msg': 'No need to change.'})
+        auth_msg = add_message(proj.aid,
+                               f"Student {student.username} has received award change in project {proj.proj_name}.")
+        proposer_msg = add_message(proj.pid,
+                                   f"Student {student.username} has received award change in project {proj.proj_name}.")
+        if stu_msg and auth_msg and proposer_msg:
+            db.session.commit()
+            return jsonify({'code': 200, 'msg': 'Change award and send messages successfully.'})
+        else:
+            return jsonify({'code': 400, 'msg': 'Change award and send messages failed.'})
+    except Exception as e:
+        return jsonify({'code': 400, 'msg': 'Give award failed.', 'error_msg': str(e)})
+
+
+
+def proj_start_end():
+
+    projs = ProjectModel.query.filter(or_(ProjectModel.status == 3, ProjectModel.status == 4)).all()
+    if projs:
+        for p in projs:
+            start = str(p.start_time)
+            start_date = start.split(" ")[0]
+            end = str(p.close_time)
+            end_data = end.split(" ")[0]
+            if p.status == 3:
+                if check_release(start_date) == 1:
+                    p.status = 4
+                    db.session.commit()
+            else:
+                if check_release(end_data) == 1:
+                    p.status = 5
+                    db.session.commit()
+
+    return jsonify({'code': 200})
+
+
+
+
+
+
