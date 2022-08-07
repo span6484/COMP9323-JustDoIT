@@ -191,14 +191,26 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                             </Col>
                         </Row>
                         <br />
-                        <Title level={4}>Course Authority Feedback</Title>
-                        <Paragraph>
-                            {project.a_feedback}
-                        </Paragraph>
-                        <Title level={4}>Proposer Feedback</Title>
-                        <Paragraph>
-                            {project.p_feedback}
-                        </Paragraph>
+                        {
+                          !!project.a_feedback &&
+                            <>
+                                <Title level={4}>Course Authority Feedback</Title>
+                                <Paragraph>
+                                    {project.a_feedback}
+                                </Paragraph>
+                            </>
+
+                        }
+                        {
+                            !!project.p_feedback &&
+                            <>
+                                <Title level={4}>Proposer Feedback</Title>
+                                <Paragraph>
+                                    {project.p_feedback}
+                                </Paragraph>
+                            </>
+
+                        }
                     </Col>
                     <Col span={2}></Col>
                 </Row>
