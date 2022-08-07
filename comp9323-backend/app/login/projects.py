@@ -742,3 +742,47 @@ def student_submit():
 
     except Exception as e:
         return jsonify({'code': 400, 'msg': 'Submit work failed.', 'error_msg': str(e)})
+
+
+def give_award():
+    data = request.get_json(force=True)
+    uid, proj_id, sid, award = data["uid"], data["proj_id"], data["sid"], data["award"]
+    proj = ProjectModel.query.filter(ProjectModel.proj_id == proj_id,
+                                     or_(ProjectModel.status == 4, ProjectModel.status == 5)).first()
+    if not proj:
+        return jsonify({'code': 400, 'msg': 'Project cannot give awards.'})
+    user = UserModel.query.filter(UserModel.uid == uid, UserModel.uid == proj.aid, UserModel.active == 1).first()
+    if not user:
+        return jsonify({'code': 400, 'msg': 'Not this project auth.'})
+    student = UserModel.query.filter(UserModel.uid == sid, UserModel.role == 1, UserModel.active == 1).first()
+    if not student:
+        return jsonify({'code': 400, 'msg': 'Student does not exist.'})
+    proj = ProjectModel.query.filter(ProjectModel.proj_id == proj_id, or_(ProjectModel.status == 4, ProjectModel.status == 5)).first()
+    if not proj:
+        return jsonify({'code': 400, 'msg': 'Project cannot give awards.'})
+    # if uid != proj.aid:
+    #     return jsonify({'code': 400, 'msg': 'Not auth of this proj.'})
+    selection = SelectionModel.query.filter(SelectionModel.sid == sid, SelectionModel.proj_id == proj_id,
+                                            SelectionModel.active == 1).first()
+    if not selection:
+        return jsonify({'code': 400, 'msg': 'Student did not select this project.'})
+    file = FileModel.query.filter(FileModel.proj_id == proj_id, FileModel.uid == sid, FileModel.active == 1).first()
+    if not file:
+        return jsonify({'code': 400, 'msg': 'No file, cannot award.'})
+    if not selection.a_feedback and not selection.p_feedback:
+        return jsonify({'code': 400, 'msg': 'No feedbacks.'})
+    try:
+        date_time = get_time()[0]
+        if (award == 1 and selection.award == 0) or (award == 0 and selection.award == 1):
+            selection.award = award
+            selection.utime = date_time
+            db.session.commit()
+            return jsonify({'code': 200, 'msg': 'Change award successfully.'})
+        else:
+            return jsonify({'code': 400, 'msg': 'No need to change.'})
+    except Exception as e:
+        return jsonify({'code': 400, 'msg': 'Give award failed.', 'error_msg': str(e)})
+
+
+
+
