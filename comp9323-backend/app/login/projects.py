@@ -555,36 +555,21 @@ def edit_project():
 
 
 def getStudentSelectionInfo(selection, proj):
-    result = dict()
-    result["sid"] = selection.sid
-    sid = selection.sid
-    user = UserModel.query.filter(UserModel.uid == sid, UserModel.active == 1).first()
-    if not user:
-        return
-    result["a_feedback"] = selection.a_feedback
-    result["p_feedback"] = selection.p_feedback
-    result["student_name"] = user.username
-    result["uid"] = user.uid
-    result["award"] = selection.award
-    result["utime"] = selection.utime
-    proj_id = proj.proj_id
-    files = FileModel.query.filter(FileModel.proj_id == proj_id, FileModel.active == 1, FileModel.uid == sid).all()
-    file_lst = list()
-    for file in files:
-        file_result = dict()
-        file_result["file_id"] = file.fid
-        file_result["file_name"] = file.file_name
-        file_result["file_url"] = file.file_url
-        file_lst.append(file_result)
-    result["file"] = file_lst
-
+    user = UserModel.query.filter(UserModel.uid == selection.sid, UserModel.active == 1).first()
+    file = FileModel.query.filter(FileModel.proj_id == proj.proj_id, FileModel.active == 1,
+                                  FileModel.uid == selection.sid).first()
+    if not user or not selection or not proj or not file:
+        return {}
+    file_info = {"file_id": file.fid, "file_name": file.file_name, "file_url": file.file_url}
+    result = {"sid": selection.sid, "student_name": user.username, "uid": user.uid, "utime": selection.utime, "file": file_info,
+              "a_feedback": selection.a_feedback, "p_feedback": selection.p_feedback, "award": selection.award}
     return result
 
 
 def view_works():
     data = request.get_json(force=True)
     uid, proj_id = data["uid"], data["proj_id"]
-    pagesize, page_index = data["page_size"], data["page_index"]
+    page_size, page_index = data["page_size"], data["page_index"]
     user = UserModel.query.filter(UserModel.uid == uid, UserModel.active == 1).first()
     if not user:
         return jsonify({'code': 400, 'msg': 'User does not exist.'})
@@ -637,7 +622,7 @@ def view_works():
             if temp:
                 selection_List.append(temp)
         result["student_count"] = len(selection_List)
-        page_size = 1
+
         start = page_index * page_size
         end = start + page_size
         if end < result["student_count"]:
@@ -655,6 +640,7 @@ def view_works():
         return jsonify({'code': 200, 'result': result})
     else:
         return jsonify({'code': 400, 'msg': "get works failed"})
+
 
 def give_feedback():
     data = request.get_json(force=True)
@@ -723,7 +709,7 @@ def join_quit_project():
     date_time = get_time()[0]
     if join_state == 1:
         if not selection and proj.cur_num < proj.max_num:
-            add_selection = SelectionModel(sel_id=sel_id, proj_id=proj_id, sid=sid, a_feedback=None, p_feedback=None,
+            add_selection = SelectionModel(sel_id=sel_id, proj_id=proj_id, sid=sid, a_feedback="None", p_feedback="None",
                                            ctime=date_time, utime=date_time, active=1)
             proj.cur_num += 1
             db.session.add(add_selection)
