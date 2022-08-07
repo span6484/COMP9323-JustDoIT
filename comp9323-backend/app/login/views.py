@@ -325,7 +325,8 @@ def get_award_detail():
         p_info = {"pid": proposer.uid, "name": proposer.username, "email": proposer.email}
         stu_info = {"sid": student.uid, "name": student.username, "email": student.email}
         file_info = {"fid": file.fid, "file_name": file.file_name, "file_url": file.file_url}
-        result = {"course": course_info, "project": proj_info, "ca": ca_info, "p": p_info, "stu": stu_info, "file": file_info}
+        result = {"course": course_info, "project": proj_info, "ca": ca_info, "p": p_info, "stu": stu_info, "file": file_info,
+                  "a_feedback": selection.a_feedback, "p_feedback": selection.p_feedback}
         return jsonify({'code': 200, 'result': result})
     except Exception as e:
         return jsonify({'code': 400, 'msg': 'Get award detail failed.', 'error_msg': str(e)})
