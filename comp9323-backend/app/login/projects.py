@@ -206,21 +206,39 @@ def change_project_status():
     if not course:
         return jsonify({'code': 400, 'msg': 'not related course'})
 
-    can_modify = 0
+    can_modify, fst_status, sec_status = 0, "", ""
     cur_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     start_time = project.start_time.strftime('%Y-%m-%d %H:%M:%S')
     close_time = project.close_time.strftime('%Y-%m-%d %H:%M:%S')
     print(cur_time, start_time, close_time)
     if project.aid == uid:
-        if (project.status == 0 and (status == 1 or status == 2)) or (project.status == 1 and status == 3):
+        if project.status == 0 and (status == 1 or status == 2):
             can_modify = 1
+            fst_status = "pending"
+            if status == 1:
+                sec_status = "approved"
+            else:
+                sec_status = "rejected"
+        elif project.status == 1 and status == 3:
+            can_modify = 1
+            fst_status = "approved"
+            sec_status = "open to join"
         elif status == 4 and project.status == 3 and start_time < cur_time < close_time:
             can_modify = 1
+            fst_status = "open to join"
+            sec_status = "in progress"
         elif status == 5 and (project.status == 4 or project.status == 3) and cur_time > close_time:
             can_modify = 1
+            fst_status = "in progress"
+            sec_status = "close"
     elif course.public == 1 and user.role == 3 and project.aid != uid:
         if project.status == 0 and (status == 1 or status == 2):
             can_modify = 1
+            fst_status = "pending"
+            if status == 1:
+                sec_status = "approved"
+            else:
+                sec_status = "rejected"
     else:
         return jsonify({'code': 400, 'msg': 'This Project cannot be changed by this user.'})
 
@@ -229,8 +247,15 @@ def change_project_status():
             project.status = status
             date_time = get_time()[0]
             project.utime = date_time
-            db.session.commit()
-            return jsonify({'code': 200, 'msg': 'modify status successfully'})
+            auth_msg = add_message(project.aid,
+                                   f"Status of project {project.proj_name} was changed from {fst_status} to {sec_status}.")
+            proposer_msg = add_message(project.pid,
+                                       f"Status of your project {project.proj_name} was changed from {fst_status} to {sec_status}.")
+            if auth_msg and proposer_msg:
+                db.session.commit()
+                return jsonify({'code': 200, 'msg': 'Change status and send messages successfully.'})
+            else:
+                return jsonify({'code': 400, 'msg': 'Change status and send messages failed.'})
         else:
             return jsonify({'code': 400, 'msg': 'modify status failed'})
     except Exception as e:
@@ -423,11 +448,13 @@ def reply_comment():
         comment = CommentModel(cm_id=cm_id, proj_id=proj_id, owner_uid=uid, target_uid=target_uid, parent_id=parent_id,
                                root_id=root_id, content=content, ctime=date_time, utime=date_time, active=1)
         db.session.add(comment)
-        db.session.commit()
         # add_comment()
-        msg = add_message(target_usr.uid, f"{username} replied your comment.")
-
-        return jsonify({'code': 200, 'msg': 'reply comment successfully'})
+        msg = add_message(target_usr.uid, f"{username} replied your comment in project {proj.proj_name}.")
+        if msg:
+            db.session.commit()
+            return jsonify({'code': 200, 'msg': 'reply comment successfully and send message successfully.'})
+        else:
+            return jsonify({'code': 200, 'msg': 'reply comment successfully and send message failed.'})
     except Exception as e:
         return jsonify({'code': 400, 'msg': 'reply comment failed.', 'error_msg': str(e)})
 
@@ -538,8 +565,14 @@ def edit_project():
                 db.session.add(new_file)
 
         proj.max_num = max_num
-        db.session.commit()
-        return jsonify({'code': 200, 'msg': 'modify successfully'})
+        auth_msg = add_message(proj.aid,
+                               f"Project {proj.proj_name} was edited by {user.username}.")
+        proposer_msg = add_message(proj.pid, f"Your project {proj.proj_name} was edited by {user.username}.")
+        if auth_msg and proposer_msg:
+            db.session.commit()
+            return jsonify({'code': 200, 'msg': 'Edit proposal and send messages successfully.'})
+        else:
+            return jsonify({'code': 400, 'msg': 'Edit proposal and send messages failed.'})
 
     except Exception as e:
         return jsonify({'code': 400, 'msg': 'edit project failed.', 'error_msg': str(e)})
@@ -680,8 +713,18 @@ def give_feedback():
         if user == proposer:
             selection.p_feedback = feedback
         selection.utime = date_time
-        db.session.commit()
-        return jsonify({'code': 200, 'msg': 'give feedback successfully'})
+        role = ""
+        if uid == proj.aid:
+            role = "Course authority"
+        elif uid == proj.pid:
+            role = "Proposer"
+        stu_msg = add_message(sid, f"{role} {user.username} gave you a feedback in project {proj.proj_name}.")
+        if stu_msg:
+            db.session.commit()
+            return jsonify({'code': 200, 'msg': 'Give feedback and send messages successfully.'})
+        else:
+            return jsonify({'code': 400, 'msg': 'Give feedbac and send messages failed.'})
+
     return jsonify({'code': 400, 'msg': 'give feedback fail'})
 
 
@@ -705,7 +748,7 @@ def join_quit_project():
     date_time = get_time()[0]
     if join_state == 1:
         if not selection and proj.cur_num < proj.max_num:
-            add_selection = SelectionModel(sel_id=sel_id, proj_id=proj_id, sid=sid, a_feedback="None", p_feedback="None",
+            add_selection = SelectionModel(sel_id=sel_id, proj_id=proj_id, sid=sid, a_feedback=None, p_feedback=None,
                                            ctime=date_time, utime=date_time, active=1)
             proj.cur_num += 1
             db.session.add(add_selection)
@@ -742,11 +785,24 @@ def student_submit():
         new_file = FileModel(fid=fid, proj_id=proj_id, uid=uid, file_name=file_name, file_url=file_url,
                              type="work", ctime=date_time, utime=date_time)
         db.session.add(new_file)
-        db.session.commit()
-        return jsonify({'code': 200, 'msg': 'Submit work successfully.'})
+        stu_msg = add_message(uid, f"Your work {file_name} uploded to project {proj.proj_name} successfully.")
+        auth_msg = add_message(proj.aid,
+                               f"Student {user.username} has uploaded a work to project {proj.proj_name}.")
+        proposer_msg = add_message(proj.pid, f"Student {user.username} has uploaded a work to project {proj.proj_name}.")
+        if stu_msg and auth_msg and proposer_msg:
+            db.session.commit()
+            return jsonify({'code': 200, 'msg': 'Submit and send messages successfully.'})
+        else:
+            return jsonify({'code': 400, 'msg': 'Submit and send messages failed.'})
 
     except Exception as e:
-        return jsonify({'code': 400, 'msg': 'Submit work failed.', 'error_msg': str(e)})
+        file_name = file_url.split('.com/')[1]
+        stu_msg = add_message(uid, f"Your work {file_name} uploded to project {proj.proj_name} successfully.")
+        if stu_msg:
+            db.session.commit()
+            return jsonify({'code': 400, 'msg': 'Submit work failed and send message.', 'error_msg': str(e)})
+        else:
+            return jsonify({'code': 400, 'msg': 'Submit work and send message failed.', 'error_msg': str(e)})
 
 
 def give_award():
@@ -778,13 +834,25 @@ def give_award():
         return jsonify({'code': 400, 'msg': 'No feedbacks.'})
     try:
         date_time = get_time()[0]
-        if (award == 1 and selection.award == 0) or (award == 0 and selection.award == 1):
+        if award == 1 and selection.award == 0:
             selection.award = award
             selection.utime = date_time
-            db.session.commit()
-            return jsonify({'code': 200, 'msg': 'Change award successfully.'})
+            stu_msg = add_message(sid, f"Congratulations! Your work in {proj.proj_name} got an award!.")
+        elif award == 0 and selection.award == 1:
+            selection.award = award
+            selection.utime = date_time
+            stu_msg = add_message(sid, f"Your award of {proj.proj_name} was canceled.")
         else:
             return jsonify({'code': 400, 'msg': 'No need to change.'})
+        auth_msg = add_message(proj.aid,
+                               f"Student {student.username} has received award change in project {proj.proj_name}.")
+        proposer_msg = add_message(proj.pid,
+                                   f"Student {student.username} has received award change in project {proj.proj_name}.")
+        if stu_msg and auth_msg and proposer_msg:
+            db.session.commit()
+            return jsonify({'code': 200, 'msg': 'Change award and send messages successfully.'})
+        else:
+            return jsonify({'code': 400, 'msg': 'Change award and send messages failed.'})
     except Exception as e:
         return jsonify({'code': 400, 'msg': 'Give award failed.', 'error_msg': str(e)})
 
