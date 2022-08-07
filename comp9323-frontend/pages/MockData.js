@@ -101,3 +101,6 @@ export function giveFeedback(param) {
 export function giveAward(param) {
     return fetchData('http://127.0.0.1:5000/give_award', param);
 }
+export function getAwardDetail(param) {
+    return fetchData('http://127.0.0.1:5000/get_award_detail', param);
+}

@@ -23,9 +23,9 @@ import { MailOutlined, DeleteOutlined, FormOutlined } from "@ant-design/icons"
 
 const { Dragger } = Upload;
 import { SP } from 'next/dist/next-server/lib/utils';
-import {viewProject} from "../MockData";
+import {viewProject,getAwardDetail} from "../MockData";
 const { Title, Paragraph, Text, Link } = Typography;
-
+import "./detail.less"
 const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     const ref = useRef();
     const { Panel } = Collapse;
@@ -48,7 +48,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
             break;
     }
     // get project id from url 
-    var pid = urlMsg.asPath.toString().replace('/project/showcase?id=', '');
+    var selId = urlMsg.asPath.toString().replace('/project/showcase?id=', '');
     const [pagestate, setPageState] = useState(0);
     const [project, setProject] = useState({});
     useEffect(() => {
@@ -62,12 +62,10 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     function getProjectDetail() {
         // fetch project info
         try {
-            viewProject({ "proj_id": pid, "uid": uid, }).then(val =>{
+            getAwardDetail({ "sel_id": selId, "uid": uid, }).then(val =>{
                 if(val.code === 200){
-                    val.result.start_time = moment(val.result.start_time).format('YYYY-MM-DD');
-                    val.result.close_time = moment(val.result.close_time).format('YYYY-MM-DD');
                     setProject(val.result);
-                    ref?.current.getTabPane(urlMsg.asPath, val.result?.proj_name)
+                    ref?.current.getTabPane(urlMsg.asPath, val.result?.project?.proj_name)
                 }
             })
         } catch (e) {
@@ -85,14 +83,8 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                        <Row>
                             <Col span={14}>
                                 <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
-                                    <Title>{project.proj_name}</Title>
-                                    <Title level={5}>Course: {project.course_name}</Title>
-                                    <Row>
-                                        <Col span={24}>
-                                            <Title level={5}>Duration:</Title>
-                                            <Paragraph>From {project.start_time} to {project.close_time}</Paragraph>
-                                        </Col>
-                                    </Row>
+                                    <Title>{project?.project?.proj_name}</Title>
+                                    <Title level={5}>Course: {project?.course?.course_name}</Title>
                                     <Row>
                                         <Col span={24} style={{display : "flex",alignItems : "center"}}>
                                             <Title level={5}>Course Authority:</Title>
@@ -100,11 +92,11 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                                                 style={{marginLeft : "10px"}}
                                                 className="comment-box-item"
                                                 author={<div>
-                                                    {project.authority_name}
+                                                    {project.ca?.name}
                                                     <Tooltip placement="top" title={<div className={"email-tool-tip-component"}>
-                                                        {project.authority_email}
+                                                        {project.ca?.email}
                                                         <CopyToClipboard
-                                                            text={project.authority_email}
+                                                            text={project.ca?.email}
                                                             onCopy={() => {
                                                                 message.success('copy email success');
                                                             }}
@@ -127,11 +119,11 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                                                 style={{marginLeft : "10px"}}
                                                 className="comment-box-item"
                                                 author={<div>
-                                                    {project.proposer_name}
+                                                    {project.p?.name}
                                                     <Tooltip placement="top" title={<div className={"email-tool-tip-component"}>
-                                                        {project.proposer_email}
+                                                        {project.p?.email}
                                                         <CopyToClipboard
-                                                            text={project.proposer_email}
+                                                            text={project.p?.email}
                                                             onCopy={() => {
                                                                 message.success('copy email success');
                                                             }}
@@ -156,18 +148,17 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                         <Divider />
                         <Row>
                             <Col span={24} >
-                                <Title level={2}>Awarded work to showcase</Title>
+                                <Title level={3}>Awarded work to showcase</Title>
                                 <br />
-
-                                <Title level={3}>Author of project</Title>
+                                <Title level={4}>Author of project</Title>
                                 <Comment
                                     className="comment-box-item"
                                     author={<div>
-                                        Example author
+                                        {project.stu?.name}
                                         <Tooltip placement="top" title={<div className={"email-tool-tip-component"}>
-                                            ExampleEmail@COMP9323.com
+                                            {project.stu?.email}
                                             <CopyToClipboard
-                                                text={"ExampleEmail@COMP9323.com"}
+                                                text={project.stu?.email}
                                                 onCopy={() => {
                                                     message.success('copy email success');
                                                 }}
@@ -184,28 +175,19 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                                 >
                                 </Comment>
                                 <br />
-                                <Collapse defaultActiveKey={['1']} onChange={onChange}>
-                                    <Panel header="Document 1" key="1">
-                                        <iframe
-                                            src={"https://www.orimi.com/pdf-test.pdf"}
-                                            title="file"
-                                            width="100%"
-                                            height="1200"
-                                        ></iframe>
-                                    </Panel>
-                                    <Panel header="Document 2" key="2">
-                                        <iframe src="https://onedrive.live.com/embed?resid=1B47937AD843C12%2184207&amp;authkey=%21AOztocS2WvBRawc&amp;em=2&amp;wdAr=1.7777777777777777" width="1200px" height="800px" frameborder="0">This is an embedded <a target="_blank" href="https://office.com">Microsoft Office</a> presentation, powered by <a target="_blank" href="https://office.com/webapps">Office</a>.</iframe>
-                                    </Panel>
-                                    <Panel header="Document 3" key="3">
-                                        <iframe
-                                            src={"https://www.orimi.com/pdf-test.pdf"}
-                                            title="file"
-                                            width="100%"
-                                            height="1200"
-                                        ></iframe>
-                                    </Panel>
+                                {!!project.file?.file_url &&
+                                    <Collapse defaultActiveKey={['1']} onChange={onChange}>
+                                        <Panel header={project.file?.file_name} key="1">
+                                            <iframe
+                                                src={project.file?.file_url}
+                                                title="file"
+                                                width="100%"
+                                                height="600"
+                                            ></iframe>
+                                        </Panel>
+                                    </Collapse>
+                                }
 
-                                </Collapse>
                             </Col>
                         </Row>
                         <br />
