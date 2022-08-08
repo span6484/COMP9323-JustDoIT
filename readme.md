@@ -127,11 +127,9 @@ node -v
 npm config set registry https://registry.npmjs.org
 npm install
 ```
-or
-```bash
-npm run bootstrap
-```
 3 run the development server:
 ```bash
 npm run dev
 ```
+## webLink
+http://localhost:8088/Dashboard/CourseOverview
