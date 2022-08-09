@@ -234,6 +234,7 @@ const CourseDetail = ({ USERMESSAGE, urlMsg }) => {
 
             {/* Reviewers List */}
             {!!courseResList && courseResList.length > 0 &&
+                !!courseDetail.is_public &&
                 <Row>
               <Col span={24}>
                 <Title level={3}>Reviewers</Title>

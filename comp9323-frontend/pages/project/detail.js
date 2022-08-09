@@ -271,7 +271,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
         return null;
     }
     function SButtons(props) {
-        if (props.status < 5) {
+        if (props.status === 2) {
             if (project.is_join) {
                 return (
                     <>
@@ -308,8 +308,15 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                     </>
                 )
             }
-        }
-        else {
+        }else if(userRole === "S" && status === 4){
+            return  <Button type="primary" onClick={() => {
+                ref.current.setTabPane(
+                    `Project Work`,
+                    '',
+                    `/project/work?id=${pid}`
+                )
+            }}>View works</Button>
+        } else {
             return null;
         }
     }
@@ -766,7 +773,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                             <Col span={4}></Col>
                             <Col span={6} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'start' }}>
                                 <br />
-                                <ProjectCapacity status={status} cur_num={project.cur_num} max_num={project.max_num} />
+                                <ProjectCapacity status={status} cur_num={project.cur_num || 0} max_num={project.max_num || 10} />
                                 <br />
                                 <Buttons userRole={userRole} status={status} />
                                 <SubmitWorkButton userRole={userRole} status={status} />

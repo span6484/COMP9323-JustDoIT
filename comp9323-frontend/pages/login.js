@@ -99,7 +99,7 @@ const UgcLogin = ({}) => {
       <style dangerouslySetInnerHTML={{ __html: Style }} />
       <div className="login_big_box">
         <div className="loginBox">
-          <p>LOGO</p>
+          <p>PMSYS</p>
           <div className="loginInputBox">
             <div className="loginImage"/>
             <div>
