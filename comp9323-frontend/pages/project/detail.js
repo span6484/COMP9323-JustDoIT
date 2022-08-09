@@ -220,7 +220,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
         return null;
     }
     function RButtons(props) {
-        if (props.status = 0) {
+        if (props.status == 0) {
             return (
                 <>
                     <Button type="primary" onClick={() => {
