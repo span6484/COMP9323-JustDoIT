@@ -154,10 +154,10 @@ def get_myProject():
                 projs = ProjectModel.query.filter(ProjectModel.status != -1, ProjectModel.pid == uid).all()
         elif user.role == 3:
             if proj_status or proj_status == 0:
-                projs = ProjectModel.query.join(CourseModel, ProjectModel.cid == CourseUserModel.cid).filter(
+                projs = ProjectModel.query.join(CourseModel, ProjectModel.cid == CourseModel.cid).filter(
                     ProjectModel.status == proj_status, or_(ProjectModel.aid == uid, CourseModel.public == 1)).all()
             else:
-                projs = ProjectModel.query.join(CourseModel, ProjectModel.cid == CourseUserModel.cid).filter(
+                projs = ProjectModel.query.join(CourseModel, ProjectModel.cid == CourseModel.cid).filter(
                     ProjectModel.status != -1, or_(ProjectModel.aid == uid, CourseModel.public == 1)).all()
         else:
             return jsonify({'code': 400, 'msg': 'Invalid number.'})
