@@ -4,7 +4,7 @@ export default class Fetch {
   static getAuditUrlPrefix = (env, isHttps) => {
     let urlPrefix;
     const domain = isHttps ? "https://" : "http://";
-    urlPrefix = domain + 'localhost:5000/';
+    urlPrefix = domain + '127.0.0.1:5000/';
     return urlPrefix;
   };
 

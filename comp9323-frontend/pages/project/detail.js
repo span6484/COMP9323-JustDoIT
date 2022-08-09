@@ -45,7 +45,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
         // fetch posts
         try {
             //console.log('fetch posts for proj', pid);
-            fetch('http://localhost:5000/view_comment', {
+            fetch('http://127.0.0.1:5000/view_comment', {
                 method: 'POST',
                 headers: {
                     "content": 'application/json',
@@ -85,7 +85,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     function getProjectDetail() {
         // fetch project info
         try {
-            fetch('http://localhost:5000/view_project', {
+            fetch('http://127.0.0.1:5000/view_project', {
                 method: 'POST',
                 headers: {
                     "content": 'application/json',
@@ -384,7 +384,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
         const handleClick = (event) => {
             // console.log("Add comment to proj", pid, 'by', uid);
             try {
-                fetch('http://localhost:5000/add_comment', {
+                fetch('http://127.0.0.1:5000/add_comment', {
                     method: 'POST',
                     headers: {
                         "content": 'application/json',
@@ -460,7 +460,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
             // console.log('target_uid, parent_id, root_id');
             // console.log(target_uid, parent_id, root_id);
             try {
-                fetch('http://localhost:5000/reply_comment', {
+                fetch('http://127.0.0.1:5000/reply_comment', {
                     method: 'POST',
                     headers: {
                         "content": 'application/json',
@@ -535,7 +535,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
     const handleDeleteComment = (cid, uid) => {
         // console.log("Delete comment ", cid, "by", uid);
         try {
-            fetch('http://localhost:5000/delete_comment', {
+            fetch('http://127.0.0.1:5000/delete_comment', {
                 method: 'POST',
                 headers: {
                     "content": 'application/json',

@@ -13,7 +13,7 @@ const baseJs = require( 'js-base64')
 const routerConfig = require('./router.config');
 const server = express();
 const corsOptions ={
-    origin:'http://localhost:5000',
+    origin:'http://127.0.0.1:5000',
     credentials:true,            //access-control-allow-credentials:true
     optionSuccessStatus:200
 }
