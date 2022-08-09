@@ -86,7 +86,7 @@ const IndexTabTop = ({ msg, tabPaneInit, loginOut , topRef ,USERMESSAGE}) => {
       <style dangerouslySetInnerHTML={{ __html: TabTopStyle }} />
     <div className="lineTopStyle">
       <div className={"ImageDivStyle"} onClick={() => initLab(tabPaneInit)}>
-        <p>LOGO</p>
+        <p>PMSYS</p>
       </div>
       <Menu
         mode="horizontal"
