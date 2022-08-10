@@ -321,7 +321,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
         }
     }
     function SubmitWorkButton(props) {
-        if (props.userRole == "S" && props.status == 3) {
+        if (props.userRole == "S" && props.status == 3 && !!project.is_join) {
             return (
                 <>
                     <br />
