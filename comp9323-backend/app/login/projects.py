@@ -112,10 +112,10 @@ def get_myProject():
         elif user.role == 1:
             if proj_status or proj_status == 0:
                 projs = ProjectModel.query.join(SelectionModel, ProjectModel.proj_id == SelectionModel.proj_id).filter(
-                    ProjectModel.cid == course_id, SelectionModel.sid == uid, ProjectModel.status == proj_status).all()
+                    ProjectModel.cid == course_id, SelectionModel.sid == uid, SelectionModel.active == 1, ProjectModel.status == proj_status).all()
             else:
                 projs = ProjectModel.query.join(SelectionModel, ProjectModel.proj_id == SelectionModel.proj_id).filter(
-                    ProjectModel.cid == course_id, SelectionModel.sid == uid, ProjectModel.status != -1).all()
+                    ProjectModel.cid == course_id, SelectionModel.sid == uid, SelectionModel.active == 1, ProjectModel.status != -1).all()
         elif user.role == 2:
             if proj_status or proj_status == 0:
                 projs = ProjectModel.query.filter(ProjectModel.cid == course_id, ProjectModel.status == proj_status,
@@ -143,10 +143,10 @@ def get_myProject():
         elif user.role == 1:
             if proj_status or proj_status == 0:
                 projs = ProjectModel.query.join(SelectionModel, ProjectModel.proj_id == SelectionModel.proj_id).filter(
-                    SelectionModel.sid == uid, ProjectModel.status == proj_status).all()
+                    SelectionModel.sid == uid, SelectionModel.active == 1, ProjectModel.status == proj_status).all()
             else:
                 projs = ProjectModel.query.join(SelectionModel, ProjectModel.proj_id == SelectionModel.proj_id).filter(
-                    SelectionModel.sid == uid, ProjectModel.status != -1).all()
+                    SelectionModel.sid == uid, SelectionModel.active == 1, ProjectModel.status != -1).all()
         elif user.role == 2:
             if proj_status or proj_status == 0:
                 projs = ProjectModel.query.filter(ProjectModel.status == proj_status, ProjectModel.pid == uid).all()

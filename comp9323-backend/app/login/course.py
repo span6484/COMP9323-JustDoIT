@@ -287,7 +287,7 @@ def get_proposals():
         return jsonify({'code': 400, 'msg': 'Course info in this requirement is invalid.'})
 
     if user.role == 0 or (user.role == 3 and course.public == 1):
-        proposal_list = ProjectModel.query.filter(ProjectModel.rid == rid, ProjectModel.status == 0).all()
+        proposal_list = ProjectModel.query.filter(ProjectModel.rid == rid, ProjectModel.status != -1).all()
     elif user.role == 2:
         proposal_list = ProjectModel.query.filter(ProjectModel.rid == rid, ProjectModel.pid == uid, ProjectModel.status != -1).all()
     else:
