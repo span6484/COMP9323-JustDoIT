@@ -171,13 +171,13 @@ def get_message():
 
     try:
         if read == 0:
-            msg_list = MessageModel.query.filter(MessageModel.uid == uid, MessageModel.active == 1).all()
+            msg_list = MessageModel.query.filter(MessageModel.uid == uid, MessageModel.active == 1).order_by(desc(MessageModel.ctime)).all()
         elif read == 1:
             msg_list = MessageModel.query.filter(MessageModel.uid == uid, MessageModel.read == 1,
-                                                 MessageModel.active == 1).all()
+                                                 MessageModel.active == 1).order_by(desc(MessageModel.ctime)).all()
         elif read == 2:
             msg_list = MessageModel.query.filter(MessageModel.uid == uid, MessageModel.read == 0,
-                                                 MessageModel.active == 1).all()
+                                                 MessageModel.active == 1).order_by(desc(MessageModel.ctime)).all()
         else:
             return jsonify({'code': 400, 'msg': 'Invalid read number.'})
         if not msg_list:
