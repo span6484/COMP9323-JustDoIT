@@ -308,7 +308,7 @@ const TextIndex = ({ USERMESSAGE, urlMsg }) => {
                     </>
                 )
             }
-        }else if(userRole === "S" && status === 4){
+        }else if(userRole === "S" && status === 4 && !!project.is_join){
             return  <Button type="primary" onClick={() => {
                 ref.current.setTabPane(
                     `Project Work`,
